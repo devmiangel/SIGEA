@@ -37,7 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'SIGEAapp',
+    'rest_framework',
+    'rest_framework_simplejwt', #para incorporar con react el login
+    'Predios',
+    'Inventario',
+    'Visitas',
+    'Usuarios'
 ]
 
 MIDDLEWARE = [
