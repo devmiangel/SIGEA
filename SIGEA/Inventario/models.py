@@ -83,6 +83,9 @@ class AsignacionHerramientas(models.Model):
     FechaDevolucion = models.DateField(null=True, blank=True)
     Entregado = models.BooleanField(default=False)
 
+    def __str__(self):
+        return str(self.Herramienta)
+
 #FIN TABLAS DE HERRAMOINTAS
 
 #TABLAS DE INSUMOS
@@ -106,6 +109,9 @@ class InventarioFuncionario(models.Model):
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
     Cantidad = models.IntegerField()
 
+    def __str__(self):
+        return str(self.Funcionario)
+
 class CardexInsumoFuncionario(models.Model):
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
     Insumo = models.ForeignKey(Insumos, on_delete=models.CASCADE)
@@ -113,4 +119,6 @@ class CardexInsumoFuncionario(models.Model):
     Cantidad = models.IntegerField()
     FechaAsignacion = models.DateField()
 
+    def __str__(self):
+        return f"Funcionario: {self.Funcionario} | Insumo: {self.Insumo} | Cantidad: {self.Cantidad}"
 #FIN TABLAS DE INSUMOS
