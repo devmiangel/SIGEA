@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 
-# para no usar username en los usuarios### mirar mas adelante esto 
+# para no usar username en los usuarios### es del modulo del administrados de la db
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
