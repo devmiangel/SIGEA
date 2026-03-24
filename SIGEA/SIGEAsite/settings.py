@@ -37,7 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'SIGEAapp',
+    'rest_framework',
+    'rest_framework_simplejwt', #para incorporar con react el login
+    'Predios',
+    'Inventario',
+    'Visitas',
+    'Usuarios'
 ]
 
 MIDDLEWARE = [
@@ -99,6 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'Usuarios.Usuario'
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
