@@ -1,0 +1,11 @@
+.dropdown-content{
+    position: absolute;
+    min-width: 100%;
+    display: flex;
+    font-display: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    margin-top: 0.5rem;
+     
+}

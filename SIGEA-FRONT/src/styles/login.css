@@ -1,3 +1,55 @@
 .login-wrapper{
-    background-color: #aaa;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    min-height: 100vh;
+    min-width: 70vw;
+    padding: 0;
+    gap: 6rem;
+    background-color: #fdfcf8;
+}
+
+.logo{
+    display: flex;
+    flex-direction: column;
+    max-width: 250px;
+}
+
+.login-form{
+    margin: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 30%;
+    
+}
+
+.section-log{
+    margin-bottom: 1.5rem;
+}
+
+.form-tittle{
+    margin: auto;
+    color: #015d3b;
+}
+
+
+/* estilos del registro */
+
+.names{
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 49% 49%;
+    gap: 0 5px;
+}
+
+.dropdown{
+    background-color: #30c58e;
+    width: 400px;
+    height: 50px;
+}
+
+.document-type{
+    
+    max-width: 100%;
 }
