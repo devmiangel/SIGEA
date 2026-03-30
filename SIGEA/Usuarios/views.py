@@ -39,7 +39,7 @@ class EmpresasViewSet(viewsets.ModelViewSet):
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    ##permission_classes = [IsAuthenticated]
+    ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
 
 class FuncionariosViewSet(viewsets.ModelViewSet):
     queryset = Funcionarios.objects.all()

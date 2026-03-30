@@ -3,7 +3,7 @@ from .models import (
     TiposVehiculos, TiposCombustibles, MarcasVehiculos, LineasVehiculos, 
     Vehiculos, DetalleVehiculos, Conductores, RegistroAsignacionVehiculos,
     TiposHerramientas, Herramientas, AsignacionHerramientas,
-    UnidadesMedida, Insumos, InventarioFuncionario, CardexInsumoFuncionario
+    Insumos, InventarioFuncionario, CardexInsumoFuncionario
 )
 
 class DetalleVehiculoInline(admin.TabularInline):
@@ -17,4 +17,4 @@ class VehiculosAdmin(admin.ModelAdmin):
 
 admin.site.register([TiposVehiculos, TiposCombustibles, MarcasVehiculos, LineasVehiculos, DetalleVehiculos])
 admin.site.register([Conductores, RegistroAsignacionVehiculos, TiposHerramientas, Herramientas, AsignacionHerramientas])
-admin.site.register([UnidadesMedida, Insumos, InventarioFuncionario, CardexInsumoFuncionario])
+admin.site.register([Insumos, InventarioFuncionario, CardexInsumoFuncionario])

@@ -1,3 +1,4 @@
+from UPs.models import Unidades
 from django.db import models
 from Usuarios.models import Funcionarios, Administradores
 
@@ -90,16 +91,11 @@ class AsignacionHerramientas(models.Model):
 
 #TABLAS DE INSUMOS
 
-class UnidadesMedida(models.Model):
-    UnidadMedida = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.UnidadMedida
 
 class Insumos(models.Model):
     Nombre = models.CharField(max_length=255)
     Cantidad = models.IntegerField()
-    UnidadMedida = models.ForeignKey(UnidadesMedida, on_delete=models.PROTECT)
+    Unidades = models.ForeignKey(Unidades, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.Nombre
