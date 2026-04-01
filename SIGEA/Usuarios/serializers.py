@@ -33,6 +33,11 @@ class ContactosSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PersonasSerializer(serializers.ModelSerializer):
+    contactos = ContactosSerializer(many=True, read_only=True)
+    TipoNivelEducativo = TiposNivelesEducativosSerializer(many=True, read_only=True)
+    NivelSisben = SisbenSerializer(many=True, read_only=True)
+    Empresa = EmpresasSerializer(many=True, read_only=True)
+
     class Meta:
         model = Personas
         fields = '__all__'

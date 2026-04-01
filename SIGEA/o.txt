@@ -6,3 +6,15 @@ migraciones
 python manage.py makemigrations
 python manage.py migrate
 
+contactos deben ir asi si no se rompe
+
+[
+    {
+        "id": 1,
+        "TipoContacto": "telefono"  1111111111111111111111
+    },
+    {
+        "id": 2,
+        "TipoContacto": "email"   222222222222222222222222222
+    }
+]
