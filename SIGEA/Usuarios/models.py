@@ -59,6 +59,7 @@ class Sisben(models.Model):
 
 class Empresas(models.Model):
     NombreEmpresa = models.CharField(max_length=255)
+    NitEmpresa = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.NombreEmpresa
