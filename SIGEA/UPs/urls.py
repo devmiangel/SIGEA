@@ -1,0 +1,31 @@
+from rest_framework.routers import DefaultRouter
+from .views import *
+
+router = DefaultRouter()
+router.register(r'tiposUP', TipoUPViewSet)
+router.register(r'actividadesUP', ActividadUPViewSet)
+router.register(r'unidades', UnidadesViewSet)
+router.register(r'archivosUP', ArchivosUPViewSet)
+router.register(r'detalleUP', DetalleUPViewSet)
+router.register(r'productosUPs', ProductosUPsViewSet)
+router.register(r'produccionAgricola', ProduccionUPAgricolaViewSet)
+router.register(r'produccionAgroindustrial', ProduccionUPAgroindustrialViewSet)
+router.register(r'gruposAnimales', GrupoAnimalViewSet)
+router.register(r'tiposAves', TiposAvesViewSet)
+router.register(r'propositos', PropositosViewSet)
+router.register(r'animales', AnimalesViewSet)
+router.register(r'razas', RazasViewSet)
+router.register(r'productosApicolas', ProductosApicolasViewSet)
+router.register(r'detalleBovinos', DetalleBovinosViewSet)
+router.register(r'detalleAves', DetalleAvesViewSet)
+router.register(r'detallePorcinos', DetallePorcinosViewSet)
+router.register(r'detalleEquinos', DetalleEquinosViewSet)
+router.register(r'detalleCaprinos', DetalleCaprinosViewSet)
+router.register(r'detalleOvinos', DetalleOvinosViewSet)
+router.register(r'detalleConejos', DetalleConejosViewSet)
+router.register(r'detalleCuries', DetalleCuriesViewSet)
+router.register(r'detallePeces', DetallePecesViewSet)
+router.register(r'detalleApicolas', DetalleApicolasViewSet)
+router.register(r'UPs', UPViewSet)
+
+urlpatterns = router.urls

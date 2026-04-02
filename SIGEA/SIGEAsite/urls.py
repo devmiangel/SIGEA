@@ -16,4 +16,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/register/', register, name='register'),
     path('api/usuarios/', include('Usuarios.urls')),
+    path('api/inventario/', include('Inventario.urls')),
+    path('api/predios/', include('Predios.urls')),
+    path('api/UPs/', include('UPs.urls')),
+    path('api/visitas/', include('Visitas.urls'))
 ]
