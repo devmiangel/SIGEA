@@ -1,5 +1,9 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
+from Usuarios.models import Usuario
 from .models import (
     UP,
     TipoUP,
@@ -54,7 +58,13 @@ from .serializers import (
     DetallePecesSerializer,
     DetalleApicolasSerializer,
     UPSerializer,
-    CaracterizacionUPsSerializer
+    InfoPersonalCaracterizacionSerializer,
+    InfoPredioCaracterizacionSerializer,
+    InfoUPCaracterizacionSerializer,
+    InfoProduccionAgricolaSerializer,
+    InfoProduccionAnimalSerializer,
+    InfoProduccionAgroindustrialSerializer,
+    InfoAdicionalCaracterizacionSerializer
 )
 
 class TipoUPViewSet(viewsets.ModelViewSet):
@@ -157,6 +167,90 @@ class UPViewSet(viewsets.ModelViewSet):
     queryset = UP.objects.all()
     serializer_class = UPSerializer
 
-class UPsViewSet(viewsets.ModelViewSet):
-    queryset = UP.objects.all()
-    serializer_class = CaracterizacionUPsSerializer
+# INFO PERSONAL DE CARACTERIZACION
+
+
+def _get_up_for_user(request, userId=None):
+    if userId is None:
+        userId = request.data.get("userId")
+
+    if not userId:
+        return None, Response({"error": "userId es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+
+    usuario = get_object_or_404(Usuario, id=userId)
+    productor = getattr(usuario, 'productores', None)
+    if not productor:
+        return None, Response({"error": "No se encontro el productor"}, status=status.HTTP_404_NOT_FOUND)
+
+    up = UP.objects.filter(Productor=productor).first()
+    if not up:
+        return None, Response({"error": "No se encontro la UP"}, status=status.HTTP_404_NOT_FOUND)
+
+    return up, None
+
+
+@api_view(['POST'])
+def info_personal_caracterizacion(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoPersonalCaracterizacionSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_predio_caracterizacion(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoPredioCaracterizacionSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_up_caracterizacion(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoUPCaracterizacionSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_produccion_agricola(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoProduccionAgricolaSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_produccion_animal(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoProduccionAnimalSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_produccion_agroindustrial(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoProduccionAgroindustrialSerializer(up)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def info_adicional_caracterizacion(request, userId=None):
+    up, error_response = _get_up_for_user(request, userId)
+    if error_response:
+        return error_response
+    serializer = InfoAdicionalCaracterizacionSerializer(up)
+    return Response(serializer.data)
+
+
+# FIN INFO PERSONAL DE CARACTERIZACION
+

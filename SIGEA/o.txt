@@ -6,7 +6,10 @@ migraciones
 python manage.py makemigrations
 python manage.py migrate
 
-contactos deben ir asi si no se rompe
+seeder
+python manage.py seed
+
+contactos deben ir asi si no se rompe ya quedo en el seed solo es correrlo
 
 [
     {
