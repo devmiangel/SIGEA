@@ -54,7 +54,11 @@ class PersonasSerializer(serializers.ModelSerializer):
         
         return data
 
+<<<<<<< HEAD
 class UsuarioSerializer(serializers.ModelSerializer): #crea usuarios
+=======
+class UsuarioSerializer(serializers.ModelSerializer):
+>>>>>>> origin/Backend
     
     """ groups = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field ='name'

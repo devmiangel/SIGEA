@@ -89,7 +89,6 @@ def register(request):
 
     contacto = contacto_serializer.save()
 
-    # 🔥 AQUÍ ESTABA EL ERROR
     persona.contactos.add(contacto)
 
     # 3. Crear usuario

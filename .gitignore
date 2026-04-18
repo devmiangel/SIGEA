@@ -1,0 +1,13 @@
+# Archivos de prueba locales
+SIGEA/seeders/management/commands/seed_pruebas.py
+
+# Otros archivos comunes de Django/Python
+
+*.py[cod]
+*$py.class
+venv/
+db.sqlite3
+.env
+.antigravityignore
+__pycache__/
+*.pyc

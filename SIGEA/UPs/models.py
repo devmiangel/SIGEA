@@ -61,7 +61,7 @@ class DetalleUP(models.Model):
     NumeroTanques = models.IntegerField()
     NumeroReservorios = models.IntegerField()
     FuentesAgua = models.BooleanField(default=False)
-    FechaActualizacion = models.DateField()
+    FechaActualizacion = models.DateField(blank=True, null=True)
 
 class ProductosUPs(models.Model):
     Producto = models.CharField(max_length=255)
