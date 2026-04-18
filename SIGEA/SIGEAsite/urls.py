@@ -10,10 +10,9 @@ router.register(r'FormCaracterizacionUPs', UPsViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/me/', me, name='me'),
     path('api/', include(router.urls)),
     path('api/register/', register, name='register'),
     path('api/usuarios/', include('Usuarios.urls')),
+    path(r'api/auth/', include('knox.urls'))
 ]

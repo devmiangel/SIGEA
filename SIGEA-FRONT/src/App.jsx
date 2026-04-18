@@ -1,12 +1,14 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { useState } from 'react'
 
-import Dashboard from './pages/dashboard/dashboard.jsx'
-import Preferences from './pages/preferences/preferences.jsx'
-import Login from './pages/login/login.jsx'
-import Register from './pages/login/register.jsx'
 import './styles/app.css'
-
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ShceduleAdmin from './pages/admin/ScheduleAdmin' 
+import InventaryAdmin from './pages/admin/inventaryAdmin' 
+import DashboardAdmin from './pages/admin/DashboardAdmin' 
+import UsersAdmin from './pages/admin/usersAdmin'
+import ReportAdmin from './pages/admin/ReportAdmin' 
 
 
 const App = () => {
@@ -18,17 +20,21 @@ const App = () => {
 
     return (
         <>
-            <div className ='wrapper'>
-                
-                <BrowserRouter>
-                    <Routes>
-                        <Route path="/dashboard" element={<Dashboard/>} />
-                        <Route path="/preferences" element={<Preferences/>} />
-                        <Route path="/login" element={<Login/>} />
-                        <Route path="/register" element={<Register/>} />
-                    </Routes>
-                </BrowserRouter>    
-            </div>    
+            
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<LoginPage/>} />
+
+                    <Route path="/register" element={<RegisterPage/>} />
+                    
+                    <Route path='/administrador/dashboard' element={<DashboardAdmin/>}/>
+                    <Route path='/administrador/report' element={<ReportAdmin/>}/>
+                    <Route path='/administrador/schedule' element={<ShceduleAdmin/>}/>
+                    <Route path='/administrador/users' element={<UsersAdmin/>}/>
+                    <Route path='/administrador/inventary' element={<InventaryAdmin/>}/>
+                      
+                </Routes>
+            </BrowserRouter>    
         </>
     )
 }

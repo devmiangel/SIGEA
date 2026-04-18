@@ -1,23 +1,21 @@
+import { forwardRef } from 'react'
 import '../styles/components_login.css'
 
-export function InputLogReg({type ,placeholder}){
+export const InputLogReg = forwardRef(({type ,placeholder, aditionalClass = "", ...rest}, ref) => {
     return(
-        <input type={type} placeholder={placeholder} className='input-log'/>    
+        <input 
+            ref={ref}
+            type={type} 
+            placeholder={placeholder} 
+            className={`input-log ${aditionalClass}`}
+            {...rest}  
+        />          
     )
-}
-
-export function InputListaLogReg({valueInput, nameInput}){
-    return(
-        <label className='input-radio'>
-            <input type='radio'  value={valueInput} name={nameInput}/>
-            {valueInput}
-        </label>
-    )
-}
+})
 
 export function LinkLog({children, href}){
     return(
-        <a href={href} className='log-link' target='_blank'>{children} </a>
+        <a href={href} className='log-link'>{children} </a>
     )
 }
 

@@ -1,3 +1,31 @@
+.message-errors{
+    color: #a22;
+    font-size: 8px;
+    position: absolute;
+    top: 65px;
+    left: 15px;
+}
+
+.message-errors-login{
+    color: #a22;
+    font-size: 8px;
+    margin-left: 5px;
+    top: 43px;
+    left: 15px;
+}
+
+.message-errors-form{
+    color: #a22;
+    font-size: 8px;
+    position: absolute;
+    top: 43px;
+    left: 15px;
+}
+
+.name-parent{
+    position: relative;
+}
+
 .login-wrapper{
     background-color: #fff;
     display: flex;
@@ -43,13 +71,6 @@
     gap: 0 5px;
 }
 
-.dropdown{
-    background-color: #30c58e;
-    width: 400px;
-    height: 50px;
-}
-
-.document-type{
-    
+.document-type{  
     max-width: 100%;
 }

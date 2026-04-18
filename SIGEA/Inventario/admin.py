@@ -1,10 +1,5 @@
 from django.contrib import admin
-from .models import (
-    TiposVehiculos, TiposCombustibles, MarcasVehiculos, LineasVehiculos, 
-    Vehiculos, DetalleVehiculos, Conductores, RegistroAsignacionVehiculos,
-    TiposHerramientas, Herramientas, AsignacionHerramientas,
-    Insumos, InventarioFuncionario, CardexInsumoFuncionario
-)
+from .models import *
 
 class DetalleVehiculoInline(admin.TabularInline):
     model = DetalleVehiculos

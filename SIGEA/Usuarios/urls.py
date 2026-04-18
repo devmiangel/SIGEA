@@ -13,6 +13,7 @@ router.register(r'tiposContactos', TiposContactosViewSet)
 router.register(r'tiposNivelesEducativos', TiposNivelesEducativosViewSet)
 router.register(r'sisben', SisbenViewSet)
 router.register(r'contactos', ContactosViewSet)
+router.register(r'login', LoginViewSet, basename='login')
 
 
 urlpatterns = router.urls
