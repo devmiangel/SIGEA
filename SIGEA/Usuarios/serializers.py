@@ -54,9 +54,12 @@ class PersonasSerializer(serializers.ModelSerializer):
         
         return data
 
-
-
 class UsuarioSerializer(serializers.ModelSerializer):
+    
+    """ groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field ='name'
+    ) """
+    
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'password', 'persona']
@@ -86,6 +89,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 "El usuario debe estar asociado a una persona"
             )
         return value
+
+class LoginSerializer(serializers.Serializer): #serializador del logeos 
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret.pop('password', None)
+        return ret
 
 class FuncionariosSerializer(serializers.ModelSerializer):
     class Meta:

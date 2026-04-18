@@ -1,21 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from .models import (
-    TiposDocumentos, TiposContactos, TiposNivelesEducativos,
-    Sisben, Empresas, Contactos, Personas,
-    Usuario, Funcionarios, Administradores, Productores
-)
-
-from .serializers import (
-    TiposDocumentosSerializer, TiposContactosSerializer,
-    TiposNivelesEducativosSerializer, SisbenSerializer,
-    EmpresasSerializer, ContactosSerializer, PersonasSerializer,
-    UsuarioSerializer, FuncionariosSerializer,
-    AdministradoresSerializer, ProductoresSerializer
-)
+from knox.models import AuthToken
+from django.contrib.auth import authenticate
+from .models import *
+from .serializers import *
 
 class TiposDocumentosViewSet(viewsets.ModelViewSet):
     queryset = TiposDocumentos.objects.all()
@@ -118,3 +108,31 @@ def register(request):
     return Response({
         "message": "Usuario registrado correctamente"
     })
+
+class LoginViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+    
+    def create (self, request):
+        serializer  = self.serializer_class(data = request.data)
+        
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            
+            user = authenticate(request, email=email, password=password)
+            
+            if user:
+                _, token = AuthToken.objects.create(user)
+                return Response(
+                    {
+                        'user': self.serializer_class(user).data,
+                        'token': token
+                    }
+                )
+            else:
+                return Response({'error': 'invalid credentials'}, status= 401)
+  
+        else:
+            return Response(serializer.errors, status=400)
+        

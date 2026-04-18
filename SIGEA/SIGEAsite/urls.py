@@ -5,13 +5,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/me/', me, name='me'),
     path('api/register/', register, name='register'),
     path('api/usuarios/', include('Usuarios.urls')),
     path('api/inventario/', include('Inventario.urls')),
     path('api/predios/', include('Predios.urls')),
     path('api/UPs/', include('UPs.urls')),
-    path('api/visitas/', include('Visitas.urls'))
+    path('api/visitas/', include('Visitas.urls')),
+    path(r'api/auth/', include('knox.urls'))
 ]
