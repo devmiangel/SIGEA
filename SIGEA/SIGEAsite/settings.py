@@ -33,14 +33,11 @@ INSTALLED_APPS = [
     'UPs',
     'corsheaders',
     'knox',
+    
 ]
 
 REST_FRAMEWORK = {
-<<<<<<< HEAD
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',), 
-=======
-    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
->>>>>>> origin/Backend
 }
 
 MIDDLEWARE = [
@@ -113,18 +110,10 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTH_USER_MODEL = 'Usuarios.Usuario'
 
-<<<<<<< HEAD
 AUTHENTICATION_BACKEND = [ # HAY QUE REVISAR ESTA COSA
     'user.auth_backend.EmailAuthBackend'
 ]
 
-
-=======
-AUTHENTICATION_BACKEND = [
-    'user.auth_backend.EmailAuthBackend'
-]
-
->>>>>>> origin/Backend
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
