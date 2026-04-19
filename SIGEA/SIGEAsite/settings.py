@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'Predios',
     'Inventario',
     'Visitas',
-    'Usuarios'
+    'Usuarios', 
+    'UPs'
 ]
 
 MIDDLEWARE = [

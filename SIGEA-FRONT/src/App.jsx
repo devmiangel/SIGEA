@@ -5,7 +5,7 @@ import Login from './components/login/login.jsx'
 import './styles/app.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { useState } from 'react'
-import './'
+
 
 const App = () => {
     const [token, setToken] = useState(false)
