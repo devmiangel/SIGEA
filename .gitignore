@@ -1,13 +1,47 @@
-# Archivos de prueba locales
+# Archivos específicos
 SIGEA/seeders/management/commands/seed_pruebas.py
 
-# Otros archivos comunes de Django/Python
-
+# ========================
+# Backend (Django/Python)
+# ========================
+__pycache__/
 *.py[cod]
 *$py.class
-venv/
+*.sqlite3
 db.sqlite3
 .env
+.env.*
+venv/
+media/
+staticfiles/
+
+# ========================
+# Frontend (React/Node)
+# ========================
+node_modules/
+dist/
+build/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ========================
+# Sistema / IDE
+# ========================
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ========================
+# Otros
+# ========================
 .antigravityignore
-__pycache__/
-*.pyc
