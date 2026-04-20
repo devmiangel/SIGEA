@@ -24,10 +24,19 @@ class UP(models.Model):
     Productor = models.ForeignKey(Productores, on_delete=models.CASCADE)
     Predio = models.ForeignKey(Predios, on_delete=models.CASCADE)
     TipoUP = models.ForeignKey(TipoUP, on_delete=models.PROTECT)
-    RUEA = models.CharField(max_length=255)
+    RUEA = models.CharField(max_length=20, unique=True, blank=True)
     FechaCaracterizacion = models.DateField()
     FechaActualizacion = models.DateField()
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.PROTECT)
+
+    #GENERACION DE CODIGO RUEA
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+            self.RUEA = f"RUDEA-{self.pk:07d}"
+            super().save(update_fields=['RUEA'])
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"UP {self.id}"
@@ -52,7 +61,7 @@ class DetalleUP(models.Model):
     NumeroTanques = models.IntegerField()
     NumeroReservorios = models.IntegerField()
     FuentesAgua = models.BooleanField(default=False)
-    FechaActualizacion = models.DateField()
+    FechaActualizacion = models.DateField(blank=True, null=True)
 
 class ProductosUPs(models.Model):
     Producto = models.CharField(max_length=255)

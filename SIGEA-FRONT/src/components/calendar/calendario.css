@@ -1,0 +1,9 @@
+.calendar-wrapper{
+    text-align: center;
+    display: grid;
+    grid-template-columns: 100%;
+    border-radius: 5px;
+    border: 1px solid #015d3b;
+    font-family: monospace
+}
+

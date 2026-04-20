@@ -1,18 +1,15 @@
 from django.db import models
 
-class Sectores(models.Model):
-    NombreSector = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.NombreSector
-
-
 class Veredas(models.Model):
     NombreVereda = models.CharField(max_length=255)
-    Sector = models.ForeignKey(Sectores, on_delete=models.PROTECT)
     def __str__(self):
         return self.NombreVereda
 
+class Sectores(models.Model):
+    NombreSector = models.CharField(max_length=255)
+    Vereda = models.ForeignKey(Veredas, on_delete=models.PROTECT)
+    def __str__(self):
+        return self.NombreSector
 
 class TiposTenencias(models.Model):
     TipoTenencia = models.CharField(max_length=255)

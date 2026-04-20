@@ -1,4 +1,23 @@
+ignorar esto es cosa mia
+
+env:venv\Scripts\activate.bat
+
 migraciones 
 python manage.py makemigrations
 python manage.py migrate
 
+seeder
+python manage.py seed
+
+contactos deben ir asi si no se rompe ya quedo en el seed solo es correrlo
+
+[
+    {
+        "id": 1,
+        "TipoContacto": "telefono"  1111111111111111111111
+    },
+    {
+        "id": 2,
+        "TipoContacto": "email"   222222222222222222222222222
+    }
+]

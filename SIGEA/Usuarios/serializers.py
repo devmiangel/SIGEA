@@ -33,10 +33,15 @@ class ContactosSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PersonasSerializer(serializers.ModelSerializer):
+    contactos = ContactosSerializer(many=True, read_only=True)
+    TipoNivelEducativo = TiposNivelesEducativosSerializer(many=True, read_only=True)
+    NivelSisben = SisbenSerializer(many=True, read_only=True)
+    Empresa = EmpresasSerializer(many=True, read_only=True)
+
     class Meta:
         model = Personas
         fields = '__all__'
-    def validate(self, data):
+    def validate(self, data): #primero ejecuta las validadciones y luego guarda em la db
         primer_nombre = data.get('primer_nombre')
         primer_apellido = data.get('primer_apellido')
         
@@ -49,67 +54,50 @@ class PersonasSerializer(serializers.ModelSerializer):
         
         return data
 
-class UsuarioSerializer(serializers.ModelSerializer):
+class UsuarioSerializer(serializers.ModelSerializer): #crea usuarios
+    
+    """ groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field ='name'
+    ) """
+    
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'password', 'persona', 'rol']
+        fields = ['id', 'email', 'password', 'persona']
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}}
         }
 
-    rol = serializers.SerializerMethodField()
-
-    def get_rol(self, obj):
-
-        if Administradores.objects.filter(usuario=obj).exists():
-            return "Administrador"
-
-        if Funcionarios.objects.filter(usuario=obj).exists():
-            return "Funcionario"
-
-        if Productores.objects.filter(usuario=obj).exists():
-            return "Productor"
-
-        return None
-
     def create(self, validated_data):
-        user = Usuario.objects.create_user(**validated_data)
-        return user
+        # Crea el usuario sin vincularlo a ningún rol
+        return Usuario.objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
-        
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-            
+
         if password:
             instance.set_password(password)
-            
+
         instance.save()
         return instance
-  
+
     def validate_persona(self, value):
         if not value:
             raise serializers.ValidationError(
                 "El usuario debe estar asociado a una persona"
             )
         return value
-    
-    def validate(self, data):
-        if self.instance:
-            usuario = self.instance
-            roles_count = sum([
-                Administradores.objects.filter(usuario=usuario).exists(),
-                Funcionarios.objects.filter(usuario=usuario).exists(),
-                Productores.objects.filter(usuario=usuario).exists()
-            ])
-            
-            if roles_count > 1:
-                raise serializers.ValidationError(
-                    "Este usuario ya tiene un rol asignado"
-                )
 
-        return data
+class LoginSerializer(serializers.Serializer): #serializador del logeos 
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret.pop('password', None)
+        return ret
 
 class FuncionariosSerializer(serializers.ModelSerializer):
     class Meta:
