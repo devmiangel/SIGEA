@@ -1,0 +1,51 @@
+.Sidebar{
+    display: flex;
+    background-color:#005C39;
+    min-height: 100vh;
+    width: 14rem;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.logo-wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    gap: 10px;
+}
+
+.logo_sigea{
+    width: 50px;
+    border-radius: 10px;
+}
+
+.logo_letters{
+    color: #fff;
+    font-weight: bolder;
+    font-size:30px;
+}
+
+.Sidebar-item{
+    display: flex;
+    padding: 10px;
+    color: #fff;
+    gap: 10px;
+}
+
+.Sidebar-sections{
+    display: flex;
+    flex-direction: column;
+    margin-left: 7px;
+    margin-top: 20px;
+}
+
+.Sidebar-UserLink{
+    gap: 11px;
+    display: flex;
+    color: #fff;
+    text-decoration: none;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+

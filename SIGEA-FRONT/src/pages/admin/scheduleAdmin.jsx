@@ -1,7 +1,21 @@
+import Sidebar from "../../components/navbar/Sidebar";
+import ScheduleContentAdmin from "../../components/Content/adminContent/ScheduleContentAdmin";
+import '../pages.css'
+
 export default function ShceduleAdmin (){
     return(
         <>
-            <h1>este es el modulo asignacion de horarios del admin</h1>
+            <div className="site">
+                <div className="sidebar-wrapper">
+                    <Sidebar role={'admin'}/>
+                </div>
+
+                 <div className="content-wrapper">
+                    <ScheduleContentAdmin/>
+                </div>
+                
+                 
+            </div> 
         </>
     )
 }

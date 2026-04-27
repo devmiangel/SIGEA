@@ -16,21 +16,23 @@ export default function Login() {
     } = useForm({mode: 'onChange'})
 
     const onSubmit = async(data) => {
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
+        
         try{
-            const result = await response.text()
+            const response = await fetch('http://127.0.0.1:8000/api/usuarios/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            const result = await response.json()
             console.log(result);
             
             if (!response.ok){
                 document.querySelector('.error').textContent = 'Credenciales Invalidas'
                 return
             }
+            
             console.log('usuario logeado',result);
             
         }
