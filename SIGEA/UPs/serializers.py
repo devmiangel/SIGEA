@@ -1,32 +1,6 @@
 from rest_framework import serializers
-from Usuarios.models import Usuario, TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben, Empresas, Contactos, Personas, Funcionarios, Productores
-from .models import (
-    UP,
-    TipoUP,
-    ActividadUP,
-    Unidades,
-    ArchivosUP,
-    DetalleUP,
-    ProductosUPs,
-    ProduccionUPAgricola,
-    ProduccionUPAgroindustrial,
-    GrupoAnimal,
-    TiposAves,
-    Propositos,
-    Animales,
-    Razas,
-    ProductosApicolas,
-    DetalleBovinos,
-    DetalleAves,
-    DetallePorcinos,
-    DetalleEquinos,
-    DetalleCaprinos,
-    DetalleOvinos,
-    DetalleConejos,
-    DetalleCuries,
-    DetallePeces,
-    DetalleApicolas,
-)
+from Usuarios.models import *
+from .models import *
 from datetime import date
 
 class TipoUPSerializer(serializers.ModelSerializer):

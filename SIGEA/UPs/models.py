@@ -28,6 +28,7 @@ class UP(models.Model):
     FechaCaracterizacion = models.DateField()
     FechaActualizacion = models.DateField()
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     #GENERACION DE CODIGO RUEA
     def save(self, *args, **kwargs):
