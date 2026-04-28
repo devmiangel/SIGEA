@@ -96,6 +96,7 @@ class Usuario(AbstractUser):
     last_name = None
     email = models.EmailField(unique=True)
     persona = models.OneToOneField(Personas, on_delete=models.PROTECT, null=True, blank=True)
+    Estado = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -108,18 +109,36 @@ class Usuario(AbstractUser):
 #FALTA CREAR LOS GRUPOSDE CADA ROL
 class Funcionarios(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.usuario)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        grupo, _ = Group.objects.get_or_create(name='Funcionarios')
+        self.usuario.groups.add(grupo)
 
 class Administradores(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.usuario)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        grupo, _ = Group.objects.get_or_create(name='Administradores')
+        self.usuario.groups.add(grupo)
 
 class Productores(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.usuario)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        grupo, _ = Group.objects.get_or_create(name='Productores')
+        self.usuario.groups.add(grupo)

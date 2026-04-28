@@ -44,6 +44,7 @@ class Predios(models.Model):
     Seguro = models.ForeignKey(Seguros, on_delete=models.PROTECT, null=True, blank=True)
     Sector = models.ForeignKey(Sectores, on_delete=models.PROTECT, null=True, blank=True)
     TiposRegistroICA = models.ManyToManyField(TiposRegistrosICA, blank=True)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return self.NombrePredio

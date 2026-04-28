@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
 from UPs.models import TipoUP, ActividadUP, Unidades, GrupoAnimal, TiposAves, Propositos, ProductosApicolas
 from Predios.models import TiposTenencias, Veredas, Sectores
@@ -9,6 +10,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Iniciando seeder...')
+
+        # --- Grupos y Permisos ---
+        self.seed_grupos()
 
         # --- Usuarios ---
         self.seed_maestro(TiposDocumentos, 'TipoDocumento', [
@@ -67,6 +71,36 @@ class Command(BaseCommand):
         Sectores.objects.get_or_create(NombreSector='Sector Sur', Vereda=vereda_default)
 
         self.stdout.write(self.style.SUCCESS('Seed ejecutado correctamente'))
+
+    def seed_grupos(self):
+        # Configuración de grupos y permisos revisar los permisos de cada modelo para asignar correctamente
+        grupos_config = {
+            'Administradores': None,  # None significa todos los permisos
+            'Funcionarios': [
+                'add_predios', 'change_predios', 'view_predios',
+                'add_inventario', 'change_inventario', 'view_inventario',
+                'add_visitas', 'change_visitas', 'view_visitas',
+                'add_ups', 'change_ups', 'view_ups',
+                'view_usuario',
+            ],
+            'Productores': [
+                'view_predios',
+                'view_inventario',
+                'view_ups',
+            ],
+            'Usuarios': [
+                'view_predios',
+                'view_ups',
+            ]
+        }
+
+        for nombre_grupo, permisos in grupos_config.items():
+            grupo, _ = Group.objects.get_or_create(name=nombre_grupo)
+            
+            if permisos is None:
+                grupo.permissions.set(Permission.objects.all())
+            else:
+                grupo.permissions.set(Permission.objects.filter(codename__in=permisos))
 
     def seed_maestro(self, modelo, campo, lista):
         count = 0

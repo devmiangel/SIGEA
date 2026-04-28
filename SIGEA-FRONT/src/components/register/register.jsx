@@ -339,7 +339,7 @@ export default function Register() {
                         <ButtonLink text={'Iniciar sesion'}/> 
                     </div>
                     
-                    <LinkLog href={'https://google.com'}>
+                    <LinkLog href={'https://chatgpt.com/'}>
                         ¿Necesitas ayuda? visita nuestro<strong>centro de ayuda</strong>
                     </LinkLog>
                 </form>

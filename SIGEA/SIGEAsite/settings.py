@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'UPs',
     'corsheaders',
     'knox',
-    'seeders',
+    'seeders'
+    
 ]
 
 REST_FRAMEWORK = {
