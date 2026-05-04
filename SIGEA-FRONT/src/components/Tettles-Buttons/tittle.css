@@ -1,0 +1,49 @@
+.header-wrapper {
+    background-color: #aaaaaa39;
+    min-width: 96%;
+    height: auto;
+    border-radius: 12px;
+    display: flex;
+    padding: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-data-wrapper{
+    display: flex;
+    align-items: center
+}
+
+.logo-wrapper-header{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+}
+
+.header-data{
+    margin: 20px;
+}
+
+.ButtonLink{
+    background-color: #229e14;
+    padding: 8px 20px;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 8px;
+}
+
+.buttons-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 100px;
+}
+
+.header-message{
+    margin: 10px 0;
+    font-size: 12px;
+}

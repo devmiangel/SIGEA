@@ -56,8 +56,6 @@ class PersonasSerializer(serializers.ModelSerializer):
 
 class UsuarioSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
-    grupos = serializers.SerializerMethodField()
-    permisos = serializers.SerializerMethodField()
     
     class Meta:
         model = Usuario
