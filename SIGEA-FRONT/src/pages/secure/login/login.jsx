@@ -92,10 +92,10 @@ export default function Login() {
                             })}
                             type={'password'} 
                             placeholder={'contraseña'} 
-                            autoComplete = 'pass'
+                            autoComplete = 'password'
                         />
-                        {errors.passw && (
-                            <p className='message-errors-login'>{errors.passw.message}</p>
+                        {errors.password && (
+                            <p className='message-errors-login'>{errors.password.message}</p>
                         )}
                         <LinkLog href={'https://google.com'}>
                             Olvidaste tu contraseña
