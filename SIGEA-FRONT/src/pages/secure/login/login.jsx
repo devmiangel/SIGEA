@@ -79,7 +79,7 @@ export default function Login() {
 
                     < section className='section-log section-password'>
                         <InputLogReg 
-                            {...register('password', {
+                            {...register('passw', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
                                 minLength: {
                                     value: 6,
