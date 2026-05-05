@@ -1,12 +1,19 @@
 import '../secure.css'
+import './login.css'
+
 import logo_sigea from '../../../assets/img/logo_sigea.png'
 import titulo from '../../../assets/img/letras_sigea.png'
 import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements/form-input'
-import { useForm } from 'react-hook-form'
-import './login.css'
 
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { login } from '../../../services/authService'
+import { useState } from 'react'
+import { getRouteByRole } from '../../../utils/roleRedirect'
 
 export default function Login() {
+    const navigate = useNavigate()
+    const [errorMsg, setErrorMsg] = useState("")
 
     const {
         register, 
@@ -16,25 +23,16 @@ export default function Login() {
     } = useForm({mode: 'onChange'})
 
     const onSubmit = async(data) => {
-        
+
         try{
-            const response = await fetch('http://127.0.0.1:8000/api/usuarios/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            const result = await response.json()
-            console.log(result);
             
-            if (!response.ok){
-                document.querySelector('.error').textContent = 'Credenciales Invalidas'
-                return
-            }
-            
-            console.log('usuario logeado',result);
-            
+            const result = await login(data)
+
+            console.log("usuario logeado", result)
+
+            reset()
+
+            navigate(getRouteByRole(result.user.rol))
         }
         catch (error){
             console.error('error en la peticion', error);
@@ -106,7 +104,7 @@ export default function Login() {
                     
                     <ButtonLink text={'Iniciar sesion'}/>
                     
-                    <LinkLog href={'/'}>
+                    <LinkLog href={'/registro'}>
                         no tienes cuenta? <strong>Registrate</strong>
                     </LinkLog>
                     <section className='error-wrapper'>

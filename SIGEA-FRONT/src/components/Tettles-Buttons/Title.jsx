@@ -22,10 +22,24 @@ export function Header({componentLogo, headerText, message,  colorLogo, otherEle
 }
 
 
-export function Title(){
+export function Title({componentLogo,children, titleText, colorLogo}){
     return(
-        <>
-        </>
+       
+            <div className="title-wrapper">
+                <div className="logo-wrapper-header" style={{backgroundColor: colorLogo}}>
+                    {componentLogo}
+                </div>
+                <div className="title-content">
+                    <h2 className="title-title">
+                        {titleText}
+                    </h2>
+                    <div className="title-text">
+                        {children} 
+                    </div>
+                   
+                </div>
+            </div>
+
     )
 }
 
