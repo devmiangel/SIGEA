@@ -54,32 +54,37 @@ class PersonasSerializer(serializers.ModelSerializer):
         
         return data
 
-class UsuarioSerializer(serializers.ModelSerializer): #crea usuarios
-    
-    """ groups = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field ='name'
-    ) """
+class UsuarioSerializer(serializers.ModelSerializer):
+    rol = serializers.SerializerMethodField()
     
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'password', 'persona']
+        fields = ['id', 'email', 'password', 'persona', 'Estado', 'rol']
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}}
         }
 
+    def get_rol(self, obj):
+        # Determina el rol del usuario basado en sus relaciones y grupos
+        if hasattr(obj, 'administradores'):
+            return 'Administradores'
+        elif hasattr(obj, 'funcionarios'):
+            return 'Funcionarios'
+        elif hasattr(obj, 'productores'):
+            return 'Productores'
+        elif obj.groups.filter(name='Usuarios').exists():
+            return 'Usuarios'
+        return None
+
     def create(self, validated_data):
-        # Crea el usuario sin vincularlo a ningún rol
         return Usuario.objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
         if password:
             instance.set_password(password)
-
         instance.save()
         return instance
 
@@ -90,14 +95,29 @@ class UsuarioSerializer(serializers.ModelSerializer): #crea usuarios
             )
         return value
 
-class LoginSerializer(serializers.Serializer): #serializador del logeos 
+class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
-    
+
+    #retorna el frupo al hacer login para mostrar el rol del usuario
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret.pop('password', None)
-        return ret
+        usuario = instance
+        rol = None
+        
+        if hasattr(usuario, 'administradores'):
+            rol = 'Administradores'
+        elif hasattr(usuario, 'funcionarios'):
+            rol = 'Funcionarios'
+        elif hasattr(usuario, 'productores'):
+            rol = 'Productores'
+        elif usuario.groups.filter(name='Usuarios').exists():
+            rol = 'Usuarios'
+        
+        return {
+            'id': usuario.id,
+            'email': usuario.email,
+            'rol': rol
+        }
 
 class FuncionariosSerializer(serializers.ModelSerializer):
     class Meta:

@@ -40,6 +40,7 @@ class DetalleVehiculos(models.Model):
     Modelo = models.CharField(max_length=255)
     FechaTecno = models.DateField()
     FechaSoat = models.DateField()
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return self.Placa
@@ -47,6 +48,7 @@ class DetalleVehiculos(models.Model):
 class Conductores(models.Model):
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
     Licencia = models.CharField(max_length=255)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return self.Licencia
@@ -72,6 +74,7 @@ class TiposHerramientas(models.Model):
 class Herramientas(models.Model):
     Herramienta = models.CharField(max_length=255)
     TipoHerramienta = models.ForeignKey(TiposHerramientas, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return self.Herramienta
@@ -96,6 +99,7 @@ class Insumos(models.Model):
     Nombre = models.CharField(max_length=255)
     Cantidad = models.IntegerField()
     Unidades = models.ForeignKey(Unidades, on_delete=models.PROTECT)
+    Estado = models.BooleanField(default=True)
 
     def __str__(self):
         return self.Nombre

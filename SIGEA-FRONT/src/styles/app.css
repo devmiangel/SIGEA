@@ -1,6 +1,10 @@
 *{
     font-family: 'monospace', monospace;
     box-sizing: border-box;
+    margin: 0;
 }
 
+#root{
+    display: flex;
+}
 

@@ -15,3 +15,7 @@ py manage.py migrate
 py manage.py runserver
 
 
+Cuando ocurre el error de no poder migrar
+django.db.migrations.exceptions.MigrationSchemaMissing:
+Es por que por defecto en donde se crea la DB es en el schema publi y este suele no tener permisos, la solucion es ejecutar el siguiente comando en el editor de bases de datos
+GRANT ALL ON SCHEMA public TO postgres;

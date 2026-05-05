@@ -1,0 +1,19 @@
+.firstLogForm{
+    background-color: #fff;
+    min-height: 80vh;
+    width: 90%;
+    border-radius: 12px;
+    padding: 20px;
+   margin-bottom: 20px;
+}
+
+.title-firstLog{
+    
+
+}
+
+.paragraph-title{
+    font-size: 14px;
+    margin: 8px;
+    text-wrap: pretty;
+}
