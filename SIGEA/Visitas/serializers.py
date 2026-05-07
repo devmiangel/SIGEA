@@ -40,3 +40,4 @@ class InfoVisitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfoVisita
         fields = '__all__'
+

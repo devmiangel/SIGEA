@@ -22,6 +22,7 @@ class Solicitudes(models.Model):
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
     Observacion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
+    Usuario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.MotivoSolicitud
@@ -63,4 +64,3 @@ class InfoVisita(models.Model):
     ObservacionVisita = models.TextField()
     AccionSeguimiento = models.CharField(max_length=255)
     Firmado = models.BooleanField(default=False)
-
