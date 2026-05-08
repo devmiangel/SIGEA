@@ -1,0 +1,16 @@
+.disable-data-form{
+    display: flex;
+    flex-direction: column; 
+    background-color: #c4b5b5;
+    padding:1rem 1.5rem;
+    flex-grow: 1;
+    border-radius: 7px;
+    font-weight: bolder;
+}
+
+.text-disable-data{
+    color:rgba(0, 0, 0, 0.512);
+    background-color: #ffffff61;
+    padding: 12px 9px;
+    margin-top: 7px;
+}

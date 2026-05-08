@@ -7,13 +7,17 @@ import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements
 
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../../../services/authService'
+import { loginService } from '../../../services/authService'
 import { useState } from 'react'
 import { getRouteByRole } from '../../../utils/roleRedirect'
+import { useCurrentDataUser } from '../../../hooks/currentUserHook'
 
 export default function Login() {
     const navigate = useNavigate()
     const [errorMsg, setErrorMsg] = useState("")
+
+    const { login } = useCurrentDataUser()
+
 
     const {
         register, 
@@ -26,9 +30,11 @@ export default function Login() {
 
         try{
             
-            const result = await login(data)
+            const result = await loginService(data)
 
-            console.log("usuario logeado", result)
+            console.log("usuario logeado")
+
+            login(result.user, result.token)
 
             reset()
 
@@ -79,7 +85,7 @@ export default function Login() {
 
                     < section className='section-log section-password'>
                         <InputLogReg 
-                            {...register('passw', {
+                            {...register('password', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
                                 minLength: {
                                     value: 6,
@@ -92,10 +98,10 @@ export default function Login() {
                             })}
                             type={'password'} 
                             placeholder={'contraseña'} 
-                            autoComplete = 'pass'
+                            autoComplete = 'password'
                         />
-                        {errors.passw && (
-                            <p className='message-errors-login'>{errors.passw.message}</p>
+                        {errors.password && (
+                            <p className='message-errors-login'>{errors.password.message}</p>
                         )}
                         <LinkLog href={'https://google.com'}>
                             Olvidaste tu contraseña

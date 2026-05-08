@@ -16,7 +16,7 @@ export default function ScheduleContentAdmin(){
                 headerText={'Gestion de horarios de visitas'} 
                 message={'Gestiona la asignacion de las visitas a productores a los funcionarios correspondientes '} 
                 colorLogo={'#55bd85'} 
-                otherElements={
+                firstButton={
                     <ButtonLink buttonText={'Ver asignaciones'}/>
                 }
             />

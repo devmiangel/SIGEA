@@ -1,6 +1,6 @@
 import './tittle.css'
 
-export function Header({componentLogo, headerText, message,  colorLogo, otherElements}){
+export function Header({componentLogo, headerText, message,  colorLogo, firstButton, secondButton}){
     return(
         <>
             <div className="header-wrapper">
@@ -14,7 +14,8 @@ export function Header({componentLogo, headerText, message,  colorLogo, otherEle
                     </div>
                 </div>
                 <div className="buttons-wrapper">
-                    {otherElements}
+                    {firstButton}
+                    {secondButton}
                 </div>
             </div>
         </>
