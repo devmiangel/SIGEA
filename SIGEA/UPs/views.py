@@ -182,72 +182,169 @@ def _get_up_for_user(request, userId=None):
     if not productor:
         return None, Response({"error": "No se encontro el productor"}, status=status.HTTP_404_NOT_FOUND)
 
-    up = UP.objects.filter(Productor=productor).first()
+    up = UP.objects.filter(Productor=productor).select_related(
+        'Productor__usuario__persona',
+        'Predio__Sector__Vereda',
+        'Predio__Seguro',
+        'Predio__TipoTenencia',
+        'TipoUP'
+    ).prefetch_related(
+        'Productor__usuario__persona__contactos',
+        'Productor__usuario__persona__TipoNivelEducativo',
+        'Productor__usuario__persona__NivelSisben',
+        'Productor__usuario__persona__Empresa'
+    ).first()
+    
     if not up:
         return None, Response({"error": "No se encontro la UP"}, status=status.HTTP_404_NOT_FOUND)
 
     return up, None
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_personal_caracterizacion(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+    
+    if request.method == 'POST':
+        # Si hay datos adicionales aparte de userId, intentamos actualizar
+        data = request.data.copy()
+        data.pop('userId', None)
+        
+        if data:
+            serializer = InfoPersonalCaracterizacionSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     serializer = InfoPersonalCaracterizacionSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_predio_caracterizacion(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoPredioCaracterizacionSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoPredioCaracterizacionSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_up_caracterizacion(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoUPCaracterizacionSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoUPCaracterizacionSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_produccion_agricola(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoProduccionAgricolaSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoProduccionAgricolaSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_produccion_animal(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoProduccionAnimalSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoProduccionAnimalSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_produccion_agroindustrial(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoProduccionAgroindustrialSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoProduccionAgroindustrialSerializer(up)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def info_adicional_caracterizacion(request, userId=None):
     up, error_response = _get_up_for_user(request, userId)
     if error_response:
         return error_response
+
+    if request.method == 'POST':
+        data = request.data.copy()
+        data.pop('userId', None)
+
+        if data:
+            serializer = InfoAdicionalCaracterizacionSerializer(up, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer = InfoAdicionalCaracterizacionSerializer(up)
     return Response(serializer.data)
 
