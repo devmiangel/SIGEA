@@ -1,4 +1,3 @@
-import '../secure.css'
 import logo_sigea from '../../../assets/img/logo_sigea.png'
 import titulo from '../../../assets/img/letras_sigea.png'
 import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements/form-input'
@@ -6,7 +5,6 @@ import Selection from '../../../components/selecComponent/Selectstyling'
 import { useForm, Controller } from 'react-hook-form'
 import OtherCalendar from '../../../components/calendar/OtherCalendar'
  
-        
 
 export default function Register() {
     
@@ -60,21 +58,21 @@ export default function Register() {
     }
 
     return (
-        <div className="login-wrapper">
-            <div className="logo">
+        <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen w-full p-0 lg:gap-24 gap-8 bg-[#fdfcf8]">
+            <div className="flex flex-col max-w-62.5">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="login-form">
-                <h2 className='form-tittle'>Regístrate</h2>
+            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh] overflow-y-auto">
+                <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Regístrate</h2>
                 <form onSubmit={handleSubmit(onSubmit, (errors) =>{
                     console.log('ERRORES:', errors);
                     
                 })}>
                     
-                    <div className="section-log names">
-                        <div className="name-parent">
+                    <div className="box-border grid grid-cols-[49%_49%] gap-x-1.25">
+                        <div className="relative mb-4">
                             <InputLogReg 
                                 {...register('primer_nombre', {
                                     required: 'Campo Obligatorio',
@@ -97,11 +95,11 @@ export default function Register() {
         
                             />
                             {errors.primer_nombre && (
-                                <p className='message-errors'>{errors.primer_nombre.message}</p>
+                                <p className='text-[#a22] text-[10px] absolute -bottom-3 left-1'>{errors.primer_nombre.message}</p>
                             )}                                
                         </div>
 
-                        <div className="scnd-name name-parent">
+                        <div className="relative mb-4">
                             <InputLogReg 
                                 {...register('segundo_nombre', {
                                     pattern: {
@@ -121,11 +119,11 @@ export default function Register() {
                                 placeholder={'Segundo Nombre'} 
                             />
                             {errors.segundo_nombre && (
-                                <p className='message-errors'>{errors.segundo_nombre.message}</p>
+                                <p className='text-[#a22] text-[10px] absolute -bottom-3 left-1'>{errors.segundo_nombre.message}</p>
                             )}
                         </div>
 
-                        <div className="fst-lsname name-parent">
+                        <div className="relative mb-4">
                             <InputLogReg 
                                 {...register('primer_apellido', {
                                     required: 'Campo Obligatorio',
@@ -147,10 +145,10 @@ export default function Register() {
                                 
                             />
                             {errors.primer_apellido && (
-                                <p className='message-errors'>{errors.primer_apellido.message}</p>
+                                <p className='text-[#a22] text-[10px] absolute -bottom-3 left-1'>{errors.primer_apellido.message}</p>
                             )}
                         </div>
-                        <div className="scnd-lsname name-parent">
+                        <div className="relative mb-4">
                             <InputLogReg 
                                 {...register('segundo_apellido', {
                                     pattern: {
@@ -170,11 +168,12 @@ export default function Register() {
                                 placeholder={'Segundo Apellido'}
                             />
                             {errors.segundo_apellido && (
-                                <p className='message-errors'>{errors.segundo_apellido.message}</p>
+                                <p className='text-[#a22] text-[10px] absolute -bottom-3 left-1'>{errors.segundo_apellido.message}</p>
                             )}
                         </div>
                     </div>
-                    <section className="section-log name-parent">
+
+                    <section className="mb-6 relative">
                         <InputLogReg 
                             {...register('email', {
                                 required: 'Campo Obligatorio',
@@ -195,35 +194,11 @@ export default function Register() {
                             
                         />
                         {errors.email && (
-                            <p className='message-errors-form'>{errors.email.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.email.message}</p>
                         )}
                     </section>
-                    {/* <section className="section-log name-parent">
-                        <InputLogReg    
-                            {...register('telefono', {
-                                required: 'Campo Obligatorio',
-                                pattern: {
-                                    value: /^\+?[0-9\s\-]{7,20}$/,
-                                    message: 'Numero de telefono invalido'
-                                },
-                                minLength: {
-                                    value: 7,
-                                    message: 'minimo 7 caracteres'
-                                }, 
-                                maxLength: {
-                                    value: 15,
-                                    message: 'maximo 15 caracteres'
-                                }
-                            })}
-                            type={'tel'} 
-                            placeholder={'Numero de contacto'}
-                        />
-                        {errors.telefono && (
-                            <p className='message-errors-form'>{errors.telefono.message}</p>
-                        )}
-                    </section> */}
-                    
-                    <section className="section-log document-type">
+
+                    <section className="mb-6">
                         <Controller
                             name='TipoDocumento'
                             control={control}
@@ -241,7 +216,7 @@ export default function Register() {
                         
                     </section>
 
-                    <section className="section-log name-parent">
+                    <section className="mb-6 relative">
                         <InputLogReg    
                             {...register('numero_documento', {
                                 required: 'Campo Obligatorio',
@@ -262,11 +237,11 @@ export default function Register() {
                             placeholder={'Documento'}
                         />
                         {errors.numero_documento && (
-                            <p className='message-errors-form'>{errors.numero_documento.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.numero_documento.message}</p>
                         )}
                     </section>
 
-                    <section  className="section-log name-parent">
+                    <section className="mb-6">
                         <Controller
                             name='fecha_nacimiento'
                             control={control}
@@ -275,7 +250,6 @@ export default function Register() {
                                 <OtherCalendar 
                                     value={field.value}
                                     onChange={(newValue) => {
-                                        // console.log('Fecha seleccionada:', newValue); 
                                         field.onChange(newValue);
                                     }}
                                     placeholder={'Fecha Nacimiento'}
@@ -286,7 +260,7 @@ export default function Register() {
                         
                     </section>
                     
-                    <section className="section-log name-parent">
+                    <section className="mb-6 relative">
                         <InputLogReg 
                             {...register('password', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
@@ -304,11 +278,11 @@ export default function Register() {
                               
                         />
                         {errors.password && (
-                            <p className='message-errors-form'>{errors.password.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.password.message}</p>
                         )}
                     </section>
 
-                    <section className="section-log name-parent">
+                    <section className="mb-6 relative">
                         <InputLogReg 
                             {...register('passwconf', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
@@ -331,16 +305,16 @@ export default function Register() {
                             placeholder={'Confirmar contraseña'}      
                         />
                         {errors.passwconf && (
-                            <p className='message-errors-form'>{errors.passwconf.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.passwconf.message}</p>
                         )}
                     </section>
                     
                     <div>
-                        <ButtonLink text={'Iniciar sesion'}/> 
+                        <ButtonLink text={'Registrarse'}/> 
                     </div>
                     
                     <LinkLog href={'https://chatgpt.com/'}>
-                        ¿Necesitas ayuda? visita nuestro<strong>centro de ayuda</strong>
+                        ¿Necesitas ayuda? visita nuestro <strong>centro de ayuda</strong>
                     </LinkLog>
                 </form>
             </div>

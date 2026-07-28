@@ -1,5 +1,3 @@
-import './AgroExtensionViews.css'
-
 import { Header } from "../../../../components/Tettles-Buttons/Title"
 import TabComponent from '../../../../components/Tab/Tab';
 
@@ -16,7 +14,7 @@ export default function ProductorView(){
                     message={'Gestiona tus unidades productivas registradas y en proceso de aprobación'}
                     firstButton={<ButtonLink buttonText={'Agregar Unidad'}/>}
                 />
-                <div className="content-productorView">
+                <div className="bg-white min-h-[80vh] w-full rounded-xl p-5 m-5">
                     <TabComponent/>
                 </div>
             </>

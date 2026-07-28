@@ -22,10 +22,10 @@ export const loginService = async (credentials) => {
 }
 
 export const currentUserService = async () => {
-    const response =  api.get('/usuarios/me');
+    const response =  api.get('/me/');
     return response.data;
 }
 
 export const logoutService = async () => {
-    await api.post('/usuarios/logout')
+    await api.post('/auth/logout/')
 }

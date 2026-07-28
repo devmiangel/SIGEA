@@ -1,5 +1,3 @@
-import './contentadmin.css'
-
 import MenuCard from '../../../components/MenuCard/MenuCard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';

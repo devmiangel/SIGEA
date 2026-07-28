@@ -1,5 +1,3 @@
-import './AgroExtensionViews.css'
-
 import { Title } from "../../../../components/Tettles-Buttons/Title"
 import InputDisable from "../../../../components/formElements/forms/InputDisable";
 import { ButtonLink } from "../../../../components/formElements/form-input";
@@ -25,50 +23,45 @@ export default function FirstLogAgro(){
                 titleText={'¡Bienvenido al modulo extension Agropecuaria!'} 
                 colorLogo={'#3e9a8a'}
             >
-                <p className="paragraph-title">
+                <p className="text-sm m-2 text-pretty">
                     Para brindarte el mejor servicio y apoyo técnico, necesitamos conocer tu unidad productiva. 
                     <br /><br />
                     Por favor, solicita una visita de caracterización completando el siguiente formulario. Nuestro equipo técnico visitará tu predio para evaluar tus necesidades y ofrecerte asistencia personalizada.
                 </p>
             </Title>
-           
-                
 
-            <div className="firstLogForm">
-                <h2 className="title-firstLog">Solicitud de Visita de Caracterización</h2>
-                <div className="form-user">
+            <div className="bg-white min-h-[80vh] w-[90%] rounded-xl p-5 mb-5">
+                <h2 className="flex justify-center p-3">Solicitud de Visita de Caracterización</h2>
+                <div className="m-3">
                     <section className="form-section form-user-section">
-                        <div className="form-section-header">
+                        <div className="flex text-[#00000099] m-3">
                             <PersonIcon/>
-                            <h3 className="form-user-data-title">
+                            <h3>
                                 Información del Productor
                             </h3>
                         </div>
-                        <div className="form-user-data">
+                        <div className="flex justify-between px-[15px] gap-[13px]">
                             <InputDisable textLabel={'Nombre'} dataText={'nombre completo de persona'}/>
                             <InputDisable textLabel={'Correo Electronico'} dataText={'email@completode.com'}/>
                         </div>
                     </section>
                     <section className="form-section form-description-visit-req">
-                        <div className="form-section-header">
+                        <div className="flex text-[#00000099] m-3">
                             <QuestionAnswerIcon/>
-                            <h3 className="form-user-data-title">
+                            <h3>
                                 Solicitud 
                             </h3>
                         </div>
-                        <form  className="visit-req-form" onSubmit={console.log('enviado una vez')}>
+                        <form className="m-3 w-[96%] h-auto" onSubmit={console.log('enviado una vez')}>
                             <textarea 
                                 name="Solicitud_Primera_visita" 
-                                className="req-description" 
+                                className="w-full p-3 h-auto overflow-y-hidden resize-none border-[1.5px] border-[#3e9a8a] rounded-[10px]"
                                 placeholder="Cuentanos la direccion en la que se encuentra ubicada tu unidad productiva, añade referencias y toda la informacion que creas necesaria para que podamos encontrarte."
                                 rows={5}
                             ></textarea>     
                             <ButtonLink text={'enviar'}/>
                         </form>
                     </section>
-                    
-                        
-
                 </div>
             </div>
        </> 

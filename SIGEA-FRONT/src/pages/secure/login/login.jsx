@@ -1,6 +1,3 @@
-import '../secure.css'
-import './login.css'
-
 import logo_sigea from '../../../assets/img/logo_sigea.png'
 import titulo from '../../../assets/img/letras_sigea.png'
 import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements/form-input'
@@ -41,22 +38,23 @@ export default function Login() {
             navigate(getRouteByRole(result.user.rol))
         }
         catch (error){
+            setErrorMsg(error.response?.data?.detail || error.message || 'Error al iniciar sesión')
             console.error('error en la peticion', error);
         }
     }
 
     
     return (
-        <div className="login-wrapper">
-            <div className="logo">
+        <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen w-full p-0 lg:gap-24 gap-8 bg-[#fdfcf8]">
+            <div className="flex flex-col max-w-62.5">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="login-form">
-                <h2 className='form-tittle'>Iniciar Sesión</h2>
+            <div className="my-6 flex flex-col min-w-[30%]">
+                <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Iniciar Sesión</h2>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <section className='section-log section-email name-parent'>
+                    <section className='mb-6 relative'>
                         <InputLogReg 
                             {...register('email', {
                                 required: 'Campo Obligatorio',
@@ -76,14 +74,14 @@ export default function Login() {
                         placeholder={'Correo'} />
                         
                         {errors.email && (
-                            <p className='message-errors-login'>{errors.email.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.email.message}</p>
                         )}
                         <LinkLog href={'https://google.com'}>
                             Olvidaste tu correo
                         </LinkLog> 
                     </section>
 
-                    < section className='section-log section-password'>
+                    < section className='mb-6 relative'>
                         <InputLogReg 
                             {...register('password', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
@@ -101,7 +99,7 @@ export default function Login() {
                             autoComplete = 'password'
                         />
                         {errors.password && (
-                            <p className='message-errors-login'>{errors.password.message}</p>
+                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.password.message}</p>
                         )}
                         <LinkLog href={'https://google.com'}>
                             Olvidaste tu contraseña
@@ -113,9 +111,12 @@ export default function Login() {
                     <LinkLog href={'/registro'}>
                         no tienes cuenta? <strong>Registrate</strong>
                     </LinkLog>
-                    <section className='error-wrapper'>
-                        <div className="error"></div>
-                    </section>
+
+                    {errorMsg && (
+                        <div className='flex justify-center items-center w-full mt-4'>
+                            <div className="text-red-600 text-sm text-center">{errorMsg}</div>
+                        </div>
+                    )}
                 
                 </form>
             </div>
