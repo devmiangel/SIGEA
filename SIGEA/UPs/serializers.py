@@ -2,6 +2,7 @@ from rest_framework import serializers
 from Usuarios.models import *
 from .models import *
 from datetime import date
+from django.core.validators import RegexValidator
 
 class TipoUPSerializer(serializers.ModelSerializer):
     class Meta:
@@ -141,8 +142,8 @@ class InfoPersonalCaracterizacionSerializer(serializers.ModelSerializer):
     
     RazonSocialProductor = serializers.CharField(required=False, allow_null=True)
     NitProductor = serializers.CharField(required=False, allow_null=True)
-    Celular = serializers.CharField(required=False, allow_null=True)
-    Correo = serializers.CharField(required=False, allow_null=True)
+    Celular = serializers.CharField(required=False, allow_null=True, validators=[RegexValidator(r'^\+?\d{7,15}$', 'Ingrese un número de celular válido (7-15 dígitos, opcional +)')])
+    Correo = serializers.EmailField(required=False, allow_null=True)
     FechaNacimiento = serializers.DateField(source='Productor.usuario.persona.fecha_nacimiento', required=False)
     NivelEducativo = serializers.CharField(required=False, allow_null=True)
     Sisben = serializers.CharField(required=False, allow_null=True)
@@ -266,8 +267,8 @@ class InfoPredioCaracterizacionSerializer(serializers.ModelSerializer):
     Seguro = serializers.CharField(required=False, allow_null=True)
     AccesoCredito = serializers.BooleanField(source='Predio.AccesoCredito', required=False)
     UsoSuelo = serializers.BooleanField(source='Predio.UsoSuelo', required=False)
-    Latitud = serializers.CharField(source='Predio.Latitud', required=False)
-    Longitud = serializers.CharField(source='Predio.Longitud', required=False)
+    Latitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Latitud', required=False, allow_null=True)
+    Longitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Longitud', required=False, allow_null=True)
     Direccion = serializers.CharField(source='Predio.Direccion', required=False)
 
     TipoTenencia = serializers.CharField(required=False, allow_null=True)
@@ -412,7 +413,13 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
                     instance.save()
 
             # Obtener o crear detalle
-            detalle, _ = DetalleUP.objects.get_or_create(UP=instance, defaults={'NumeroEmpleados': 0, 'AreaCultivada': 0, 'AreaPastos': 0, 'NumeroPotreros': 0, 'NumeroInvernaderos': 0, 'NumeroTanques': 0, 'NumeroReservorios': 0, 'Actividad_id': 1})
+            default_actividad = ActividadUP.objects.first()
+            detalle, created = DetalleUP.objects.get_or_create(
+                UP=instance,
+                defaults={'NumeroEmpleados': 0, 'AreaCultivada': 0, 'AreaPastos': 0,
+                         'NumeroPotreros': 0, 'NumeroInvernaderos': 0, 'NumeroTanques': 0,
+                         'NumeroReservorios': 0, 'Actividad': default_actividad}
+            )
             
             # Actualizar Actividad
             if actividad_str:
@@ -569,7 +576,11 @@ class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
                     
                     if detalles:
                         raza_nombre = detalles.get('Raza')
-                        raza_obj, _ = Razas.objects.get_or_create(Raza=raza_nombre, Animal=animal) if raza_nombre else (None, False)
+                        raza_obj = None
+                        if raza_nombre:
+                            raza_obj = Razas.objects.filter(Raza=raza_nombre).first()
+                            if not raza_obj:
+                                raza_obj = Razas.objects.create(Raza=raza_nombre, Animal=animal)
                         
                         if grupo_nombre == 'Bovinos':
                             prop = Propositos.objects.filter(Proposito=detalles.get('Proposito')).first()
@@ -643,44 +654,28 @@ class InfoProduccionAgroindustrialSerializer(serializers.ModelSerializer):
 
 class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
     Archivos = serializers.ListField(child=serializers.DictField(), required=False)
-    ProduccionAgroindustrial = serializers.ListField(child=serializers.DictField(), required=False)
-    
-    def get_Archivos(self, obj):
-        return [
-            {
-                'RutaArchivo': a.RutaArchivo,
-                'Descripcion': a.Descripcion
-            } for a in obj.archivosup_set.all()
-        ]
-
-    def get_ProduccionAgroindustrial(self, obj):
-        return [
-            {
-                'NombreProducto': p.Producto.Producto,
-                'Cantidad': p.Cantidad,
-                'UnidadMedida': p.Producto.Unidad.Unidad if p.Producto and p.Producto.Unidad else None,
-                'INVIMA': p.INVIMA
-            } for p in obj.produccionupagroindustrial_set.all()
-        ]
 
     class Meta:
         model = UP
-        fields = ['FechaActualizacion', 'Archivos', 'ProduccionAgroindustrial']
+        fields = ['FechaActualizacion', 'Archivos']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['Archivos'] = self.get_Archivos(instance)
-        ret['ProduccionAgroindustrial'] = self.get_ProduccionAgroindustrial(instance)
+        ret['Archivos'] = [
+            {
+                'RutaArchivo': a.RutaArchivo,
+                'Descripcion': a.Descripcion
+            } for a in instance.archivosup_set.all()
+        ]
         return ret
 
     def update(self, instance, validated_data):
         from django.db import transaction
-        from .models import ArchivosUP, ProduccionUPAgroindustrial, ProductosUPs
+        from .models import ArchivosUP
         from datetime import date
 
         archivos_data = validated_data.pop('Archivos', None)
-        agro_data = validated_data.pop('ProduccionAgroindustrial', None)
-        
+
         with transaction.atomic():
             instance.FechaActualizacion = date.today()
             instance.save()
@@ -693,17 +688,4 @@ class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
                         RutaArchivo=a.get('RutaArchivo'),
                         Descripcion=a.get('Descripcion', '')
                     )
-
-            if agro_data is not None:
-                instance.produccionupagroindustrial_set.all().delete()
-                for item in agro_data:
-                    producto_nombre = item.get('NombreProducto')
-                    producto_obj = ProductosUPs.objects.filter(Producto=producto_nombre).first()
-                    if producto_obj:
-                        ProduccionUPAgroindustrial.objects.create(
-                            UP=instance,
-                            Producto=producto_obj,
-                            Cantidad=item.get('Cantidad', 0),
-                            INVIMA=item.get('INVIMA', False)
-                        )
         return instance

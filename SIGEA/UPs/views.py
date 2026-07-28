@@ -171,9 +171,6 @@ class UPViewSet(viewsets.ModelViewSet):
 
 
 def _get_up_for_user(request, userId=None):
-    if userId is None:
-        userId = request.data.get("userId")
-
     if not userId:
         return None, Response({"error": "userId es requerido"}, status=status.HTTP_400_BAD_REQUEST)
 
