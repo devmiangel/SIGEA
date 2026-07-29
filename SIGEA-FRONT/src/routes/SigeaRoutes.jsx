@@ -1,11 +1,13 @@
 import { Route, Routes } from "react-router-dom";
 
-import Login from "../pages/secure/login/login";
-import Register from "../pages/secure/register/register";
+import Login from "../pages/secure/login";
+import Register from "../pages/secure/register";
 
 import AdminLayout from "../layouts/adminlayout";
 import EmployeeLayout from "../layouts/EmployeeLayout";
 import UserLayout from "../layouts/userLayout";
+
+import ProtectedRoute from "../components/ProtectedRoute";
 
 import DashboardContentAdmin from "../pages/Content/adminContent/DashboardContentAdmin";
 import ReportContentAdmin from "../pages/Content/adminContent/ReportContentAdmin";
@@ -25,14 +27,17 @@ import HomePageContentUser from "../pages/Content/userContent/PrincipalPageConte
 import AgroModuleContentUser from "../pages/Content/userContent/AgroExtentionContentUser";
 import AnimalProtectionModuleContentUser from "../pages/Content/userContent/AnimalProtectionContentUser";
 
-
 export default function SigeaRoutes(){
     return(
         <Routes>
             <Route index element={<Login/>} />
             <Route path="/registro" element={<Register/>} />
 
-            <Route path="/administrador" element={<AdminLayout/>}>
+            <Route path="/administrador" element={
+                <ProtectedRoute allowedRoles={['Administradores']}>
+                    <AdminLayout/>
+                </ProtectedRoute>
+            }>
                 <Route index element={<DashboardContentAdmin/>}/>
                 <Route path="reportes" element={<ReportContentAdmin/>}/>
                 <Route path="inventario" element={<InventaryContentAdmin/>}/>
@@ -44,13 +49,21 @@ export default function SigeaRoutes(){
                 <Route path='inventario/vehiculos' element={<InvVehicleContentAdmin/>}/>
             </Route>
 
-            <Route path="/funcionario" element={<EmployeeLayout/>}>
+            <Route path="/funcionario" element={
+                <ProtectedRoute allowedRoles={['Funcionarios']}>
+                    <EmployeeLayout/>
+                </ProtectedRoute>
+            }>
                 <Route index element={<HomeContentEmployee/>}/>
                 <Route path="agenda" element={<AgendaContentEmployee/>}/>
                 <Route path="recursos" element={<InventaryContentEmployee/>}/>
             </Route>
 
-            <Route path="/usuario" element={<UserLayout/>}>
+            <Route path="/usuario" element={
+                <ProtectedRoute allowedRoles={['Usuarios', 'Productores']}>
+                    <UserLayout/>
+                </ProtectedRoute>
+            }>
                 <Route index element={<HomePageContentUser/>}/>
                 <Route path="extension_agropecuaria" element={<AgroModuleContentUser/>}/>
                 <Route path="proteccion_animal" element={<AnimalProtectionModuleContentUser/>}/>

@@ -13,7 +13,11 @@ import { useCurrentDataUser } from "../../../../hooks/currentUserHook";
 export default function FirstLogAgro(){
     const {user} = useCurrentDataUser()
 
-    console.log(user);
+    const nombreCompleto = user?.persona
+        ? `${user.persona.primer_nombre || ''} ${user.persona.primer_apellido || ''}`.trim()
+        : 'Nombre no disponible'
+
+    const correo = user?.email || 'Correo no disponible'
     
     return(
        <>
@@ -41,8 +45,8 @@ export default function FirstLogAgro(){
                             </h3>
                         </div>
                         <div className="flex justify-between px-[15px] gap-[13px]">
-                            <InputDisable textLabel={'Nombre'} dataText={'nombre completo de persona'}/>
-                            <InputDisable textLabel={'Correo Electronico'} dataText={'email@completode.com'}/>
+                            <InputDisable textLabel={'Nombre'} dataText={nombreCompleto}/>
+                            <InputDisable textLabel={'Correo Electronico'} dataText={correo}/>
                         </div>
                     </section>
                     <section className="form-section form-description-visit-req">

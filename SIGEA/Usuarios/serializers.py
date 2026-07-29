@@ -54,18 +54,23 @@ class PersonasSerializer(serializers.ModelSerializer):
         
         return data
 
+class PersonaBasicaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Personas
+        fields = ['primer_nombre', 'primer_apellido']
+
 class UsuarioSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
+    persona_info = PersonaBasicaSerializer(source='persona', read_only=True)
     
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'password', 'persona', 'Estado', 'rol']
+        fields = ['id', 'email', 'password', 'persona', 'persona_info', 'Estado', 'rol']
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}}
         }
 
     def get_rol(self, obj):
-        # Determina el rol del usuario basado en sus relaciones y grupos
         if hasattr(obj, 'administradores'):
             return 'Administradores'
         elif hasattr(obj, 'funcionarios'):

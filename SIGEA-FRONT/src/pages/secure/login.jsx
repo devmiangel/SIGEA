@@ -1,13 +1,13 @@
-import logo_sigea from '../../../assets/img/logo_sigea.png'
-import titulo from '../../../assets/img/letras_sigea.png'
-import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements/form-input'
+import logo_sigea from '../../assets/img/logo_sigea.png'
+import titulo from '../../assets/img/letras_sigea.png'
+import {InputLogReg, LinkLog, ButtonLink} from '../../components/formElements/form-input'
 
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { loginService } from '../../../services/authService'
+import { loginService } from '../../services/authService'
 import { useState } from 'react'
-import { getRouteByRole } from '../../../utils/roleRedirect'
-import { useCurrentDataUser } from '../../../hooks/currentUserHook'
+import { getRouteByRole } from '../../utils/roleRedirect'
+import { useCurrentDataUser } from '../../hooks/currentUserHook'
 
 export default function Login() {
     const navigate = useNavigate()
@@ -26,10 +26,8 @@ export default function Login() {
     const onSubmit = async(data) => {
 
         try{
-            
             const result = await loginService(data)
-
-            console.log("usuario logeado")
+            console.log("usuario logeado",data)
 
             login(result.user, result.token)
 
@@ -45,13 +43,13 @@ export default function Login() {
 
     
     return (
-        <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen w-full p-0 lg:gap-24 gap-8 bg-[#fdfcf8]">
-            <div className="flex flex-col max-w-62.5">
+        <div className="flex flex-col md:flex-row justify-center items-center min-h-screen w-full p-0 md:gap-24 gap-3 bg-[#fdfcf8]">
+            <div className="flex flex-col md:max-w-62.5 max-w-30">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="my-6 flex flex-col min-w-[30%]">
+            <div className="my-1 flex flex-col min-w-[30%]">
                 <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Iniciar Sesión</h2>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <section className='mb-6 relative'>
@@ -84,7 +82,7 @@ export default function Login() {
                     < section className='mb-6 relative'>
                         <InputLogReg 
                             {...register('password', {
-                                required: 'Campo Obligatorio entre 6 y 20 caracteres',
+                                required: 'Campo Obligatorio',
                                 minLength: {
                                     value: 6,
                                     message: 'minimo 6 caracteres'
@@ -123,3 +121,5 @@ export default function Login() {
         </div>
     )
 }
+
+

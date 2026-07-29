@@ -17,7 +17,7 @@ class Estados(models.Model):
         return self.Estado
 
 class Solicitudes(models.Model):
-    UP = models.ForeignKey(UP, on_delete=models.PROTECT)
+    UP = models.ForeignKey(UP, on_delete=models.PROTECT, blank=True, null=True)
     FechaSolicitud = models.DateField(auto_now_add=True)
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
     Observacion = models.CharField(max_length=255)

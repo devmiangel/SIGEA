@@ -12,67 +12,67 @@ export const SidebarData = [
         title: 'Inicio',
         icon: <HomeIcon/>, 
         link: '/administrador', 
-        roles: ['admin']
+        roles: ['Administradores']
     }, 
      {
         title: 'Principal',
         icon: <HomeIcon/>, 
         link: '/usuario', 
-        roles: ['usuario']
+        roles: ['Usuarios']
     }, 
     {
         title: 'Menu',
         icon: <HomeIcon/>, 
         link: '/funcionario', 
-        roles: ['funcionario']
+        roles: ['Funcionarios']
     }, 
      {
         title: 'Inventario',
         icon: <InventoryIcon/>, 
         link: '/administrador/inventario', 
-        roles: ['admin']
+        roles: ['Administradores']
     }, 
      {
         title: 'Recursos',
         icon: <InventoryIcon/>, 
         link: '/funcionario/recursos', 
-        roles: ['funcionario']
+        roles: ['Funcionarios']
     }, 
     {
         title: 'Horarios',
         icon: <CalendarMonthIcon/>, 
         link: '/administrador/horarios', 
-        roles: ['admin']
+        roles: ['Administradores']
     }, 
      {
         title: 'Usuarios',
         icon: <GroupIcon/>, 
         link: '/administrador/usuarios', 
-        roles: ['admin']
+        roles: ['Administradores']
     }, 
      {
         title: 'Reportes',
         icon: <AssessmentIcon/>, 
         link: '/administrador/reportes', 
-        roles: ['admin']
+        roles: ['Administradores']
     }, 
      {
         title: 'Agenda',
         icon: <EventIcon/>, 
         link: '/funcionario/agenda', 
-        roles: ['funcionario']
+        roles: ['Funcionarios']
     }, 
      {
         title: 'extension Agro',
         icon: <AgricultureIcon/>, 
         link: '/usuario/Extension_Agropecuaria', 
-        roles: ['usuario']
+        roles: ['Usuarios']
     }, 
      {
         title: 'Pro Animal',
         icon: <PetsIcon/>, 
         link: '/usuario/Proteccion_Animal', 
-        roles: ['usuario']
+        roles: ['Usuarios']
     }
     
 ]

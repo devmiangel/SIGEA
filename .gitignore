@@ -9,21 +9,46 @@ __pycache__/
 *$py.class
 *.sqlite3
 db.sqlite3
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# Variables de entorno
 .env
 .env.*
-venv/
+
+# Archivos estáticos
 media/
 staticfiles/
+
+# Caché de Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Migraciones (si esa es la política del proyecto)
 **/migrations/*
 !**/migrations/__init__.py
 
 # ========================
-# Frontend (React/Node)
+# Frontend (React/Vite/Node)
 # ========================
 node_modules/
 dist/
 build/
+coverage/
 *.local
+
+# Caché
+.vite/
+.cache/
+.parcel-cache/
+.eslintcache
 
 # Logs
 logs/
@@ -40,8 +65,10 @@ lerna-debug.log*
 .vscode/
 !.vscode/extensions.json
 .idea/
+
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # ========================
 # Otros

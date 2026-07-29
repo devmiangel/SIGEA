@@ -1,9 +1,9 @@
-import logo_sigea from '../../../assets/img/logo_sigea.png'
-import titulo from '../../../assets/img/letras_sigea.png'
-import {InputLogReg, LinkLog, ButtonLink} from '../../../components/formElements/form-input'
-import Selection from '../../../components/selecComponent/Selectstyling'
+import logo_sigea from '../../assets/img/logo_sigea.png'
+import titulo from '../../assets/img/letras_sigea.png'
+import {InputLogReg, LinkLog, ButtonLink} from '../../components/formElements/form-input'
+import Selection from '../../components/selecComponent/Selectstyling'
 import { useForm, Controller } from 'react-hook-form'
-import OtherCalendar from '../../../components/calendar/OtherCalendar'
+import OtherCalendar from '../../components/calendar/OtherCalendar'
  
 
 export default function Register() {
@@ -58,13 +58,13 @@ export default function Register() {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen w-full p-0 lg:gap-24 gap-8 bg-[#fdfcf8]">
-            <div className="flex flex-col max-w-62.5">
+        <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen w-full p-5 lg:gap-24 gap-0.5 bg-[#fdfcf8]">
+            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh] overflow-y-auto">
+            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh]">
                 <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Regístrate</h2>
                 <form onSubmit={handleSubmit(onSubmit, (errors) =>{
                     console.log('ERRORES:', errors);

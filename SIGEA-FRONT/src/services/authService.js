@@ -22,7 +22,7 @@ export const loginService = async (credentials) => {
 }
 
 export const currentUserService = async () => {
-    const response =  api.get('/me/');
+    const response =  await api.get('/me/');
     return response.data;
 }
 

@@ -1,8 +1,9 @@
 export const getRouteByRole = (role) => {
     const routes = {
         Usuarios : '/usuario',
-        Administrador : '/administrador',
-        Funcionario : '/funcionario', 
+        Administradores : '/administrador',
+        Funcionarios : '/funcionario',
+        Productores : '/usuario',
     }
     return routes[role] || '/'
 }

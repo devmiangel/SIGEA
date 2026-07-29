@@ -23,7 +23,7 @@ export default function UserPreviewCard({ user, onCardClick, onEdit, onDelete })
   return (
     <div
       onClick={() => onCardClick?.(user)}
-      className="flex items-center gap-4  px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200 w-screen m-1"
+      className="flex items-center gap-4  px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200 w-full m-1"
     >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white font-semibold text-lg shrink-0">
         {user?.nombre?.charAt(0)?.toUpperCase() ?? '?'}
