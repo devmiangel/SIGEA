@@ -1,7 +1,5 @@
 # Historial de Cambios — SIGEA
 
-## 2026-07-28
-
 ### Descripción general del proyecto
 Se exploró la estructura del backend (Django REST Framework) y frontend (React + Vite) para entender el propósito del proyecto: sistema integral de gestión agropecuaria con módulos de usuarios, predios, unidades productivas, visitas técnicas e inventario.
 
@@ -116,4 +114,171 @@ Se exploró la estructura del backend (Django REST Framework) y frontend (React 
 - Main-content: `flex-1 min-w-0 flex flex-col lg:flex-row flex-wrap bg-[#f1eee3] p-0 m-0 justify-center items-start`.
   - Mobile: `flex-col` (los hijos se apilan verticalmente).
   - Desktop (`lg:`): `lg:flex-row flex-wrap` (los hijos se alinean en fila con wrapping).
-  - Sin padding ni margin, contenido centrado y alineado al inicio.
+  - Sin padding ni margin, contenido centrado.
+
+### TabList — Nuevo componente de switch con categorías
+- **Archivo:** `SIGEA-FRONT/src/components/TabList/TabList.jsx`
+- Componente tipo segmented control / switch de etiquetas.
+- Props: `categories` (array de strings), `active` (categoría activa), `onChange` (callback al seleccionar).
+- Categoría activa: fondo blanco con sombra y borde. Inactivas: texto gris con hover.
+- Contenedor inline con `bg-gray-100 rounded-xl p-1`.
+
+### Tab/Tab.jsx + tab.css — Eliminados
+- **Archivo:** `SIGEA-FRONT/src/components/Tab/Tab.jsx`
+- **Archivo:** `SIGEA-FRONT/src/components/Tab/tab.css`
+- Componente `TabComponent` estaba vacío (sin implementación). Se eliminó junto con su CSS.
+
+### SidebarData — Agregado rol Productores
+- **Archivo:** `SIGEA-FRONT/src/components/sidebar/SidebarData.jsx`
+- Las rutas `Principal`, `extension Agro` y `Pro Animal` ahora también aceptan el rol `'Productores'`.
+
+### AgroExtentionContentUser — Lógica de productor implementada
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtentionContentUser.jsx`
+- Se agregó `useState`/`useEffect` para llamar a `checkEsProductor()` al montar.
+- Si el usuario es productor → renderiza `ProductorView`.
+- Si no es productor → renderiza `FirstLogAgro` con callback `onSolicitudCreada` que actualiza el estado.
+- Mientras carga: muestra "Cargando...".
+
+### agroService.js — Nuevo servicio de solicitudes
+- **Archivo:** `SIGEA-FRONT/src/services/agroService.js`
+- `checkEsProductor()` → `GET /api/usuarios/me/es_productor/`
+- `crearSolicitud(observacion)` → `POST /api/visitas/solicitudes/crear/`
+- `getSolicitudes()` → `GET /api/visitas/solicitudes/`
+
+### Backend — Endpoint es_productor
+- **Archivo:** `SIGEA/Usuarios/views.py`
+  - Nueva vista `es_productor(request)` que verifica si el usuario autenticado tiene un registro en `Productores` con `Estado=True`.
+- **Archivo:** `SIGEA/Usuarios/urls.py`
+  - Nueva ruta: `me/es_productor/`.
+
+### Backend — Modelo Solicitudes actualizado
+- **Archivo:** `SIGEA/Visitas/models.py`
+  - Campo `Usuario` cambiado de `ForeignKey(Funcionarios)` a `ForeignKey(Usuario, related_name="solicitudes")`.
+
+### Backend — Endpoint crear_solicitud
+- **Archivo:** `SIGEA/Visitas/views.py`
+  - Nueva vista `crear_solicitud(request)`: crea una solicitud con `MotivoSolicitud_id=2`, `Estado_id=1`, `Usuario=request.user`.
+  - También crea/obtiene un `Productores` para el usuario.
+- **Archivo:** `SIGEA/Visitas/urls.py`
+  - Nueva ruta: `solicitudes/crear/`.
+
+### Backend — Seed data para Visitas
+- **Archivo:** `SIGEA/seeders/management/commands/seed.py`
+  - Agregados `MotivosSolicitudes` (id 1: Visita, id 2: Caracterización).
+  - Agregados `Estados` (id 1: En Proceso, id 2: Aprobado, id 3: Rechazado).
+
+### ProductorView — Integración con TabList y solicitudes
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/ProductorView.jsx`
+- Se integró `TabList` con dos pestañas: "Mis UPs" y "Solicitudes".
+- Al montar, fetch de solicitudes mediante `getSolicitudes()` filtradas por `Usuario === user.id`.
+- Pestaña "Solicitudes": muestra loading, lista de cards con observación, estado y fecha, o mensaje vacío.
+
+### Layouts — Ajustes de centrado finales
+- **Archivo:** `SIGEA-FRONT/src/layouts/adminlayout.jsx`
+- **Archivo:** `SIGEA-FRONT/src/layouts/EmployeeLayout.jsx`
+- Main-content estandarizado: `flex-1 min-w-0 flex flex-col md:flex-row flex-wrap bg-[#f1eee3] justify-center items-center` — sin padding, centrado.
+- **Archivo:** `SIGEA-FRONT/src/layouts/userLayout.jsx`
+- Pendiente de estandarizar (aún conserva `p-2 justify-start items-start`).
+
+### Fix: rutas de authService corregidas
+- **Archivo:** `SIGEA-FRONT/src/services/authService.js`
+- `currentUserService`: `/usuarios/me` → `/me/` (coincide con backend en `api/me/`).
+- `logoutService`: `/usuarios/logout` → `/auth/logout/` (coincide con Knox en `api/auth/logout/`).
+
+### Backend: UsuarioSerializer devuelve persona anidada
+- **Archivo:** `SIGEA/Usuarios/serializers.py`
+- Se agregó `to_representation()`: si `persona_id` existe, serializa el objeto `Personas` completo (nombres, apellidos, documento, etc.) en vez de solo el FK ID.
+
+### Backend: VisitasViewSet filtrado por funcionario autenticado
+- **Archivo:** `SIGEA/Visitas/views.py`
+- Se agregó `permission_classes = [IsAuthenticated]`.
+- Se agregó `get_queryset()`: si el usuario tiene `funcionarios` relacionado, filtra por `Funcionario=user.funcionarios`; si no (admin), devuelve todas.
+- Se mantuvo `queryset = Visitas.objects.all()` para que el router de DRF pueda determinar el `basename` automáticamente.
+
+### Frontend: contexto de usuario con /api/me/
+- **Archivo:** `SIGEA-FRONT/src/context/dataUserContext.jsx`
+- Al montar la app: si hay token en localStorage, llama a `/api/me/` para validar y obtener datos frescos (incluyendo persona anidada).
+- Estado `loading`: evita renderizar rutas protegidas antes de completar la verificación.
+- `login()`: almacena datos básicos inmediatamente, luego enriquece con `/api/me/` en segundo plano.
+- `logout()`: limpia estado y localStorage.
+
+### Frontend: roleRedirect corregido
+- **Archivo:** `SIGEA-FRONT/src/utils/roleRedirect.js`
+- Keys actualizadas a formato del backend: `Administradores`, `Funcionarios`, `Usuarios`, `Productores`.
+- Nueva función `mapBackendRoleToSidebar()`: traduce rol backend (`Administradores`) a string del sidebar (`admin`).
+
+### Frontend: ProtectedRoute — guardia de rutas
+- **Archivo:** `SIGEA-FRONT/src/components/ProtectedRoute.jsx` (nuevo)
+- Si `loading` → no renderiza nada (espera).
+- Si no hay `user` → redirige a `/`.
+- Si el rol no está en `allowedRoles` → redirige a `/`.
+
+### Frontend: SigeaRoutes — rutas protegidas por rol
+- **Archivo:** `SIGEA-FRONT/src/routes/SigeaRoutes.jsx`
+- `/administrador/*` envuelto en `<ProtectedRoute allowedRoles={['Administradores']}>`.
+- `/funcionario/*` envuelto en `<ProtectedRoute allowedRoles={['Funcionarios']}>`.
+- `/usuario/*` envuelto en `<ProtectedRoute allowedRoles={['Usuarios', 'Productores']}>`.
+
+### Frontend: Layouts simplificados
+- **Archivo:** `SIGEA-FRONT/src/layouts/adminlayout.jsx`
+- **Archivo:** `SIGEA-FRONT/src/layouts/EmployeeLayout.jsx`
+- **Archivo:** `SIGEA-FRONT/src/layouts/userLayout.jsx`
+- Se removió la prop `role` hardcodeada del `<Sidebar>`. Ahora el Sidebar deduce su propio rol del contexto.
+
+### Frontend: Sidebar con datos del usuario logueado
+- **Archivo:** `SIGEA-FRONT/src/components/SideBar/Sidebar.jsx`
+- Lee rol del contexto vía `mapBackendRoleToSidebar()` en vez de prop.
+- Muestra nombre completo de la persona (desde `user.persona.primer_nombre` + `primer_apellido`).
+- Botón "Cerrar sesión" que llama a `logoutService()` + `context.logout()` + redirige a `/`.
+
+### Frontend: FirstLogAgro muestra datos reales
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/FirstLogAgro.jsx`
+- Reemplaza texto hardcodeado (`'nombre completo de persona'`, `'email@completode.com'`) por datos reales desde `user.persona` y `user.email`.
+
+### Fix: ProtectedRoute — redirect loop por ruta protegida
+- **Archivo:** `SIGEA-FRONT/src/components/ProtectedRoute.jsx`
+- `!user` redirigía a `/usuario` (ruta también protegida), causando bucle infinito.
+- Corregido a `Navigate to="/"` (ruta pública con Login).
+
+### Fix: await faltante en currentUserService
+- **Archivo:** `SIGEA-FRONT/src/services/authService.js`
+- `currentUserService()` faltaba `await` en `api.get('/me/')`, resolvía con `undefined`.
+- Esto sobrescribía el usuario del contexto con `undefined`, forzando redirect a login.
+
+### Fix: mismatch de roles en Frontend completo
+- **Archivo:** `SIGEA-FRONT/src/routes/SigeaRoutes.jsx` — `allowedRoles` corregidos a `['Administradores']`, `['Funcionarios']`, `['Usuarios', 'Productores']`.
+- **Archivo:** `SIGEA-FRONT/src/components/SideBar/SidebarData.jsx` — Roles actualizados a valores del backend.
+- **Archivo:** `SIGEA-FRONT/src/components/SideBar/Sidebar.jsx` — Cambiado `getRouteByRole(user?.rol)` por `user?.rol` directo. Eliminado import de `getRouteByRole`.
+
+### Fix: overflow horizontal en UserPreviewCard
+- **Archivo:** `SIGEA-FRONT/src/components/UserPreviewCard/UserPreviewCard.jsx`
+- `w-screen` (100vw) causaba overflow horizontal en mobile. Cambiado a `w-full`.
+
+### Fix: overflow en layout de usuario + sidebar sticky
+- **Archivo:** `SIGEA-FRONT/src/layouts/userLayout.jsx`
+- `overflow-x-hidden` movido del contenedor padre (rompía `sticky` del sidebar) al div de contenido `flex-1`.
+
+### Backend: persona_info con nested serializer
+- **Archivo:** `SIGEA/Usuarios/serializers.py`
+- `PersonaBasicaSerializer` nuevo con solo `primer_nombre` y `primer_apellido`.
+- `UsuarioSerializer`: campo `persona_info = PersonaBasicaSerializer(source='persona', read_only=True)`.
+- `persona` original (ID) se conserva para writes.
+- **Archivo:** `SIGEA-FRONT/src/components/SideBar/Sidebar.jsx`
+- Sidebar actualizado a `user?.persona_info.primer_nombre`.
+
+### Fix: conflicto de rutas en Visitas/urls.py
+- **Archivo:** `SIGEA/Visitas/urls.py`
+- La ruta personalizada `solicitudes/crear/` se evaluaba después de las rutas del router, y `solicitudes/{pk}/` capturaba `crear` como un ID, resultando en 405.
+- Corregido: `path(...)` antes de `router.urls` para prioridad correcta.
+
+### Backend: UsuarioSerializer — persona_info con nested serializer
+- **Archivo:** `SIGEA/Usuarios/serializers.py`
+- `PersonaBasicaSerializer` nuevo con solo `primer_nombre` y `primer_apellido`.
+- Se agregó `persona_info = PersonaBasicaSerializer(source='persona', read_only=True)` en `UsuarioSerializer`.
+
+### Frontend: FirstLogAgro — formulario conectado a crear_solicitud
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/FirstLogAgro.jsx`
+- `onSubmit` del formulario conectado a `crearSolicitud()` del servicio.
+- Estados `enviando` (deshabilita doble click), `error` (feedback visual).
+- Al éxito, llama a `onSolicitudCreada()` para cambiar a `ProductorView`.
+- `user?.persona` corregido a `user?.persona_info` por el nuevo serializer.

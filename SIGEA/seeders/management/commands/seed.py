@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
+from Visitas.models import MotivosSolicitudes, Estados
 from UPs.models import TipoUP, ActividadUP, Unidades, GrupoAnimal, TiposAves, Propositos, ProductosApicolas
 from Predios.models import TiposTenencias, Veredas, Sectores
 from datetime import date
@@ -21,6 +22,14 @@ class Command(BaseCommand):
 
         TiposContactos.objects.get_or_create(id=1, defaults={'TipoContacto': 'Celular'})
         TiposContactos.objects.get_or_create(id=2, defaults={'TipoContacto': 'Correo'})
+
+        # --- Visitas ---
+        MotivosSolicitudes.objects.get_or_create(id=1, defaults={'MotivoSolicitud': 'Visita'})
+        MotivosSolicitudes.objects.get_or_create(id=2, defaults={'MotivoSolicitud': 'Caracterización'})
+
+        Estados.objects.get_or_create(id=1, defaults={'Estado': 'En Proceso'})
+        Estados.objects.get_or_create(id=2, defaults={'Estado': 'Aprobado'})
+        Estados.objects.get_or_create(id=3, defaults={'Estado': 'Rechazado'})
 
         self.seed_maestro(TiposNivelesEducativos, 'TipoNivelEducativo', [
             'Ninguno', 'Primaria', 'Secundaria', 'Técnico', 'Tecnológico', 'Universitario', 'Postgrado'

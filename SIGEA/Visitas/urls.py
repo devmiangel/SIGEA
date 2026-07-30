@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import *
 
@@ -11,4 +12,6 @@ router.register(r'insumoVisita', InsumoVisitaViewSet)
 router.register(r'calificaciones', CalificacionesViewSet)
 router.register(r'infoVisita', InfoVisitaViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
+] + router.urls

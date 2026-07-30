@@ -60,6 +60,13 @@ def me(request):
     serializer = UsuarioSerializer(user)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def es_productor(request):
+    user = request.user
+    es_productor = Productores.objects.filter(usuario=user, Estado=True).exists()
+    return Response({'es_productor': es_productor})
+
 ## formulario de refistro
 
 @api_view(['POST'])

@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import *
 
@@ -15,5 +16,6 @@ router.register(r'sisben', SisbenViewSet)
 router.register(r'contactos', ContactosViewSet)
 router.register(r'login', LoginViewSet, basename='login')
 
-
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path('me/es_productor/', es_productor, name='es_productor'),
+]

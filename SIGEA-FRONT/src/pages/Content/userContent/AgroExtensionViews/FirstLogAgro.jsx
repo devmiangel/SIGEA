@@ -1,23 +1,41 @@
+import { useState } from "react"
 import { Title } from "../../../../components/Tettles-Buttons/Title"
 import InputDisable from "../../../../components/formElements/forms/InputDisable";
 import { ButtonLink } from "../../../../components/formElements/form-input";
+import { crearSolicitud } from "../../../../services/agroService"
 
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import PersonIcon from '@mui/icons-material/Person';
-import MailIcon from '@mui/icons-material/Mail';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook";
 
-
-export default function FirstLogAgro(){
+export default function FirstLogAgro({ onSolicitudCreada }){
     const {user} = useCurrentDataUser()
+    const [observacion, setObservacion] = useState('')
+    const [enviando, setEnviando] = useState(false)
+    const [error, setError] = useState('')
 
-    const nombreCompleto = user?.persona
-        ? `${user.persona.primer_nombre || ''} ${user.persona.primer_apellido || ''}`.trim()
-        : 'Nombre no disponible'
+    const nombreCompleto = user?.persona_info
+        ? `${user.persona_info.primer_nombre || ''} ${user.persona_info.primer_apellido || ''}`.trim()
+        : user?.email || 'Nombre no disponible'
 
     const correo = user?.email || 'Correo no disponible'
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!observacion.trim() || enviando) return
+        setEnviando(true)
+        setError('')
+        try {
+            await crearSolicitud(observacion.trim())
+            onSolicitudCreada()
+        } catch {
+            setError('Error al enviar la solicitud. Intenta de nuevo.')
+        } finally {
+            setEnviando(false)
+        }
+    }
     
     return(
        <>
@@ -56,14 +74,21 @@ export default function FirstLogAgro(){
                                 Solicitud 
                             </h3>
                         </div>
-                        <form className="m-3 w-[96%] h-auto" onSubmit={console.log('enviado una vez')}>
+                        <form className="m-3 w-[96%] h-auto" onSubmit={handleSubmit}>
                             <textarea 
                                 name="Solicitud_Primera_visita" 
                                 className="w-full p-3 h-auto overflow-y-hidden resize-none border-[1.5px] border-[#3e9a8a] rounded-[10px]"
                                 placeholder="Cuentanos la direccion en la que se encuentra ubicada tu unidad productiva, añade referencias y toda la informacion que creas necesaria para que podamos encontrarte."
                                 rows={5}
-                            ></textarea>     
-                            <ButtonLink text={'enviar'}/>
+                                value={observacion}
+                                onChange={(e) => setObservacion(e.target.value)}
+                            />
+                            {error && (
+                                <p className="text-red-600 text-sm mt-2">{error}</p>
+                            )}
+                            <div className={enviando ? 'opacity-50 pointer-events-none' : ''}>
+                                <ButtonLink text={enviando ? 'Enviando...' : 'Enviar'}/>
+                            </div>
                         </form>
                     </section>
                 </div>

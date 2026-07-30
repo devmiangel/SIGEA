@@ -5,7 +5,7 @@ export default function EmployeeLayout(){
     return(
         <div className="flex min-h-screen">
             <Sidebar/>
-            <div className="flex-1 w-screen flex flex-col md:flex-row flex-wrap bg-[#f1eee3] lg:justify-center justify-start items-start p-4">
+            <div className="flex-1 min-w-0 flex flex-col md:flex-row flex-wrap bg-[#f1eee3] justify-center items-center">
                 <Outlet/>
             </div>
         </div>

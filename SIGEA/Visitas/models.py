@@ -1,5 +1,5 @@
 from django.db import models
-from Usuarios.models import Funcionarios
+from Usuarios.models import Funcionarios, Usuario
 from UPs.models import UP
 from Inventario.models import Insumos, InventarioFuncionario
 
@@ -22,7 +22,7 @@ class Solicitudes(models.Model):
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
     Observacion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
-    Usuario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
+    Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
 
     def __str__(self):
         return self.MotivoSolicitud

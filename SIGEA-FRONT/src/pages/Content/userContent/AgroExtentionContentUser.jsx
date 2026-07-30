@@ -1,31 +1,27 @@
+import { useState, useEffect } from "react"
 import FirstLogAgro from "./AgroExtensionViews/FirstLogAgro"
 import ProductorView from "./AgroExtensionViews/ProductorView"
-import UserPreviewCard from "../../../components/UserPreviewCard/UserPreviewCard"
-
-
-// falta la implementeacion del servicio que hace el get del estado del productor, esto para determinar si el productor esta entrando en el aplicativo por primera vez o si ya ha realizado la solicitudes, asi poder redirigirlo a la pagina adecuada
+import { checkEsProductor } from "../../../services/agroService"
 
 export default function AgroModuleContentUser(){
-    
+    const [esProductor, setEsProductor] = useState(null)
+    const [loading, setLoading] = useState(true)
 
-    const elementToRender = () => {
-        
-        return <ProductorView/>
-        // return <FirstLogAgro/>
-    }
+    useEffect(() => {
+        checkEsProductor()
+            .then(data => setEsProductor(data.es_productor))
+            .catch(() => setEsProductor(false))
+            .finally(() => setLoading(false))
+    }, [])
 
+    if (loading) return <p className="text-center mt-10 text-gray-500">Cargando...</p>
 
-    return(
+    return (
         <>
-            <UserPreviewCard />
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            <UserPreviewCard/>
-            {/* {elementToRender()} */}
+            {esProductor
+                ? <ProductorView/>
+                : <FirstLogAgro onSolicitudCreada={() => setEsProductor(true)}/>
+            }
         </>
     )
 }

@@ -18,7 +18,7 @@ export const SidebarData = [
         title: 'Principal',
         icon: <HomeIcon/>, 
         link: '/usuario', 
-        roles: ['Usuarios']
+        roles: ['Usuarios', 'Productores']
     }, 
     {
         title: 'Menu',
@@ -66,13 +66,13 @@ export const SidebarData = [
         title: 'extension Agro',
         icon: <AgricultureIcon/>, 
         link: '/usuario/Extension_Agropecuaria', 
-        roles: ['Usuarios']
+        roles: ['Usuarios', 'Productores']
     }, 
      {
         title: 'Pro Animal',
         icon: <PetsIcon/>, 
         link: '/usuario/Proteccion_Animal', 
-        roles: ['Usuarios']
+        roles: ['Usuarios', 'Productores']
     }
     
 ]

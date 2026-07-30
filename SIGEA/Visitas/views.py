@@ -1,5 +1,9 @@
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from Usuarios.models import Productores, Usuario
 
 from .models import (
     MotivosSolicitudes,
@@ -34,6 +38,31 @@ class EstadosViewSet(viewsets.ModelViewSet):
 class SolicitudesViewSet(viewsets.ModelViewSet):
     queryset = Solicitudes.objects.all()
     serializer_class = SolicitudesSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def crear_solicitud(request):
+    data = request.data
+    observacion = data.get('observacion')
+
+    if not observacion:
+        return Response({'error': 'La observación es requerida'}, status=400)
+
+    solicitud = Solicitudes.objects.create(
+        UP=None,
+        MotivoSolicitud_id=2,
+        Observacion=observacion,
+        Estado_id=1,
+        Usuario=request.user
+    )
+
+    Productores.objects.get_or_create(
+        usuario=request.user,
+        defaults={'Estado': True}
+    )
+
+    serializer = SolicitudesSerializer(solicitud)
+    return Response(serializer.data, status=201)
 
 class TiposVisitasViewSet(viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()
