@@ -283,34 +283,5 @@ Se exploró la estructura del backend (Django REST Framework) y frontend (React 
 - Al éxito, llama a `onSolicitudCreada()` para cambiar a `ProductorView`.
 - `user?.persona` corregido a `user?.persona_info` por el nuevo serializer.
 
-### UserRequest — Nuevo componente de card de solicitud
-- **Archivo:** `SIGEA-FRONT/src/components/UserRequest/UserRequest.jsx`
-- Card horizontal de 100px (`h-25`) con: número de solicitud (badge verde `#015d3b`), descripción, fecha y badge de estado.
-- Estados mapeados: 1 → "En Proceso" (amarillo), 2 → "Aprobado" (verde), 3 → "Rechazado" (rojo).
-- Clickable (`onClick`) para ver detalle. Hover con `border-[#015d3b]`.
-
-### ProductorView — Integración de UserRequest
-- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/ProductorView.jsx`
-- Reemplazado el div inline de solicitudes por el componente `UserRequest`.
-
-### AlertRequestInfo — Popup de detalle de solicitud con SweetAlert2
-- **Archivo:** `SIGEA-FRONT/src/components/AlertRequestInfo/AlertRequestInfo.jsx`
-- Método estático `AlertRequestInfo.show(solicitud, user)` que abre un modal con SweetAlert2.
-- Muestra: fecha, motivo, estado, observación, unidad productiva, datos del solicitante (nombre completo, email).
-- Botón "Cerrar" con color `#015d3b` (verde institucional).
-
-### ProductorView — Implementado popup en onClick
-- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/ProductorView.jsx`
-- `onClick` de cada `UserRequest` ahora llama a `AlertRequestInfo.show(s, user)`.
-
-### Fix: overflow de UserRequest en móvil
-- **Archivo:** `SIGEA-FRONT/src/components/UserRequest/UserRequest.jsx`
-- `w-auto` → `w-full max-w-full` para que las cards llenen el contenedor sin desbordar.
-- **Archivo:** `SIGEA-FRONT/src/pages/Content/userContent/AgroExtensionViews/ProductorView.jsx`
-- Contenedor: `min-w-19/20` (95%) → `w-full max-w-full`. El 95% + márgenes excedía el ancho de la pantalla en móvil.
-
-### Fix: modal Nueva Solicitud — textarea ancho y select con borde
-- **Archivo:** `SIGEA-FRONT/src/components/AgroModals/NuevaSolicitudModal.js`
-- Popup más ancho: `width: 'min(92vw, 560px)'` para que la alerta se vea simétrica.
-- Textarea: `width:100%; min-height:110px` con borde verde redondeado.
-- Select: `width:100%` con borde `1.5px solid #015d3b`.
+### Alerta de vulnerabilidad 
+- al realizar npm audit fix, aparece un mensaje  `React Router: RSC Mode CSRF Bypass Allows Action Execution Before 400 Response`, como se ve la alerta refleja unproblema en la fincionalidad RSC la cual no esta siendo utilizada en el proyecto.

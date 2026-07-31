@@ -39,22 +39,22 @@ export default function Sidebar () {
     <>
       <button
         onClick={toggle}
-        className="fixed top-4 left-4 z-50 md:hidden flex items-center justify-center w-12 h-12 rounded-xl bg-[#005C39] text-white shadow-lg hover:bg-[#004d2f] transition-colors"
+        className="fixed top-4 left-4 z-50 lg:hidden flex items-center justify-center w-12 h-12 rounded-xl bg-[#005C39] text-white shadow-lg hover:bg-[#004d2f] transition-colors"
       >
-        {isOpen ? <CloseIcon /> : <img src={logo_sigea} alt="SIGEA" className="w-8 h-8 rounded-md" />}
+        {isOpen ? <CloseIcon /> : <img src={logo_sigea} alt="SIGEA" className="w-8 h-8 rounded-lg" />}
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={close} />
+        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={close} />
       )}
 
       <div
         className={`
-          fixed md:sticky top-0 left-0 h-screen bg-[#005C39] text-white
+          fixed lg:sticky top-0 left-0 h-screen bg-[#005C39] text-white
           flex flex-col justify-between z-40 w-56 shrink-0
           transition-transform duration-300 items-center
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0
+          lg:translate-x-0
         `}
       >
         <div className="flex flex-col flex-1">

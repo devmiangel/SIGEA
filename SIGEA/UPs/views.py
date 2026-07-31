@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
@@ -167,8 +168,17 @@ class UPViewSet(viewsets.ModelViewSet):
     queryset = UP.objects.all()
     serializer_class = UPSerializer
 
-# INFO PERSONAL DE CARACTERIZACION
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mis_ups(request):
+    productor = getattr(request.user, 'productores', None)
+    if not productor:
+        return Response([])
+    ups = UP.objects.filter(Productor=productor)
+    serializer = UPSerializer(ups, many=True)
+    return Response(serializer.data)
 
+# INFO PERSONAL DE CARACTERIZACION
 
 def _get_up_for_user(request, userId=None):
     if not userId:

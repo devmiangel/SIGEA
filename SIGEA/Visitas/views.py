@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 from Usuarios.models import Productores, Usuario
 
@@ -42,15 +43,23 @@ class SolicitudesViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_solicitud(request):
+    from UPs.models import UP
+
     data = request.data
     observacion = data.get('observacion')
+    up_id = data.get('up_id')
+    motivo_id = data.get('motivo_id')
 
     if not observacion:
         return Response({'error': 'La observación es requerida'}, status=400)
 
+    up = None
+    if up_id:
+        up = get_object_or_404(UP, id=up_id)
+
     solicitud = Solicitudes.objects.create(
-        UP=None,
-        MotivoSolicitud_id=2,
+        UP=up,
+        MotivoSolicitud_id=motivo_id or 2,
         Observacion=observacion,
         Estado_id=1,
         Usuario=request.user

@@ -32,6 +32,10 @@ router.register(r'UPs', UPViewSet),
 
 urlpatterns = router.urls
 
+urlpatterns = [
+    path('mis-ups/', mis_ups, name='mis_ups'),
+] + router.urls
+
 urlpatterns += [
     path(
         'info_personal_caracterizacion/<int:userId>/', info_personal_caracterizacion, name='info_personal_caracterizacion'
