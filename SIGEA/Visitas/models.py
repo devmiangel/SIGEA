@@ -38,7 +38,7 @@ class Visitas(models.Model):
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_funcionario")
     Administrador = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
-    FechaVisita = models.DateField()
+    FechaYHoraVisita = models.DateTimeField()
     RutaDocumento = models.CharField(max_length=255)
 
     def __str__(self):

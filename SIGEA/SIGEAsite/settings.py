@@ -33,12 +33,19 @@ INSTALLED_APPS = [
     'UPs',
     'corsheaders',
     'knox',
-    'seeders'
+    'seeders',
+    'documentos',
     
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',), 
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
+        ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
 }
 
 MIDDLEWARE = [

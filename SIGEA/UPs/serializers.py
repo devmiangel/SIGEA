@@ -134,9 +134,9 @@ class DetalleApicolasSerializer(serializers.ModelSerializer):
 class InfoPersonalCaracterizacionSerializer(serializers.ModelSerializer):
 
     PrimerNombreProductor  = serializers.CharField(source ='Productor.usuario.persona.primer_nombre', required=False) 
-    SegundoNombreProductor  = serializers.CharField(source ='Productor.usuario.persona.segundo_nombre', required=False) 
+    SegundoNombreProductor  = serializers.CharField(source ='Productor.usuario.persona.segundo_nombre', required=False, allow_null=True) 
     PrimerApellidoProductor  = serializers.CharField(source ='Productor.usuario.persona.primer_apellido', required=False) 
-    SegundoApellidoProductor  = serializers.CharField(source ='Productor.usuario.persona.segundo_apellido', required=False) 
+    SegundoApellidoProductor  = serializers.CharField(source ='Productor.usuario.persona.segundo_apellido', required=False, allow_null=True) 
     DocumentoProductor = serializers.CharField(source ='Productor.usuario.persona.numero_documento', required=False)
     TipoDocumentoProductor = serializers.CharField(source='Productor.usuario.persona.TipoDocumento.TipoDocumento', read_only=True)
     
@@ -689,3 +689,5 @@ class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
                         Descripcion=a.get('Descripcion', '')
                     )
         return instance
+
+# to be continued...
