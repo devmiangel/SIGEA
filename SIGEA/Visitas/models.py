@@ -23,6 +23,7 @@ class Solicitudes(models.Model):
     Observacion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
     Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
+    motivoAdmin = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.MotivoSolicitud
@@ -40,6 +41,7 @@ class Visitas(models.Model):
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
     RutaDocumento = models.CharField(max_length=255)
+    estado = models.BooleanField(default=False)
 
     def __str__(self):
         return self.TipoVisita
