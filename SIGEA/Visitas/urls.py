@@ -14,4 +14,7 @@ router.register(r'infoVisita', InfoVisitaViewSet)
 
 urlpatterns = [
     path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
+    path('solicitudes/<int:solicitud_id>/atender/', atender_solicitud, name='atender_solicitud'),
+    path('solicitudes/<int:solicitud_id>/rechazar/', rechazar_solicitud, name='rechazar_solicitud'),
+    path('mis-visitas/', mis_visitas, name='mis_visitas'),
 ] + router.urls

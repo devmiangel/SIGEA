@@ -15,7 +15,42 @@ export const getSolicitudes = async () => {
     return response.data;
 }
 
+export const getTodasSolicitudes = async () => {
+    const response = await api.get('/visitas/solicitudes/');
+    return response.data;
+}
+
 export const getMisUPs = async () => {
     const response = await api.get('/UPs/mis-ups/');
+    return response.data;
+}
+
+export const getFuncionarios = async () => {
+    const response = await api.get('/usuarios/funcionarios/');
+    return response.data;
+}
+
+export const getTiposVisitas = async () => {
+    const response = await api.get('/visitas/tiposVisitas/');
+    return response.data;
+}
+
+export const getVisitas = async () => {
+    const response = await api.get('/visitas/visitas/');
+    return response.data;
+}
+
+export const getMisVisitas = async () => {
+    const response = await api.get('/visitas/mis-visitas/');
+    return response.data;
+}
+
+export const atenderSolicitud = async (solicitudId, data) => {
+    const response = await api.post(`/visitas/solicitudes/${solicitudId}/atender/`, data);
+    return response.data;
+}
+
+export const rechazarSolicitud = async (solicitudId) => {
+    const response = await api.post(`/visitas/solicitudes/${solicitudId}/rechazar/`);
     return response.data;
 }

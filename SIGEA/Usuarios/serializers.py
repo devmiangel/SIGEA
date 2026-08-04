@@ -125,9 +125,15 @@ class LoginSerializer(serializers.Serializer):
         }
 
 class FuncionariosSerializer(serializers.ModelSerializer):
+    persona_info = PersonaBasicaSerializer(source='usuario.persona', read_only=True)
+    email = serializers.SerializerMethodField()
+
     class Meta:
         model = Funcionarios
-        fields = '__all__'
+        fields = ['id', 'usuario', 'Estado', 'email', 'persona_info']
+
+    def get_email(self, obj):
+        return obj.usuario.email
 
 class AdministradoresSerializer(serializers.ModelSerializer):
     class Meta:

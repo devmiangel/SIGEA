@@ -25,9 +25,10 @@ export default function AlertRequestInfo({ solicitud, numero, user, onClose }) {
       ? `UP #${solicitud.UP}`
       : 'No asignada'
 
-    const nombre = user?.persona_info?.primer_nombre ?? '—'
-    const apellido = user?.persona_info?.primer_apellido ?? ''
-    const email = user?.email ?? '—'
+    const solicitante = solicitud.solicitante ?? {}
+    const nombre = solicitante.primer_nombre ?? user?.persona_info?.primer_nombre ?? '—'
+    const apellido = solicitante.primer_apellido ?? user?.persona_info?.primer_apellido ?? ''
+    const email = solicitante.email ?? user?.email ?? '—'
 
     Swal.fire({
       title: `Solicitud #${numero}`,

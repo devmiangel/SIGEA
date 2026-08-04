@@ -314,3 +314,13 @@ Se exploró la estructura del backend (Django REST Framework) y frontend (React 
 - Popup más ancho: `width: 'min(92vw, 560px)'` para que la alerta se vea simétrica.
 - Textarea: `width:100%; min-height:110px` con borde verde redondeado.
 - Select: `width:100%` con borde `1.5px solid #015d3b`.
+
+### Layouts — Estilado unificado con UserLayout
+- **Archivo:** `SIGEA-FRONT/src/layouts/adminlayout.jsx`
+- **Archivo:** `SIGEA-FRONT/src/layouts/EmployeeLayout.jsx`
+- Main-content igualado a UserLayout: `flex-1 min-w-0 flex flex-col bg-[#f1eee3] p-2 m-0 justify-start items-center overflow-x-hidden sm:p-5`.
+- Se eliminó `md:flex-row flex-wrap justify-center` de ambos.
+
+
+### Alerta de vulnerabilidad 
+- al realizar npm audit fix, aparece un mensaje  `React Router: RSC Mode CSRF Bypass Allows Action Execution Before 400 Response`, como se ve la alerta refleja unproblema en la fincionalidad RSC la cual no esta siendo utilizada en el proyecto.

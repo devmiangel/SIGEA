@@ -52,7 +52,7 @@ export default function FirstLogAgro({ onSolicitudCreada }){
                             <PersonIcon/>
                             <h3>Información del Productor</h3>
                         </div>
-                        <div className="flex justify-between px-[15px] gap-[13px]">
+                        <div className="flex justify-between px-3.75 gap-3.25">
                             <InputDisable textLabel={'Nombre'} dataText={nombreCompleto}/>
                             <InputDisable textLabel={'Correo Electronico'} dataText={correo}/>
                         </div>

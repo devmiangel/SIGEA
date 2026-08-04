@@ -1,5 +1,5 @@
 from django.db import models
-from Usuarios.models import Funcionarios, Usuario
+from Usuarios.models import Funcionarios, Administradores, Usuario
 from UPs.models import UP
 from Inventario.models import Insumos, InventarioFuncionario
 
@@ -25,7 +25,7 @@ class Solicitudes(models.Model):
     Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
 
     def __str__(self):
-        return self.MotivoSolicitud
+        return str(self.MotivoSolicitud)
 
 class TiposVisitas(models.Model):
     TipoVisita = models.CharField(max_length=255)
@@ -36,9 +36,10 @@ class TiposVisitas(models.Model):
 class Visitas(models.Model):
     Solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE)
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_funcionario")
-    Administrador = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_administrador")
+    Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
-    FechaVisita = models.DateField()
+    FechaVisita = models.DateTimeField()
+    Ubicacion = models.CharField(max_length=255)
     RutaDocumento = models.CharField(max_length=255)
 
     def __str__(self):
