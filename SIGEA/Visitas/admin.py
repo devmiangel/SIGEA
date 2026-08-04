@@ -10,7 +10,7 @@ class InsumoVisitaInline(admin.TabularInline):
 
 @admin.register(Visitas)
 class VisitasAdmin(admin.ModelAdmin):
-    list_display = ('Solicitud', 'Funcionario', 'FechaVisita', 'TipoVisita')
+    list_display = ('Solicitud', 'Funcionario', 'FechaYHoraVisita', 'TipoVisita')
     inlines = [InsumoVisitaInline]
 
 admin.site.register([MotivosSolicitudes, Estados, Solicitudes, TiposVisitas, Calificaciones, InfoVisita])
