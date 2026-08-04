@@ -1,5 +1,5 @@
 from django.db import models
-from Usuarios.models import Funcionarios, Usuario
+from Usuarios.models import Funcionarios, Usuario, Administradores
 from UPs.models import UP
 from Inventario.models import Insumos, InventarioFuncionario
 
@@ -36,7 +36,7 @@ class TiposVisitas(models.Model):
 class Visitas(models.Model):
     Solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE)
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_funcionario")
-    Administrador = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_administrador")
+    Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
     RutaDocumento = models.CharField(max_length=255)
