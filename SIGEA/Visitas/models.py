@@ -26,7 +26,7 @@ class Solicitudes(models.Model):
     motivoAdmin = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return str(self.MotivoSolicitud)
+        return str(self.MotivoSolicitud.MotivoSolicitud)
 
 class TiposVisitas(models.Model):
     TipoVisita = models.CharField(max_length=255)
@@ -40,12 +40,12 @@ class Visitas(models.Model):
     Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
-    Ubicacion = models.CharField(max_length=255, default='')
+    Ubicacion = models.CharField(max_length=255, blank=True, null=True)
     RutaDocumento = models.CharField(max_length=255)
     estado = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.TipoVisita
+        return str(self.TipoVisita.TipoVisita)
 
 class InsumoVisita(models.Model):
     Visita = models.ForeignKey(Visitas, on_delete=models.CASCADE)

@@ -1,5 +1,6 @@
 # Archivos específicos
 SIGEA/seeders/management/commands/seed_pruebas.py
+SIGEA/seeders/management/commands/seed_visitas.py
 
 # ========================
 # Backend (Django/Python)
