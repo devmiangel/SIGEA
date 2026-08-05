@@ -18,7 +18,7 @@ const buildEvents = (visitas) => (visitas || []).map(v => {
     return {
         id: String(v.id),
         title: `${funcionario}-${tipo}-${numero}`,
-        start: v.FechaVisita,
+        start: v.FechaYHoraVisita,
         allDay: false,
         extendedProps: { ubicacion: v.Ubicacion }
     }

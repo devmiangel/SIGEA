@@ -50,7 +50,7 @@ export default function VisitaCard({ visita, numero, onClick }) {
                         <ScheduleIcon sx={{ fontSize: 14, color: '#3e9a8a' }} />
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Hora</span>
                     </div>
-                    <p className="text-xs font-medium text-gray-800 mt-1">{formatFecha(visita?.FechaVisita)}</p>
+                    <p className="text-xs font-medium text-gray-800 mt-1">{formatFecha(visita?.FechaYHoraVisita)}</p>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 hover:border-[#3e9a8a] transition-colors">
                     <div className="flex items-center gap-1.5">

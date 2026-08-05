@@ -32,7 +32,7 @@ export default function VisitaInfo({ visita, numero, onClose }) {
         const solicitante = solicitud.solicitante ?? {}
         const nombreSolicitante = [solicitante.primer_nombre, solicitante.primer_apellido].filter(Boolean).join(' ').trim()
         const tipoVisita = visita.tipo_visita_label ?? '—'
-        const hora = formatFecha(visita.FechaVisita)
+        const hora = formatFecha(visita.FechaYHoraVisita)
 
         Swal.fire({
             title: '',

@@ -40,6 +40,7 @@ class Visitas(models.Model):
     Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
+    Ubicacion = models.CharField(max_length=255, default='')
     RutaDocumento = models.CharField(max_length=255)
     estado = models.BooleanField(default=False)
 

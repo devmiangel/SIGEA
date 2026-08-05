@@ -109,7 +109,7 @@ def atender_solicitud(request, solicitud_id):
         Funcionario=funcionario,
         Administrador=administrador,
         TipoVisita=tipo_visita,
-        FechaVisita=fecha_visita,
+        FechaYHoraVisita=fecha_visita,
         Ubicacion=str(ubicacion).strip(),
         RutaDocumento='Pendiente de generación del documento'
     )
@@ -150,7 +150,7 @@ def mis_visitas(request):
             'TipoVisita'
         )
         .filter(Funcionario=funcionario)
-        .order_by('FechaVisita')
+        .order_by('FechaYHoraVisita')
     )
     serializer = VisitasSerializer(visitas, many=True)
     return Response(serializer.data)
