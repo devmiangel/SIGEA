@@ -19,7 +19,9 @@ def _buscar_logo():
 LOGO_PATH = _buscar_logo()
 
 
-def generar_visita_tecnica(salida):
+def generar_visita_tecnica(salida, datos=None):
+    datos = datos or {}
+
     Path(salida).parent.mkdir(parents=True, exist_ok=True)
 
     W, H = letter
@@ -72,6 +74,12 @@ def generar_visita_tecnica(salida):
             text(x + CHK + 4, y + 1, label, size=label_size)
 
 
+    def marcar_checkbox(x, y):
+        c.setLineWidth(0.9)
+        c.line(x + 1.5, y + 1.5, x + CHK - 1.5, y + CHK - 1.5)
+        c.line(x + CHK - 1.5, y + 1.5, x + 1.5, y + CHK - 1.5)
+
+
     def section_bar(x0, x1, y_top, height, title):
         """Grey-ish double-bordered bar used for section headers."""
         y_bot = y_top - height
@@ -88,6 +96,46 @@ def generar_visita_tecnica(salida):
         if value_line:
             h_line(x0 + label_w, y_bot + 3, x1 - 3, y_bot + 3, w=0.6)
         return y_bot
+
+
+    def rellenar(x0, x1, y_top, row_h, texto, size=8):
+        """Write value text vertically centred on the ruled row."""
+        texto = str(texto or "").strip()
+        if not texto:
+            return
+        c.setFont("Helvetica", size)
+        max_w = x1 - x0 - 6
+        while texto and c.stringWidth(texto, "Helvetica", size) > max_w:
+            texto = texto[:-1]
+        c.drawString(x0 + 3, y_top - row_h / 2 - 3, texto)
+
+
+    def partir_lineas(texto, x0, x1, size=8):
+        c.setFont("Helvetica", size)
+        max_w = x1 - x0 - 6
+        palabras = texto.split()
+        lineas, cur = [], ""
+        for p in palabras:
+            t = (cur + " " + p).strip()
+            if c.stringWidth(t, "Helvetica", size) <= max_w or not cur:
+                cur = t
+            else:
+                lineas.append(cur)
+                cur = p
+        if cur:
+            lineas.append(cur)
+        return lineas
+
+
+    def rellenar_multilinea(rows_y, texto, x0, x1, row_h, size=8, max_lines=None):
+        texto = str(texto or "").strip()
+        if not texto:
+            return
+        lineas = partir_lineas(texto, x0, x1, size)
+        if max_lines:
+            lineas = lineas[:max_lines]
+        for i, y_top in enumerate(rows_y[:len(lineas)]):
+            rellenar(x0, x1, y_top, row_h, lineas[i], size)
 
 
     # =========================================================
@@ -155,6 +203,8 @@ def generar_visita_tecnica(salida):
     rueA_label_w = 55
     v_line(mid_x + rueA_label_w, y_bot, y)
     text(mid_x + 3, y_bot + 5, "Nº RUEA", size=8, bold=True)
+    rellenar(LEFT + label_w, mid_x, y, row_h, datos.get("fecha_recepcion"))
+    rellenar(mid_x + rueA_label_w, RIGHT, y, row_h, datos.get("nruea"))
     y = y_bot
 
     # Row 2: NOMBRES Y APELLIDOS | line | SISBEN | box
@@ -166,6 +216,8 @@ def generar_visita_tecnica(salida):
     text(LEFT + 3, y_bot + 5, "NOMBRES Y APELLIDOS", size=8, bold=True)
     h_line(LEFT + label_w + 5, mid_x - 5, y_bot + 4, w=0.6)
     text(mid_x + 3, y_bot + 5, "SISBEN", size=8, bold=True)
+    rellenar(LEFT + label_w, mid_x, y, row_h, datos.get("nombres_apellidos"))
+    rellenar(mid_x + rueA_label_w, RIGHT, y, row_h, datos.get("sisben"))
     y = y_bot
 
     # Row 3: DOCUMENTO DE IDENTIDAD | line  (full width remainder, no right box)
@@ -174,6 +226,7 @@ def generar_visita_tecnica(salida):
     v_line(LEFT + label_w, y_bot, y)
     text(LEFT + 3, y_bot + 5, "DOCUMENTO DE IDENTIDAD", size=8, bold=True)
     h_line(LEFT + label_w + 5, RIGHT - 5, y_bot + 4, w=0.6)
+    rellenar(LEFT + label_w, RIGHT, y, row_h, datos.get("documento_identidad"))
     y = y_bot
 
     # Row 4: VEREDA / SECTOR
@@ -182,6 +235,7 @@ def generar_visita_tecnica(salida):
     v_line(LEFT + label_w, y_bot, y)
     text(LEFT + 3, y_bot + 5, "VEREDA / SECTOR", size=8, bold=True)
     h_line(LEFT + label_w + 5, RIGHT - 5, y_bot + 4, w=0.6)
+    rellenar(LEFT + label_w, RIGHT, y, row_h, datos.get("vereda_sector"))
     y = y_bot
 
     # Row 5: TELEFONO
@@ -190,6 +244,7 @@ def generar_visita_tecnica(salida):
     v_line(LEFT + label_w, y_bot, y)
     text(LEFT + 3, y_bot + 5, "TELÉFONO", size=8, bold=True)
     h_line(LEFT + label_w + 5, RIGHT - 5, y_bot + 4, w=0.6)
+    rellenar(LEFT + label_w, RIGHT, y, row_h, datos.get("telefono"))
     y = y_bot
 
     # =========================================================
@@ -206,20 +261,31 @@ def generar_visita_tecnica(salida):
     checkbox(LEFT + 105, y_bot + 5, "AGRÍCOLA")
     checkbox(LEFT + 230, y_bot + 5, "PECUARIA")
     checkbox(LEFT + 350, y_bot + 5, "PROTECCIÓN ANIMAL")
+    tv = (datos.get("tipo_visita") or "").lower()
+    if tv in ("agricola", "agrícola", "a"):
+        marcar_checkbox(LEFT + 105, y_bot + 5)
+    elif tv in ("pecuaria", "p"):
+        marcar_checkbox(LEFT + 230, y_bot + 5)
+    elif tv in ("proteccion_animal", "protección animal", "pa"):
+        marcar_checkbox(LEFT + 350, y_bot + 5)
     y = y_bot
 
     # 6 blank ruled rows for description text
     blank_row_h = 17
+    desc_rows = []
     for _ in range(6):
         y_bot = y - blank_row_h
         rect(LEFT, y_bot, RIGHT, y, w=0.6)
+        desc_rows.append(y)
         y = y_bot
+    rellenar_multilinea(desc_rows, datos.get("descripcion_solicitud"), LEFT, RIGHT, blank_row_h, max_lines=6)
 
     # Diagnostico presuntivo label row
     dp_row_h = 15
     y_bot = y - dp_row_h
     rect(LEFT, y_bot, RIGHT, y, w=0.8)
     text(LEFT + 3, y_bot + 4, "DIAGNÓSTICO PRESUNTIVO:", size=8, bold=True)
+    rellenar(LEFT + 105, RIGHT, y, dp_row_h, datos.get("diagnostico_presuntivo"))
     y = y_bot
 
     # Fecha de visita row
@@ -230,6 +296,7 @@ def generar_visita_tecnica(salida):
     v_line(LEFT + fv_label_w, y_bot, y)
     text(LEFT + 3, y_bot + 5, "FECHA DE VISITA", size=8, bold=True)
     h_line(LEFT + fv_label_w + 5, LEFT + fv_label_w + 110, y_bot + 4, w=0.6)
+    rellenar(LEFT + fv_label_w, LEFT + fv_label_w + 110, y, fv_row_h, datos.get("fecha_visita"))
     y = y_bot
 
     # =========================================================
@@ -248,9 +315,12 @@ def generar_visita_tecnica(salida):
     h_line(LEFT + 235, cc_x - 5, y_bot + 4, w=0.6)
     text(cc_x + 5, y_bot + 5, "C.C.", size=8, bold=True)
     h_line(cc_x + 30, RIGHT - 5, y_bot + 4, w=0.6)
+    rellenar(LEFT + 235, cc_x, y, fq_row_h, datos.get("funcionario"))
+    rellenar(cc_x + 30, RIGHT, y, fq_row_h, datos.get("cc_funcionario"))
     y = y_bot
 
     # Checkbox row 1: SEG. Y CONTROL | TRAT. MEDICO | VISITA | INSUMOS
+    acciones = datos.get("acciones") or []
     cb_row_h = 18
     y_bot = y - cb_row_h
     rect(LEFT, y_bot, RIGHT, y, w=0.8)
@@ -259,6 +329,14 @@ def generar_visita_tecnica(salida):
     checkbox(LEFT + 230, y_bot + 5, "TRAT. MEDICO")
     checkbox(LEFT + 370, y_bot + 5, "VISITA")
     checkbox(RIGHT - 70, y_bot + 5, "INSUMOS")
+    if "seg_control" in acciones:
+        marcar_checkbox(LEFT + 90, y_bot + 5)
+    if "trat_medico" in acciones:
+        marcar_checkbox(LEFT + 230, y_bot + 5)
+    if "visita" in acciones:
+        marcar_checkbox(LEFT + 370, y_bot + 5)
+    if "insumos" in acciones:
+        marcar_checkbox(RIGHT - 70, y_bot + 5)
     y = y_bot
 
     # Checkbox row 2: RECOMENDACION | MANEJO | CIRUGIA
@@ -268,6 +346,12 @@ def generar_visita_tecnica(salida):
     text(LEFT + 25, y_bot + 6, "RECOMENDACIÓN", size=8, bold=True)
     checkbox(LEFT + 280, y_bot + 5, "MANEJO")
     checkbox(LEFT + 400, y_bot + 5, "CIRUGÍA")
+    if "recomendacion" in acciones:
+        marcar_checkbox(LEFT + 110, y_bot + 5)
+    if "manejo" in acciones:
+        marcar_checkbox(LEFT + 280, y_bot + 5)
+    if "cirugia" in acciones:
+        marcar_checkbox(LEFT + 400, y_bot + 5)
     y = y_bot
 
     # Hora de inicio row
@@ -278,14 +362,18 @@ def generar_visita_tecnica(salida):
     v_line(LEFT + hi_label_w, y_bot, y)
     text(LEFT + 3, y_bot + 5, "HORA DE INICIO:", size=8, bold=True)
     h_line(LEFT + hi_label_w + 5, LEFT + hi_label_w + 100, y_bot + 4, w=0.6)
+    rellenar(LEFT + hi_label_w, LEFT + hi_label_w + 100, y, hi_row_h, datos.get("hora_inicio"))
     y = y_bot
 
     # blank ruled rows (large writing area, as in source)
     blank2_row_h = 15.3
+    accion_rows = []
     for _ in range(10):
         y_bot = y - blank2_row_h
         rect(LEFT, y_bot, RIGHT, y, w=0.6)
+        accion_rows.append(y)
         y = y_bot
+    rellenar_multilinea(accion_rows, datos.get("accion_tomada"), LEFT, RIGHT, blank2_row_h, max_lines=10)
 
     # Observaciones o recomendaciones label
     obs_row_h = 15
@@ -295,10 +383,13 @@ def generar_visita_tecnica(salida):
     y = y_bot
 
     # 2 blank ruled rows
+    obs_rows = []
     for _ in range(2):
         y_bot = y - blank2_row_h
         rect(LEFT, y_bot, RIGHT, y, w=0.6)
+        obs_rows.append(y)
         y = y_bot
+    rellenar_multilinea(obs_rows, datos.get("observaciones"), LEFT, RIGHT, blank2_row_h, max_lines=2)
 
     # Hora de salida row (right aligned label+line)
     hs_row_h = 16
@@ -307,6 +398,7 @@ def generar_visita_tecnica(salida):
     hs_label_x = RIGHT - 170
     text(hs_label_x, y_bot + 5, "HORA DE SALIDA:", size=8, bold=True)
     h_line(hs_label_x + 90, RIGHT - 5, y_bot + 4, w=0.6)
+    rellenar(hs_label_x + 90, RIGHT, y, hs_row_h, datos.get("hora_salida"))
     y = y_bot
 
     # Calificacion row
@@ -318,6 +410,15 @@ def generar_visita_tecnica(salida):
     checkbox(LEFT + 190, y_bot + 5, "REGULAR")
     checkbox(LEFT + 290, y_bot + 5, "BUENO")
     checkbox(LEFT + 380, y_bot + 5, "EXCELENTE")
+    cal = (datos.get("calificacion") or "").lower()
+    if cal in ("malo", "m"):
+        marcar_checkbox(LEFT + 100, y_bot + 5)
+    elif cal in ("regular", "r"):
+        marcar_checkbox(LEFT + 190, y_bot + 5)
+    elif cal in ("bueno", "b"):
+        marcar_checkbox(LEFT + 290, y_bot + 5)
+    elif cal in ("excelente", "e"):
+        marcar_checkbox(LEFT + 380, y_bot + 5)
     y = y_bot
 
     # Signature row

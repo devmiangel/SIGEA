@@ -14,4 +14,5 @@ router.register(r'infoVisita', InfoVisitaViewSet)
 
 urlpatterns = [
     path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
+    path('formulario-visita/', FormularioVisitaTecnicaView.as_view(), name='llenar_formulario_visita_tecnica'),
 ] + router.urls
