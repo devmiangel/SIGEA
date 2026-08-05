@@ -12,8 +12,8 @@ export default function AgendaContentEmployee(){
     const [activeTab, setActiveTab] = useState('Visitas Pendientes')
     const [selectedVisita, setSelectedVisita] = useState(null)
 
-    const pendientes = useMemo(() => visitas, [visitas])
-    const realizadas = useMemo(() => [], [])
+    const pendientes = useMemo(() => (visitas || []).filter(v => !v.estado), [visitas])
+    const realizadas = useMemo(() => (visitas || []).filter(v => !!v.estado), [visitas])
 
     const currentContent = activeTab === 'Visitas Pendientes' ? pendientes : realizadas
 

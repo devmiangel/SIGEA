@@ -33,6 +33,8 @@ export default function VisitaInfo({ visita, numero, onClose }) {
         const nombreSolicitante = [solicitante.primer_nombre, solicitante.primer_apellido].filter(Boolean).join(' ').trim()
         const tipoVisita = visita.tipo_visita_label ?? '—'
         const hora = formatFecha(visita.FechaYHoraVisita)
+        const realizada = !!visita.estado
+        const badgeEstado = `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;background:${realizada ? '#d1fae5' : '#fef3c7'};color:${realizada ? '#047857' : '#92400e'};"><span style="width:6px;height:6px;border-radius:50%;background:${realizada ? '#059669' : '#d97706'};"></span>${realizada ? 'Realizada' : 'No realizada'}</span>`
 
         Swal.fire({
             title: '',
@@ -54,6 +56,7 @@ export default function VisitaInfo({ visita, numero, onClose }) {
                     .vt-value { margin: 6px 0 0; font-size: 13px; font-weight: 500; color: #1f2937; }
                 </style>
                 <div class="vt-card">
+                    <div style="display:flex; justify-content:flex-start; margin-bottom:10px;">${badgeEstado}</div>
                     <div style="display:flex; align-items:center; gap:14px; padding-bottom:14px; border-bottom:2px solid #eef1f4;">
                         <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(1,93,59,0.25);">${iconoUsuario}</div>
                         <div style="min-width:0;">
@@ -88,16 +91,16 @@ export default function VisitaInfo({ visita, numero, onClose }) {
                 </div>
             `,
             showCancelButton: true,
-            confirmButtonText: 'Iniciar Visita',
-            cancelButtonText: 'Cerrar',
+            confirmButtonText: realizada ? 'Cerrar' : 'Iniciar Visita',
+            cancelButtonText: realizada ? 'Volver' : 'Cerrar',
             confirmButtonColor: AGRO_COLORS.success,
             cancelButtonColor: '#64748b',
             focusConfirm: false,
             didClose: () => onClose?.()
         }).then((result) => {
-            if (result.isConfirmed) {
+            if (result.isConfirmed && !realizada) {
                 const destino = esCaracterizacion(visita.tipo_visita_label)
-                    ? '/visitViews/CaracterForm'
+                    ? '/funcionario/visitas/caracterizacion'
                     : '/visitViews/visitaFrom'
                 navigate(destino, { state: { visita } })
             }

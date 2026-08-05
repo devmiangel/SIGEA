@@ -4,6 +4,7 @@ import CategoryIcon from '@mui/icons-material/Category'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import EstadoVisita from '../EstadoVisita/EstadoVisita'
 
 const formatFecha = (fecha) => {
     if (!fecha) return '—'
@@ -32,11 +33,14 @@ export default function VisitaCard({ visita, numero, onClick }) {
                     <PersonIcon sx={{ fontSize: 22, color: '#fff' }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate">
-                        {nombreSolicitante || 'Productor'}
-                        <span className="text-[#3e9a8a]"> · </span>
-                        {tipoVisita}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                            {nombreSolicitante || 'Productor'}
+                            <span className="text-[#3e9a8a]"> · </span>
+                            {tipoVisita}
+                        </h3>
+                        <EstadoVisita estado={visita?.estado} />
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                         Visita #{numero} · Solicitud #{solicitud?.id ?? '—'}
                     </p>

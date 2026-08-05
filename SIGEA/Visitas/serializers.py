@@ -86,11 +86,16 @@ class VisitasSerializer(serializers.ModelSerializer):
 
     def get_solicitud_info(self, obj):
         persona = getattr(obj.Solicitud.Usuario, 'persona', None)
+        up = obj.Solicitud.UP
         return {
             'id': obj.Solicitud.id,
             'motivo': obj.Solicitud.MotivoSolicitud.MotivoSolicitud,
             'observacion': obj.Solicitud.Observacion,
+            'fecha_solicitud': obj.Solicitud.FechaSolicitud,
+            'estado': getattr(obj.Solicitud.Estado, 'Estado', None),
+            'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'solicitante': {
+                'usuario_id': obj.Solicitud.Usuario.id,
                 'email': obj.Solicitud.Usuario.email,
                 'primer_nombre': persona.primer_nombre if persona else None,
                 'primer_apellido': persona.primer_apellido if persona else None,

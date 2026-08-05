@@ -30,6 +30,21 @@ export const getFuncionarios = async () => {
     return response.data;
 }
 
+export const getUsuarios = async () => {
+    const response = await api.get('/usuarios/usuarios/');
+    return response.data;
+}
+
+export const actualizarUsuario = async (usuarioId, data) => {
+    const response = await api.patch(`/usuarios/usuarios/${usuarioId}/`, data);
+    return response.data;
+}
+
+export const eliminarUsuario = async (usuarioId) => {
+    const response = await api.delete(`/usuarios/usuarios/${usuarioId}/`);
+    return response.data;
+}
+
 export const getTiposVisitas = async () => {
     const response = await api.get('/visitas/tiposVisitas/');
     return response.data;
@@ -42,6 +57,11 @@ export const getVisitas = async () => {
 
 export const getMisVisitas = async () => {
     const response = await api.get('/visitas/mis-visitas/');
+    return response.data;
+}
+
+export const marcarVisitaRealizada = async (visitaId) => {
+    const response = await api.patch(`/visitas/visitas/${visitaId}/`, { estado: true });
     return response.data;
 }
 
