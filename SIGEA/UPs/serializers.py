@@ -20,9 +20,25 @@ class UnidadesSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UPSerializer(serializers.ModelSerializer):
+    estado_label = serializers.CharField(source='idEstado.Estado', read_only=True, default=None)
+    tipo_up_label = serializers.CharField(source='TipoUP.TipoUP', read_only=True)
+    nombre_predio = serializers.CharField(source='Predio.NombrePredio', read_only=True)
+    productor_nombre = serializers.SerializerMethodField()
+
     class Meta:
         model = UP
         fields = '__all__'
+
+    def get_productor_nombre(self, obj):
+        persona = obj.Productor.usuario.persona
+        if not persona:
+            return None
+        return ' '.join(filter(None, [
+            persona.primer_nombre,
+            persona.segundo_nombre,
+            persona.primer_apellido,
+            persona.segundo_apellido,
+        ])) or None
 
 class ArchivosUPSerializer(serializers.ModelSerializer):
     class Meta:
@@ -313,29 +329,34 @@ class InfoPredioCaracterizacionSerializer(serializers.ModelSerializer):
             for attr, value in predio_data.items():
                 setattr(predio, attr, value)
             
-            # Actualizar Seguro
+            # Actualizar Seguro (se crea si no existe)
             if seguro_str:
-                seguro_obj = Seguros.objects.filter(NombreSeguro=seguro_str).first()
-                if seguro_obj:
-                    predio.Seguro = seguro_obj
+                seguro_obj, _ = Seguros.objects.get_or_create(NombreSeguro=seguro_str)
+                predio.Seguro = seguro_obj
             
-            # Actualizar Tipo Tenencia
+            # Actualizar Tipo Tenencia (se crea si no existe)
             if tipo_tenencia_str:
-                tenencia_obj = TiposTenencias.objects.filter(TipoTenencia=tipo_tenencia_str).first()
-                if tenencia_obj:
-                    predio.TipoTenencia = tenencia_obj
+                tenencia_obj, _ = TiposTenencias.objects.get_or_create(TipoTenencia=tipo_tenencia_str)
+                predio.TipoTenencia = tenencia_obj
 
-            # Actualizar Sector y Vereda
+            # Actualizar Vereda (se crea si no existe)
+            vereda_obj = None
+            if vereda_str:
+                vereda_obj, _ = Veredas.objects.get_or_create(NombreVereda=vereda_str)
+
+            # Actualizar Sector y Vereda (sector se crea si no existe, ligado a la vereda)
             if sector_str:
-                # Si se envía vereda, intentamos asegurar que el sector pertenece a esa vereda
-                sector_obj = Sectores.objects.filter(NombreSector=sector_str)
-                if vereda_str:
-                    sector_obj = sector_obj.filter(Vereda__NombreVereda=vereda_str)
-                
-                sector_obj = sector_obj.first()
-                if sector_obj:
-                    predio.Sector = sector_obj
+                if vereda_obj:
+                    sector_obj, _ = Sectores.objects.get_or_create(
+                        NombreSector=sector_str,
+                        defaults={'Vereda': vereda_obj},
+                    )
+                else:
+                    sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
+                    if sector_obj is None:
+                        sector_obj = Sectores.objects.create(NombreSector=sector_str)
 
+                predio.Sector = sector_obj
             # Actualizar Registros ICA
             if registro_ica_list is not None:
                 icas = []
@@ -351,6 +372,7 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
     
     TipoUP_Nombre = serializers.CharField(source='TipoUP.TipoUP', required=False)
     ActividadUP = serializers.CharField(required=False, allow_null=True)
+    RUEA = serializers.CharField(required=False, allow_null=True)
     NumeroEmpleados = serializers.IntegerField(required=False)
     Asociatividad = serializers.BooleanField(required=False)
     AreaCultivada = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
@@ -366,11 +388,12 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
         fields = [
              'TipoUP_Nombre', 'ActividadUP', 'NumeroEmpleados', 'Asociatividad',
              'AreaCultivada', 'AreaPastos', 'NumeroPotreros', 'NumeroInvernaderos',
-             'NumeroTanques', 'NumeroReservorios', 'FuentesAgua'
+             'NumeroTanques', 'NumeroReservorios', 'FuentesAgua', 'RUEA'
         ]
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        ret['RUEA'] = instance.RUEA
         detalle = instance.detalleup_set.first()
         if detalle:
             ret['ActividadUP'] = detalle.Actividad.Actividad if detalle.Actividad else None
@@ -403,6 +426,7 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
 
         tipo_up_str = validated_data.pop('TipoUP', {}).get('TipoUP', None)
         actividad_str = validated_data.pop('ActividadUP', None)
+        ruea_str = validated_data.pop('RUEA', None)
         
         with transaction.atomic():
             # Actualizar TipoUP si se envía
@@ -411,6 +435,11 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
                 if tipo_obj:
                     instance.TipoUP = tipo_obj
                     instance.save()
+
+            # Actualizar RUEA (si se envía, se asigna)
+            if ruea_str:
+                instance.RUEA = ruea_str
+                instance.save()
 
             # Obtener o crear detalle
             default_actividad = ActividadUP.objects.first()
@@ -421,11 +450,10 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
                          'NumeroReservorios': 0, 'Actividad': default_actividad}
             )
             
-            # Actualizar Actividad
+            # Actualizar Actividad (se crea si no existe)
             if actividad_str:
-                act_obj = ActividadUP.objects.filter(Actividad=actividad_str).first()
-                if act_obj:
-                    detalle.Actividad = act_obj
+                act_obj, _ = ActividadUP.objects.get_or_create(Actividad=actividad_str)
+                detalle.Actividad = act_obj
 
             # Actualizar resto de campos del detalle
             for attr, value in validated_data.items():
@@ -462,7 +490,7 @@ class InfoProduccionAgricolaSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         from django.db import transaction
-        from .models import ProduccionUPAgricola, ProductosUPs
+        from .models import ProduccionUPAgricola, ProductosUPs, Unidades
 
         produccion_data = validated_data.pop('ProduccionAgricola', None)
         
@@ -475,14 +503,30 @@ class InfoProduccionAgricolaSerializer(serializers.ModelSerializer):
                 for item in produccion_data:
                     producto_nombre = item.get('NombreProducto')
                     cantidad = item.get('Cantidad')
+                    unidad_nombre = item.get('Unidad')
                     
-                    producto_obj = ProductosUPs.objects.filter(Producto=producto_nombre).first()
-                    if producto_obj:
-                        ProduccionUPAgricola.objects.create(
-                            UP=instance,
-                            Producto=producto_obj,
-                            Cantidad=cantidad
-                        )
+                    if not producto_nombre:
+                        continue
+                    
+                    # Crear la unidad si no existe
+                    unidad_obj = None
+                    if unidad_nombre:
+                        unidad_obj, _ = Unidades.objects.get_or_create(Unidad=unidad_nombre)
+                    
+                    # Crear el producto si no existe, ligado a su unidad
+                    producto_obj, _ = ProductosUPs.objects.get_or_create(
+                        Producto=producto_nombre,
+                        defaults={'Unidad': unidad_obj},
+                    )
+                    if unidad_obj:
+                        producto_obj.Unidad = unidad_obj
+                        producto_obj.save()
+                    
+                    ProduccionUPAgricola.objects.create(
+                        UP=instance,
+                        Producto=producto_obj,
+                        Cantidad=cantidad
+                    )
         return instance
 class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
     Animales = serializers.ListField(child=serializers.DictField(), required=False)
@@ -583,20 +627,20 @@ class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
                                 raza_obj = Razas.objects.create(Raza=raza_nombre, Animal=animal)
                         
                         if grupo_nombre == 'Bovinos':
-                            prop = Propositos.objects.filter(Proposito=detalles.get('Proposito')).first()
+                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
                             DetalleBovinos.objects.create(
                                 Animal=animal, Raza=raza_obj, Proposito=prop,
                                 NumeroMachos=detalles.get('Machos', 0),
                                 Hembras=detalles.get('Hembras', 0), RUV=detalles.get('RUV', '')
                             )
                         elif grupo_nombre == 'Aves':
-                            tipo_ave = TiposAves.objects.filter(TipoAve=detalles.get('TipoAve')).first()
+                            tipo_ave = TiposAves.objects.get_or_create(TipoAve=detalles.get('TipoAve'))[0] if detalles.get('TipoAve') else None
                             DetalleAves.objects.create(Animal=animal, Raza=raza_obj, TipoAve=tipo_ave, Cantidad=detalles.get('Cantidad', 0))
                         elif grupo_nombre == 'Porcinos':
-                            prop = Propositos.objects.filter(Proposito=detalles.get('Proposito')).first()
+                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
                             DetallePorcinos.objects.create(Animal=animal, Raza=raza_obj, Proposito=prop, Chapeta=detalles.get('Chapeta', False))
                         elif grupo_nombre in ['Equinos', 'Caprinos', 'Ovinos', 'Conejos', 'Curies']:
-                            prop = Propositos.objects.filter(Proposito=detalles.get('Proposito')).first()
+                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
                             model_map = {
                                 'Equinos': DetalleEquinos, 'Caprinos': DetalleCaprinos, 
                                 'Ovinos': DetalleOvinos, 'Conejos': DetalleConejos, 'Curies': DetalleCuries
@@ -605,7 +649,7 @@ class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
                         elif grupo_nombre == 'Peces':
                             DetallePeces.objects.create(Animal=animal, Raza=raza_obj, NumeroEstanques=detalles.get('Estanques', 0))
                         elif grupo_nombre == 'Abejas':
-                            prod_api = ProductosApicolas.objects.filter(ProductoApicolas=detalles.get('ProductosApicolas')).first()
+                            prod_api = ProductosApicolas.objects.get_or_create(ProductoApicolas=detalles.get('ProductosApicolas'))[0] if detalles.get('ProductosApicolas') else None
                             DetalleApicolas.objects.create(Animal=animal, Raza=raza_obj, ProductosApicolas=prod_api)
         return instance
 
@@ -633,7 +677,7 @@ class InfoProduccionAgroindustrialSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         from django.db import transaction
-        from .models import ProduccionUPAgroindustrial, ProductosUPs
+        from .models import ProduccionUPAgroindustrial, ProductosUPs, Unidades
 
         agro_data = validated_data.pop('ProduccionAgroindustrial', None)
         
@@ -642,14 +686,30 @@ class InfoProduccionAgroindustrialSerializer(serializers.ModelSerializer):
                 instance.produccionupagroindustrial_set.all().delete()
                 for item in agro_data:
                     producto_nombre = item.get('NombreProducto')
-                    producto_obj = ProductosUPs.objects.filter(Producto=producto_nombre).first()
-                    if producto_obj:
-                        ProduccionUPAgroindustrial.objects.create(
-                            UP=instance,
-                            Producto=producto_obj,
-                            Cantidad=item.get('Cantidad', 0),
-                            INVIMA=item.get('INVIMA', False)
-                        )
+                    cantidad = item.get('Cantidad')
+                    unidad_nombre = item.get('Unidad')
+                    
+                    if not producto_nombre:
+                        continue
+                    
+                    unidad_obj = None
+                    if unidad_nombre:
+                        unidad_obj, _ = Unidades.objects.get_or_create(Unidad=unidad_nombre)
+                    
+                    producto_obj, _ = ProductosUPs.objects.get_or_create(
+                        Producto=producto_nombre,
+                        defaults={'Unidad': unidad_obj},
+                    )
+                    if unidad_obj:
+                        producto_obj.Unidad = unidad_obj
+                        producto_obj.save()
+                    
+                    ProduccionUPAgroindustrial.objects.create(
+                        UP=instance,
+                        Producto=producto_obj,
+                        Cantidad=cantidad,
+                        INVIMA=item.get('INVIMA', False)
+                    )
         return instance
 
 class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
@@ -664,6 +724,7 @@ class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
         ret['Archivos'] = [
             {
                 'RutaArchivo': a.RutaArchivo,
+                'NombreArchivo': a.NombreArchivo,
                 'Descripcion': a.Descripcion
             } for a in instance.archivosup_set.all()
         ]
@@ -685,7 +746,8 @@ class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
                 for a in archivos_data:
                     ArchivosUP.objects.create(
                         UP=instance,
-                        RutaArchivo=a.get('RutaArchivo'),
+                        RutaArchivo=a.get('RutaArchivo', ''),
+                        NombreArchivo=a.get('NombreArchivo', ''),
                         Descripcion=a.get('Descripcion', '')
                     )
         return instance

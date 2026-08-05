@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { Campo, CampoSelect, CampoCheck, BotonGuardar } from './fields'
+import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck, BotonGuardar } from './fields'
 import {
-    getInfoUP, saveInfoUP, getTiposUP, getActividadesUP,
+    getInfoUP, saveInfoUP, getTiposUP, getActividadesUP, crearActividadUP,
 } from '../../../../services/caracterizacionService'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 const INICIAL = {
-    TipoUP_Nombre: '', ActividadUP: '', NumeroEmpleados: '', Asociatividad: false,
+    TipoUP_Nombre: '', ActividadUP: '', RUEA: '', NumeroEmpleados: '', Asociatividad: false,
     AreaCultivada: '', AreaPastos: '', NumeroPotreros: '', NumeroInvernaderos: '',
     NumeroTanques: '', NumeroReservorios: '', FuentesAgua: false,
 }
+
+const REQUERIDOS = [
+    { nombre: 'TipoUP_Nombre', label: 'Tipo de UP' },
+    { nombre: 'ActividadUP', label: 'Actividad de la UP' },
+    { nombre: 'NumeroEmpleados', label: 'Número de empleados' },
+    { nombre: 'RUEA', label: 'RUEA' },
+]
 
 export default function SeccionUP({ userId }) {
     const [form, setForm] = useState(INICIAL)
@@ -36,7 +43,24 @@ export default function SeccionUP({ userId }) {
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
+    const validar = () => {
+        const faltantes = REQUERIDOS
+            .filter((r) => !String(form[r.nombre] ?? '').trim())
+            .map((r) => r.label)
+        if (faltantes.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos obligatorios',
+                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
+                confirmButtonColor: AGRO_COLORS.success,
+            })
+            return false
+        }
+        return true
+    }
+
     const guardar = async () => {
+        if (!validar()) return
         setGuardando(true)
         try {
             await saveInfoUP(userId, form)
@@ -66,7 +90,8 @@ export default function SeccionUP({ userId }) {
         <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <CampoSelect name="TipoUP_Nombre" label="Tipo de UP" value={form.TipoUP_Nombre} options={tipos} onChange={onChange} />
-                <CampoSelect name="ActividadUP" label="Actividad de la UP" value={form.ActividadUP} options={actividades} onChange={onChange} />
+                <CampoSelectDinamico name="ActividadUP" label="Actividad de la UP" value={form.ActividadUP} options={actividades} onCrear={crearActividadUP} onChange={onChange} />
+                <Campo name="RUEA" label="RUEA" value={form.RUEA} onChange={onChange} />
                 <Campo name="NumeroEmpleados" label="Número de empleados" type="number" value={form.NumeroEmpleados} onChange={onChange} />
                 <Campo name="AreaCultivada" label="Área cultivada (ha)" type="number" value={form.AreaCultivada} onChange={onChange} />
                 <Campo name="AreaPastos" label="Área en pastos (ha)" type="number" value={form.AreaPastos} onChange={onChange} />

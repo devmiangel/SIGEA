@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { Campo, CampoSelect, CampoCheck, BotonGuardar } from './fields'
+import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck, BotonGuardar } from './fields'
 import {
     getInfoPredio, saveInfoPredio,
     getTiposTenencias, getSeguros, getVeredas, getSectores, getTiposRegistrosICA,
+    crearSeguro, crearVereda, crearSector,
 } from '../../../../services/caracterizacionService'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
@@ -61,7 +62,30 @@ export default function SeccionPredio({ userId }) {
         })
     }
 
+    const REQUERIDOS = [
+        { nombre: 'NombrePredio', label: 'Nombre del predio' },
+        { nombre: 'TipoTenencia', label: 'Tipo de tenencia' },
+        { nombre: 'Direccion', label: 'Dirección' },
+    ]
+
+    const validar = () => {
+        const faltantes = REQUERIDOS
+            .filter((r) => !String(form[r.nombre] ?? '').trim())
+            .map((r) => r.label)
+        if (faltantes.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos obligatorios',
+                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
+                confirmButtonColor: AGRO_COLORS.success,
+            })
+            return false
+        }
+        return true
+    }
+
     const guardar = async () => {
+        if (!validar()) return
         setGuardando(true)
         try {
             await saveInfoPredio(userId, form)
@@ -93,9 +117,9 @@ export default function SeccionPredio({ userId }) {
                 <Campo name="NombrePredio" label="Nombre del predio" value={form.NombrePredio} onChange={onChange} />
                 <Campo name="AreaPredio" label="Área (ha)" type="number" value={form.AreaPredio} onChange={onChange} />
                 <CampoSelect name="TipoTenencia" label="Tipo de tenencia" value={form.TipoTenencia} options={tenencias} onChange={onChange} />
-                <CampoSelect name="Seguro" label="Seguro" value={form.Seguro} options={seguros} onChange={onChange} />
-                <CampoSelect name="Vereda" label="Vereda" value={form.Vereda} options={veredas} onChange={onChange} />
-                <CampoSelect name="Sector" label="Sector" value={form.Sector} options={sectores} onChange={onChange} />
+                <CampoSelectDinamico name="Seguro" label="Seguro" value={form.Seguro} options={seguros} onCrear={crearSeguro} onChange={onChange} />
+                <CampoSelectDinamico name="Vereda" label="Vereda" value={form.Vereda} options={veredas} onCrear={crearVereda} onChange={onChange} />
+                <CampoSelectDinamico name="Sector" label="Sector" value={form.Sector} options={sectores} onCrear={crearSector} onChange={onChange} />
                 <Campo name="Latitud" label="Latitud" type="number" value={form.Latitud} onChange={onChange} />
                 <Campo name="Longitud" label="Longitud" type="number" value={form.Longitud} onChange={onChange} />
                 <Campo name="Direccion" label="Dirección" value={form.Direccion} onChange={onChange} />

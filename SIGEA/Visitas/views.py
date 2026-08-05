@@ -350,6 +350,26 @@ class VisitasViewSet(viewsets.ModelViewSet):
     queryset = Visitas.objects.all()
     serializer_class = VisitasSerializer
 
+    def update(self, request, *args, **kwargs):
+        from UPs.models import EstadosUP
+
+        visita = self.get_object()
+        estado = request.data.get('estado')
+
+        if estado is not None:
+            if bool(estado) and not visita.estado:
+                up = visita.Solicitud.UP if visita.Solicitud else None
+                if up is not None:
+                    estado_en_revision = EstadosUP.objects.filter(Estado='En revision').first()
+                    if estado_en_revision:
+                        up.idEstado = estado_en_revision
+                        up.save(update_fields=['idEstado'])
+
+        serializer = self.get_serializer(visita, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
 class InsumoVisitaViewSet(viewsets.ModelViewSet):
     queryset = InsumoVisita.objects.all()
     serializer_class = InsumoVisitaSerializer

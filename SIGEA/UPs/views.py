@@ -179,6 +179,39 @@ def mis_ups(request):
     serializer = UPSerializer(ups, many=True)
     return Response(serializer.data)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_archivo_up(request, userId=None):
+    from django.conf import settings
+    import os
+    import uuid
+
+    archivo = request.FILES.get('archivo')
+    if not archivo:
+        return Response({"error": "No se recibió ningún archivo"}, status=status.HTTP_400_BAD_REQUEST)
+
+    ext = os.path.splitext(archivo.name)[1].lower()
+    permitidas = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf'}
+    if ext not in permitidas:
+        return Response(
+            {"error": "Solo se permiten imágenes (JPG, PNG, GIF, WEBP, BMP) o archivos PDF"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    carpeta = settings.MEDIA_ROOT / 'archivos_up'
+    os.makedirs(carpeta, exist_ok=True)
+
+    nombre_archivo = f"{uuid.uuid4().hex}{ext}"
+    ruta_disco = carpeta / nombre_archivo
+
+    with open(ruta_disco, 'wb+') as destino:
+        for chunk in archivo.chunks():
+            destino.write(chunk)
+
+    ruta_publica = f"/media/archivos_up/{nombre_archivo}"
+    return Response({"RutaArchivo": ruta_publica, "NombreArchivo": archivo.name})
+
 # INFO PERSONAL DE CARACTERIZACION
 
 def _get_productor(request, userId=None):
@@ -210,10 +243,12 @@ def _get_up_for_user(productor):
 
 def _create_draft_up(productor):
     from datetime import date
+    from .models import EstadosUP
 
     tipo_up = TipoUP.objects.first()
     tenencia = TiposTenencias.objects.first()
     funcionario = Funcionarios.objects.first()
+    estado_en_revision = EstadosUP.objects.filter(Estado='En revision').first()
 
     if not (tipo_up and tenencia and funcionario):
         return None
@@ -233,6 +268,7 @@ def _create_draft_up(productor):
         Funcionario=funcionario,
         FechaCaracterizacion=date.today(),
         FechaActualizacion=date.today(),
+        idEstado=estado_en_revision,
     )
 
     return up

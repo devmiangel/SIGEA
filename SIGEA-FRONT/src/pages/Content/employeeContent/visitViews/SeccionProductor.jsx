@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { Campo, CampoCheck, BotonGuardar } from './fields'
-import { getInfoPersonal, saveInfoPersonal } from '../../../../services/caracterizacionService'
+import { Campo, CampoSelectDinamico, BotonGuardar } from './fields'
+import {
+    getInfoPersonal, saveInfoPersonal, getNivelesEducativos, getSisben,
+} from '../../../../services/caracterizacionService'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 const CAMPOS = [
-    { name: 'PrimerNombreProductor', label: 'Primer nombre' },
+    { name: 'PrimerNombreProductor', label: 'Primer nombre', requerido: true },
     { name: 'SegundoNombreProductor', label: 'Segundo nombre' },
-    { name: 'PrimerApellidoProductor', label: 'Primer apellido' },
+    { name: 'PrimerApellidoProductor', label: 'Primer apellido', requerido: true },
     { name: 'SegundoApellidoProductor', label: 'Segundo apellido' },
-    { name: 'DocumentoProductor', label: 'Documento' },
+    { name: 'DocumentoProductor', label: 'Documento', requerido: true },
     { name: 'RazonSocialProductor', label: 'Razón social' },
     { name: 'NitProductor', label: 'NIT' },
-    { name: 'Celular', label: 'Celular' },
-    { name: 'Correo', label: 'Correo' },
-    { name: 'FechaNacimiento', label: 'Fecha de nacimiento', type: 'date' },
-    { name: 'NivelEducativo', label: 'Nivel educativo' },
-    { name: 'Sisben', label: 'Sisbén' },
+    { name: 'Celular', label: 'Celular', requerido: true },
+    { name: 'Correo', label: 'Correo', requerido: true },
+    { name: 'FechaNacimiento', label: 'Fecha de nacimiento', type: 'date', requerido: true },
 ]
 
 const INICIAL = {
@@ -30,12 +30,19 @@ export default function SeccionProductor({ userId }) {
     const [form, setForm] = useState(INICIAL)
     const [loading, setLoading] = useState(true)
     const [guardando, setGuardando] = useState(false)
+    const [niveles, setNiveles] = useState([])
+    const [sisbenes, setSisbenes] = useState([])
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        getInfoPersonal(userId)
-            .then((data) => { if (activo) setForm({ ...INICIAL, ...data }) })
+        Promise.all([getInfoPersonal(userId), getNivelesEducativos(), getSisben()])
+            .then(([data, niv, sis]) => {
+                if (!activo) return
+                setForm({ ...INICIAL, ...data })
+                setNiveles(niv.map((n) => n.TipoNivelEducativo))
+                setSisbenes(sis.map((s) => s.NivelSisben))
+            })
             .catch(() => { if (activo) setForm(INICIAL) })
             .finally(() => { if (activo) setLoading(false) })
         return () => { activo = false }
@@ -43,7 +50,24 @@ export default function SeccionProductor({ userId }) {
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
+    const validar = () => {
+        const faltantes = CAMPOS
+            .filter((c) => c.requerido && !String(form[c.name] ?? '').trim())
+            .map((c) => c.label)
+        if (faltantes.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos obligatorios',
+                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
+                confirmButtonColor: AGRO_COLORS.success,
+            })
+            return false
+        }
+        return true
+    }
+
     const guardar = async () => {
+        if (!validar()) return
         setGuardando(true)
         try {
             await saveInfoPersonal(userId, form)
@@ -83,8 +107,13 @@ export default function SeccionProductor({ userId }) {
                         type={c.type || 'text'}
                         value={form[c.name]}
                         onChange={onChange}
+                        required={c.requerido}
                     />
                 ))}
+                <CampoSelectDinamico name="NivelEducativo" label="Nivel educativo" value={form.NivelEducativo}
+                    options={niveles} permitirNuevo={false} placeholder="Seleccione..." onChange={onChange} />
+                <CampoSelectDinamico name="Sisben" label="Sisbén" value={form.Sisben}
+                    options={sisbenes} permitirNuevo={false} placeholder="Seleccione..." onChange={onChange} />
             </div>
             {form.Rudea && (
                 <p className="text-sm text-gray-600"><strong>RUEA:</strong> {form.Rudea}</p>

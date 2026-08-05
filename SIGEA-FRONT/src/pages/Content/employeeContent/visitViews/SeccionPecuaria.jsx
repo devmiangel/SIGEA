@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { BotonGuardar } from './fields'
+import { BotonGuardar, CampoSelectDinamico } from './fields'
 import {
     getInfoAnimal, saveInfoAnimal, getGruposAnimales, getPropositos,
     getTiposAves, getRazas, getProductosApicolas,
+    crearProposito, crearTipoAve, crearProductoApicola,
 } from '../../../../services/caracterizacionService'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 const GRUPOS_CON_RAZA = ['Bovinos', 'Aves', 'Porcinos', 'Equinos', 'Caprinos', 'Ovinos', 'Conejos', 'Curies', 'Peces', 'Abejas']
 
+function SelectOpc({ label, value, opciones, onChange, onCrear }) {
+    return (
+        <CampoSelectDinamico label={label} name={label} value={value ?? ''}
+            options={opciones} onCrear={onCrear} compact
+            onChange={(n, v) => onChange(v)} />
+    )
+}
+
 function DetalleBovino({ det, update, razas, propositos }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onChange={(v) => update('Proposito', v)} />
+            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={crearProposito} onChange={(v) => update('Proposito', v)} />
             <NumOpc label="Machos" value={det.Machos} onChange={(v) => update('Machos', v)} />
             <NumOpc label="Hembras" value={det.Hembras} onChange={(v) => update('Hembras', v)} />
             <TextOpc label="RUV" value={det.RUV} onChange={(v) => update('RUV', v)} />
@@ -25,7 +34,7 @@ function DetalleAves({ det, update, razas, tiposAves }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Tipo de ave" value={det.TipoAve} opciones={tiposAves} onChange={(v) => update('TipoAve', v)} />
+            <SelectOpc label="Tipo de ave" value={det.TipoAve} opciones={tiposAves} onCrear={crearTipoAve} onChange={(v) => update('TipoAve', v)} />
             <NumOpc label="Cantidad" value={det.Cantidad} onChange={(v) => update('Cantidad', v)} />
         </div>
     )
@@ -35,7 +44,7 @@ function DetalleSimple({ det, update, razas, propositos, conChapeta = false }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onChange={(v) => update('Proposito', v)} />
+            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={crearProposito} onChange={(v) => update('Proposito', v)} />
             {conChapeta && (
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                     <input type="checkbox" checked={!!det.Chapeta} onChange={(e) => update('Chapeta', e.target.checked)} className="w-4 h-4 accent-[#015d3b]" />
@@ -59,20 +68,7 @@ function DetalleAbejas({ det, update, razas, productosApicolas }) {
     return (
         <div className="grid grid-cols-2 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Productos apícolas" value={det.ProductosApicolas} opciones={productosApicolas} onChange={(v) => update('ProductosApicolas', v)} />
-        </div>
-    )
-}
-
-function SelectOpc({ label, value, opciones, onChange }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</label>
-            <select value={value ?? ''} onChange={(e) => onChange(e.target.value)}
-                className="w-full px-2 py-1.5 rounded-md border border-[#015d3b] outline-none text-sm bg-white">
-                <option value="">Seleccione...</option>
-                {opciones.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
+            <SelectOpc label="Productos apícolas" value={det.ProductosApicolas} opciones={productosApicolas} onCrear={crearProductoApicola} onChange={(v) => update('ProductosApicolas', v)} />
         </div>
     )
 }

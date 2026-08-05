@@ -46,8 +46,14 @@ const getCatalogo = async (url) => {
     return response.data
 }
 
+const crearCatalogo = async (url, body) => {
+    const response = await api.post(url, body)
+    return response.data
+}
+
 export const getTiposUP = () => getCatalogo('/UPs/tiposUP/')
 export const getActividadesUP = () => getCatalogo('/UPs/actividadesUP/')
+export const getUnidades = () => getCatalogo('/UPs/unidades/')
 export const getProductosUPs = () => getCatalogo('/UPs/productosUPs/')
 export const getGruposAnimales = () => getCatalogo('/UPs/gruposAnimales/')
 export const getPropositos = () => getCatalogo('/UPs/propositos/')
@@ -60,3 +66,27 @@ export const getSeguros = () => getCatalogo('/predios/seguros/')
 export const getVeredas = () => getCatalogo('/predios/veredas/')
 export const getSectores = () => getCatalogo('/predios/sectores/')
 export const getTiposRegistrosICA = () => getCatalogo('/predios/tiposRegistrosICA/')
+
+export const getNivelesEducativos = () => getCatalogo('/usuarios/tiposNivelesEducativos/')
+export const getSisben = () => getCatalogo('/usuarios/sisben/')
+
+export const crearActividadUP = (nombre) => crearCatalogo('/UPs/actividadesUP/', { Actividad: nombre })
+export const crearUnidad = (nombre) => crearCatalogo('/UPs/unidades/', { Unidad: nombre })
+export const crearProducto = (nombre) => crearCatalogo('/UPs/productosUPs/', { Producto: nombre })
+export const crearProposito = (nombre) => crearCatalogo('/UPs/propositos/', { Proposito: nombre })
+export const crearTipoAve = (nombre) => crearCatalogo('/UPs/tiposAves/', { TipoAve: nombre })
+export const crearProductoApicola = (nombre) => crearCatalogo('/UPs/productosApicolas/', { ProductoApicolas: nombre })
+
+export const crearSeguro = (nombre) => crearCatalogo('/predios/seguros/', { NombreSeguro: nombre })
+export const crearVereda = (nombre) => crearCatalogo('/predios/veredas/', { NombreVereda: nombre })
+export const crearSector = (nombre) => crearCatalogo('/predios/sectores/', { NombreSector: nombre })
+
+export const subirArchivoUP = async (userId, archivo) => {
+    const formData = new FormData()
+    formData.append('userId', userId)
+    formData.append('archivo', archivo)
+    const response = await api.post('/UPs/upload-archivo-up/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+}

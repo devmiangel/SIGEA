@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { BotonGuardar } from './fields'
-import { getInfoAgricola, saveInfoAgricola, getProductosUPs } from '../../../../services/caracterizacionService'
+import { BotonGuardar, CampoSelectDinamico } from './fields'
+import {
+    getInfoAgricola, saveInfoAgricola, getProductosUPs, getUnidades, crearProducto, crearUnidad,
+} from '../../../../services/caracterizacionService'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 export default function SeccionAgricola({ userId }) {
@@ -9,18 +11,21 @@ export default function SeccionAgricola({ userId }) {
     const [loading, setLoading] = useState(true)
     const [guardando, setGuardando] = useState(false)
     const [productos, setProductos] = useState([])
+    const [unidades, setUnidades] = useState([])
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([getInfoAgricola(userId), getProductosUPs()])
-            .then(([data, prods]) => {
+        Promise.all([getInfoAgricola(userId), getProductosUPs(), getUnidades()])
+            .then(([data, prods, unds]) => {
                 if (!activo) return
                 const inicial = (data?.ProduccionAgricola || []).map((p) => ({
                     NombreProducto: p.NombreProducto, Cantidad: p.Cantidad,
+                    Unidad: p.UnidadMedida || '',
                 }))
                 setItems(inicial)
                 setProductos(prods.map((p) => p.Producto))
+                setUnidades(unds.map((u) => u.Unidad))
             })
             .catch(() => { if (activo) setItems([]) })
             .finally(() => { if (activo) setLoading(false) })
@@ -31,7 +36,7 @@ export default function SeccionAgricola({ userId }) {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
     }
 
-    const agregar = () => setItems((arr) => [...arr, { NombreProducto: '', Cantidad: '' }])
+    const agregar = () => setItems((arr) => [...arr, { NombreProducto: '', Cantidad: '', Unidad: '' }])
     const eliminar = (idx) => setItems((arr) => arr.filter((_, i) => i !== idx))
 
     const guardar = async () => {
@@ -67,18 +72,11 @@ export default function SeccionAgricola({ userId }) {
                     <p className="text-sm text-gray-500">No hay cultivos registrados. Agrega uno.</p>
                 )}
                 {items.map((it, idx) => (
-                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-end">
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Producto</label>
-                            <select
-                                value={it.NombreProducto}
-                                onChange={(e) => updateItem(idx, 'NombreProducto', e.target.value)}
-                                className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none text-sm bg-white"
-                            >
-                                <option value="">Seleccione...</option>
-                                {productos.map((p) => <option key={p} value={p}>{p}</option>)}
-                            </select>
-                        </div>
+                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+                        <CampoSelectDinamico label="Producto" name="NombreProducto" value={it.NombreProducto}
+                            options={productos} onCrear={crearProducto} onChange={(n, v) => updateItem(idx, n, v)} />
+                        <CampoSelectDinamico label="Unidad" name="Unidad" value={it.Unidad}
+                            options={unidades} onCrear={crearUnidad} onChange={(n, v) => updateItem(idx, n, v)} />
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cantidad</label>
                             <input

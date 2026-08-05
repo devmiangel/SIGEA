@@ -1,9 +1,11 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
 import { Header } from "../../../../components/Tettles-Buttons/Title"
 import TabList from "../../../../components/TabList/TabList"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import UserRequest from "../../../../components/UserRequest/UserRequest"
 import AlertRequestInfo from "../../../../components/AlertRequestInfo/AlertRequestInfo"
+import UPPReviewCard from "../../../../components/UPPReviewCard/UPPReviewCard"
 import Swal from 'sweetalert2'
 import { getMisUPs } from "../../../../services/agroService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
@@ -12,10 +14,32 @@ import { abrirModalNuevaSolicitud } from "../../../../components/AgroModals/Nuev
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
 
 export default function ProductorView(){
+    const navigate = useNavigate()
     const { user } = useCurrentDataUser()
     const { solicitudes, loading, crear } = useSolicitudes(user)
     const [selectedSolicitud, setSelectedSolicitud] = useState(null)
     const [activeTab, setActiveTab] = useState('Mis UPs')
+    const [ups, setUps] = useState([])
+    const [loadingUps, setLoadingUps] = useState(true)
+
+    const cargarUps = useCallback(async () => {
+        setLoadingUps(true)
+        try {
+            const data = await getMisUPs()
+            setUps(data)
+        } catch {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar tus unidades productivas.',
+                confirmButtonColor: AGRO_COLORS.primary
+            })
+        } finally {
+            setLoadingUps(false)
+        }
+    }, [])
+
+    useEffect(() => { cargarUps() }, [cargarUps])
 
     const handleAgregarUnidad = async () => {
         try {
@@ -53,9 +77,9 @@ export default function ProductorView(){
     }
 
     const contentTabs = useMemo(() => [
-        { id: 1, title: 'Mis UPs', content: 'hola' },
+        { id: 1, title: 'Mis UPs', content: ups },
         { id: 2, title: 'Solicitudes', content: solicitudes }
-    ], [solicitudes])
+    ], [ups, solicitudes])
 
     const currentContent = contentTabs.find(t => t.title === activeTab)?.content
 
@@ -83,7 +107,21 @@ export default function ProductorView(){
                 />
                 <div className="mt-6">
                     {activeTab === 'Mis UPs' ? (
-                        currentContent
+                        loadingUps ? (
+                            <p className="text-gray-500 text-sm">Cargando unidades productivas...</p>
+                        ) : currentContent.length === 0 ? (
+                            <p className="text-gray-500 text-sm">No tienes unidades productivas registradas.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {currentContent.map((up) => (
+                                    <UPPReviewCard
+                                        key={up.id}
+                                        up={up}
+                                        onClick={() => navigate(`/usuario/extension_agropecuaria/up/${up.id}`)}
+                                    />
+                                ))}
+                            </div>
+                        )
                     ) : (
                         loading ? (
                             <p className="text-gray-500 text-sm">Cargando solicitudes...</p>

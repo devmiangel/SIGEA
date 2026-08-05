@@ -27,6 +27,7 @@ import CaracterForm from "../pages/Content/employeeContent/visitViews/CaracterFo
 import HomePageContentUser from "../pages/Content/userContent/PrincipalPageContentUser";
 import AgroModuleContentUser from "../pages/Content/userContent/AgroExtentionContentUser";
 import AnimalProtectionModuleContentUser from "../pages/Content/userContent/AnimalProtectionContentUser";
+import UPDetailView from "../pages/Content/userContent/AgroExtensionViews/UPDetailView";
 
 export default function SigeaRoutes(){
     return(
@@ -68,6 +69,7 @@ export default function SigeaRoutes(){
             }>
                 <Route index element={<HomePageContentUser/>}/>
                 <Route path="extension_agropecuaria" element={<AgroModuleContentUser/>}/>
+                <Route path="extension_agropecuaria/up/:upId" element={<UPDetailView/>}/>
                 <Route path="proteccion_animal" element={<AnimalProtectionModuleContentUser/>}/>
             </Route>
             

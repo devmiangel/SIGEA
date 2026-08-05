@@ -8,6 +8,12 @@ class TipoUP(models.Model):
     def __str__(self):
         return self.TipoUP
 
+class EstadosUP(models.Model):
+    Estado = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.Estado
+
 class ActividadUP(models.Model):
     Actividad = models.CharField(max_length=255)
 
@@ -28,7 +34,7 @@ class UP(models.Model):
     FechaCaracterizacion = models.DateField()
     FechaActualizacion = models.DateField()
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.PROTECT)
-    Estado = models.BooleanField(default=True)
+    idEstado = models.ForeignKey(EstadosUP, on_delete=models.PROTECT, null=True, blank=True)
 
     #GENERACION DE CODIGO RUEA
     def save(self, *args, **kwargs):
@@ -45,6 +51,7 @@ class UP(models.Model):
 class ArchivosUP(models.Model):
     UP = models.ForeignKey(UP, on_delete=models.CASCADE)
     RutaArchivo = models.CharField(max_length=255)
+    NombreArchivo = models.CharField(max_length=255, blank=True)
     Descripcion = models.CharField(max_length=255)
 
     def __str__(self):
