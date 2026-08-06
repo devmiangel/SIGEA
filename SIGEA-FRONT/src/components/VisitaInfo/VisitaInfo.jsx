@@ -104,7 +104,7 @@ export default function VisitaInfo({ visita, numero, onClose }) {
             if (result.isConfirmed && !realizada) {
                 const destino = esCaracterizacion(visita.tipo_visita_label)
                     ? '/funcionario/visitas/caracterizacion'
-                    : '/visitViews/visitaFrom'
+                    : '/funcionario/visitas/visita'
                 navigate(destino, { state: { visita } })
             }
         })

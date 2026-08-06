@@ -27,6 +27,7 @@ import AgendaContentEmployee from "../pages/Content/employeeContent/AgendaConten
 import HomeContentEmployee from "../pages/Content/employeeContent/HomeContentEmployee";
 import InventaryContentEmployee from "../pages/Content/employeeContent/InventaryContentEmployee";
 import CaracterForm from "../pages/Content/employeeContent/visitViews/CaracterForm";
+import VisitaForm from "../pages/Content/employeeContent/visitViews/VisitaForm";
 
 import HomePageContentUser from "../pages/Content/userContent/PrincipalPageContentUser";
 import AgroModuleContentUser from "../pages/Content/userContent/AgroExtentionContentUser";
@@ -69,6 +70,7 @@ export default function SigeaRoutes(){
                 <Route path="agenda" element={<AgendaContentEmployee/>}/>
                 <Route path="recursos" element={<InventaryContentEmployee/>}/>
                 <Route path="visitas/caracterizacion" element={<CaracterForm/>}/>
+                <Route path="visitas/visita" element={<VisitaForm/>}/>
             </Route>
 
             <Route path="/usuario" element={

@@ -185,6 +185,26 @@ export const getVehiculo = async (vehiculoId) => {
     return response.data;
 }
 
+export const getInventarioFuncionario = async () => {
+    const response = await api.get('/inventario/inventarioFuncionario/');
+    return response.data;
+}
+
+export const getRegistroAsignacionVehiculos = async () => {
+    const response = await api.get('/inventario/registroAsignacionVehiculos/');
+    return response.data;
+}
+
+export const getAsignacionHerramientas = async () => {
+    const response = await api.get('/inventario/asignacionHerramientas/');
+    return response.data;
+}
+
+export const getConductores = async () => {
+    const response = await api.get('/inventario/conductores/');
+    return response.data;
+}
+
 export const crearRegistroVehiculo = async (data) => {
     const response = await api.post('/inventario/vehiculos/', data);
     return response.data;
