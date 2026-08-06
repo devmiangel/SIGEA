@@ -40,6 +40,7 @@ class DetalleVehiculos(models.Model):
     Modelo = models.CharField(max_length=255)
     FechaTecno = models.DateField()
     FechaSoat = models.DateField()
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):
@@ -74,6 +75,7 @@ class TiposHerramientas(models.Model):
 class Herramientas(models.Model):
     Herramienta = models.CharField(max_length=255)
     TipoHerramienta = models.ForeignKey(TiposHerramientas, on_delete=models.PROTECT)
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):

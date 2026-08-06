@@ -18,7 +18,7 @@ const REQUERIDOS = [
     { nombre: 'RUEA', label: 'RUEA' },
 ]
 
-const SeccionUP = forwardRef(({ userId }, ref) => {
+const SeccionUP = forwardRef(({ userId, solicitudId }, ref) => {
     const [form, setForm] = useState(INICIAL)
     const [tipos, setTipos] = useState([])
     const [actividades, setActividades] = useState([])
@@ -28,14 +28,14 @@ const SeccionUP = forwardRef(({ userId }, ref) => {
         if (!userId) return
         let activo = true
         cargarSeccion(async () => {
-            const [data, t, a] = await Promise.all([getInfoUP(userId), getTiposUP(), getActividadesUP()])
+            const [data, t, a] = await Promise.all([getInfoUP(userId, solicitudId), getTiposUP(), getActividadesUP()])
             if (!activo) return
             setForm({ ...INICIAL, ...data })
             setTipos(t.map((x) => x.TipoUP))
             setActividades(a.map((x) => x.Actividad))
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
@@ -46,8 +46,8 @@ const SeccionUP = forwardRef(({ userId }, ref) => {
         if (faltantes.length) {
             return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return guardarSeccion(() => saveInfoUP(userId, form))
-    }, [form, userId, guardarSeccion])
+        return guardarSeccion(() => saveInfoUP(userId, solicitudId, form))
+    }, [form, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

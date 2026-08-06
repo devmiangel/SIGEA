@@ -32,6 +32,7 @@ export default function CaracterForm() {
     const navigate = useNavigate()
     const visita = location.state?.visita
     const userId = visita?.solicitud_info?.solicitante?.usuario_id
+    const solicitudId = visita?.solicitud_info?.id
     const [active, setActive] = useState(SECCIONES[0].nombre)
     const [finalizando, setFinalizando] = useState(false)
     const seccionesRef = useRef({})
@@ -150,6 +151,7 @@ export default function CaracterForm() {
                                         <Seccion
                                             ref={(el) => { seccionesRef.current[s.nombre] = el }}
                                             userId={userId}
+                                            solicitudId={solicitudId}
                                         />
                                     </div>
                                 )

@@ -25,7 +25,7 @@ const INICIAL = {
     NivelEducativo: '', Sisben: '', Edad: null, Rudea: null,
 }
 
-const SeccionProductor = forwardRef(({ userId }, ref) => {
+const SeccionProductor = forwardRef(({ userId, solicitudId }, ref) => {
     const [form, setForm] = useState(INICIAL)
     const [niveles, setNiveles] = useState([])
     const [sisbenes, setSisbenes] = useState([])
@@ -35,14 +35,16 @@ const SeccionProductor = forwardRef(({ userId }, ref) => {
         if (!userId) return
         let activo = true
         cargarSeccion(async () => {
-            const [data, niv, sis] = await Promise.all([getInfoPersonal(userId), getNivelesEducativos(), getSisben()])
+            const [data, niv, sis] = await Promise.all([
+                getInfoPersonal(userId, solicitudId), getNivelesEducativos(), getSisben(),
+            ])
             if (!activo) return
             setForm({ ...INICIAL, ...data })
             setNiveles(niv.map((n) => n.TipoNivelEducativo))
             setSisbenes(sis.map((s) => s.NivelSisben))
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
@@ -53,8 +55,8 @@ const SeccionProductor = forwardRef(({ userId }, ref) => {
         if (faltantes.length) {
             return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return guardarSeccion(() => saveInfoPersonal(userId, form))
-    }, [form, userId, guardarSeccion])
+        return guardarSeccion(() => saveInfoPersonal(userId, solicitudId, form))
+    }, [form, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

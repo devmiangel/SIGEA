@@ -92,7 +92,7 @@ function TextOpc({ label, value, onChange }) {
     )
 }
 
-const SeccionPecuaria = forwardRef(({ userId }, ref) => {
+const SeccionPecuaria = forwardRef(({ userId, solicitudId }, ref) => {
     const [items, setItems] = useState([])
     const [grupos, setGrupos] = useState([])
     const [propositos, setPropositos] = useState([])
@@ -106,7 +106,7 @@ const SeccionPecuaria = forwardRef(({ userId }, ref) => {
         let activo = true
         cargarSeccion(async () => {
             const [data, g, prop, aves, raz, api] = await Promise.all([
-                getInfoAnimal(userId), getGruposAnimales(), getPropositos(),
+                getInfoAnimal(userId, solicitudId), getGruposAnimales(), getPropositos(),
                 getTiposAves(), getRazas(), getProductosApicolas(),
             ])
             if (!activo) return
@@ -122,7 +122,7 @@ const SeccionPecuaria = forwardRef(({ userId }, ref) => {
             setProductosApicolas(api.map((x) => x.ProductoApicolas))
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -150,10 +150,10 @@ const SeccionPecuaria = forwardRef(({ userId }, ref) => {
     }
 
     const guardar = useCallback(async () => {
-        return guardarSeccion(() => saveInfoAnimal(userId, {
+        return guardarSeccion(() => saveInfoAnimal(userId, solicitudId, {
             Animales: items.filter((i) => i.GrupoAnimal && GRUPOS_CON_RAZA.includes(i.GrupoAnimal)),
         }))
-    }, [items, userId, guardarSeccion])
+    }, [items, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

@@ -6,7 +6,7 @@ import Swal from 'sweetalert2'
 
 const EXT_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf']
 
-const SeccionAdicional = forwardRef(({ userId }, ref) => {
+const SeccionAdicional = forwardRef(({ userId, solicitudId }, ref) => {
     const [archivos, setArchivos] = useState([])
     const [fechaActualizacion, setFechaActualizacion] = useState(null)
     const { loading, cargarSeccion, guardarSeccion } = useSeccion()
@@ -15,7 +15,7 @@ const SeccionAdicional = forwardRef(({ userId }, ref) => {
         if (!userId) return
         let activo = true
         cargarSeccion(async () => {
-            const data = await getInfoAdicional(userId)
+            const data = await getInfoAdicional(userId, solicitudId)
             if (!activo) return
             setArchivos((data?.Archivos || []).map((a) => ({
                 RutaArchivo: a.RutaArchivo || '', NombreArchivo: a.NombreArchivo || '', Descripcion: a.Descripcion || '',
@@ -23,7 +23,7 @@ const SeccionAdicional = forwardRef(({ userId }, ref) => {
             setFechaActualizacion(data?.FechaActualizacion || null)
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setArchivos((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -68,10 +68,10 @@ const SeccionAdicional = forwardRef(({ userId }, ref) => {
         if (archivos.some((a) => a.subiendo)) {
             return { ok: false, motivo: 'Hay archivos que aún se están subiendo. Espera a que terminen.' }
         }
-        return guardarSeccion(() => saveInfoAdicional(userId, {
+        return guardarSeccion(() => saveInfoAdicional(userId, solicitudId, {
             Archivos: archivos.filter((a) => a.RutaArchivo),
         }))
-    }, [archivos, userId, guardarSeccion])
+    }, [archivos, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

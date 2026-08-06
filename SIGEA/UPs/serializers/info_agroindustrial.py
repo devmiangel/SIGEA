@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin, get_o_crear
 
-class InfoProduccionAgroindustrialSerializer(serializers.ModelSerializer):
+class InfoProduccionAgroindustrialSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     ProduccionAgroindustrial = serializers.ListField(child=serializers.DictField(), required=False)
     
     def get_ProduccionAgroindustrial(self, obj):
@@ -43,12 +44,13 @@ class InfoProduccionAgroindustrialSerializer(serializers.ModelSerializer):
                     
                     unidad_obj = None
                     if unidad_nombre:
-                        unidad_obj, _ = Unidades.objects.get_or_create(Unidad=unidad_nombre)
+                        unidad_obj = get_o_crear(Unidades, Unidad=unidad_nombre)
                     
-                    producto_obj, _ = ProductosUPs.objects.get_or_create(
-                        Producto=producto_nombre,
-                        defaults={'Unidad': unidad_obj},
-                    )
+                    producto_obj = ProductosUPs.objects.filter(Producto=producto_nombre).first()
+                    if producto_obj is None:
+                        producto_obj = ProductosUPs.objects.create(
+                            Producto=producto_nombre, Unidad=unidad_obj
+                        )
                     if unidad_obj:
                         producto_obj.Unidad = unidad_obj
                         producto_obj.save()

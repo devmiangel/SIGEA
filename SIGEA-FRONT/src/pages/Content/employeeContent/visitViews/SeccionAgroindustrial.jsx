@@ -5,7 +5,7 @@ import {
 } from '../../../../services/caracterizacionService'
 import { useSeccion } from '../../../../hooks/useSeccion'
 
-const SeccionAgroindustrial = forwardRef(({ userId }, ref) => {
+const SeccionAgroindustrial = forwardRef(({ userId, solicitudId }, ref) => {
     const [items, setItems] = useState([])
     const [productos, setProductos] = useState([])
     const [unidades, setUnidades] = useState([])
@@ -15,7 +15,7 @@ const SeccionAgroindustrial = forwardRef(({ userId }, ref) => {
         if (!userId) return
         let activo = true
         cargarSeccion(async () => {
-            const [data, prods, unds] = await Promise.all([getInfoAgroindustrial(userId), getProductosUPs(), getUnidades()])
+            const [data, prods, unds] = await Promise.all([getInfoAgroindustrial(userId, solicitudId), getProductosUPs(), getUnidades()])
             if (!activo) return
             const inicial = (data?.ProduccionAgroindustrial || []).map((p) => ({
                 NombreProducto: p.NombreProducto, Cantidad: p.Cantidad, INVIMA: !!p.INVIMA,
@@ -26,7 +26,7 @@ const SeccionAgroindustrial = forwardRef(({ userId }, ref) => {
             setUnidades(unds.map((u) => u.Unidad))
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -36,10 +36,10 @@ const SeccionAgroindustrial = forwardRef(({ userId }, ref) => {
     const eliminar = (idx) => setItems((arr) => arr.filter((_, i) => i !== idx))
 
     const guardar = useCallback(async () => {
-        return guardarSeccion(() => saveInfoAgroindustrial(userId, {
+        return guardarSeccion(() => saveInfoAgroindustrial(userId, solicitudId, {
             ProduccionAgroindustrial: items.filter((i) => i.NombreProducto),
         }))
-    }, [items, userId, guardarSeccion])
+    }, [items, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

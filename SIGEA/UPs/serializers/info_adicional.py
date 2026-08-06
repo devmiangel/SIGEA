@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin
 
-class InfoAdicionalCaracterizacionSerializer(serializers.ModelSerializer):
+class InfoAdicionalCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     Archivos = serializers.ListField(child=serializers.DictField(), required=False)
 
     class Meta:

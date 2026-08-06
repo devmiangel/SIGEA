@@ -3,18 +3,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import { Header } from "../../../../components/Tettles-Buttons/Title"
-import {
-    getInfoPersonal, getInfoPredio, getInfoUP,
-    getInfoAgricola, getInfoAnimal, getInfoAgroindustrial, getInfoAdicional,
-} from "../../../../services/caracterizacionService"
 import { getMisUPs } from "../../../../services/agroService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
-
-const estadoStyle = {
-    'En revision': 'bg-amber-100 text-amber-700',
-    'Rechazada': 'bg-red-100 text-red-700',
-    'Aceptada': 'bg-green-100 text-green-700',
-}
+import { useCaracterizacion } from "../../../../hooks/useCaracterizacion"
+import { AGRO_COLORS, UP_ESTADO_STYLE } from "../../../../utils/agroConstants"
 
 const valor = (v) => (v === null || v === undefined || v === '' ? null : v)
 
@@ -65,12 +57,10 @@ export default function UPDetailView() {
     const location = useLocation()
     const navigate = useNavigate()
     const { user } = useCurrentDataUser()
+    const { secciones, loading, refresh: cargarSecciones } = useCaracterizacion()
     const [up, setUp] = useState(location.state?.up ?? null)
-    const [secciones, setSecciones] = useState(null)
-    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        let activo = true
         const userId = user?.id
         const cargar = async () => {
             let upData = location.state?.up ?? null
@@ -81,27 +71,13 @@ export default function UPDetailView() {
                 } catch { /* sin datos */ }
             }
             if (upData) setUp(upData)
-
-            if (userId) {
-                try {
-                    const [personal, predio, infoUp, agricola, animal, agroindustrial, adicional] =
-                        await Promise.all([
-                            getInfoPersonal(userId), getInfoPredio(userId), getInfoUP(userId),
-                            getInfoAgricola(userId), getInfoAnimal(userId),
-                            getInfoAgroindustrial(userId), getInfoAdicional(userId),
-                        ])
-                    if (!activo) return
-                    setSecciones({ personal, predio, infoUp, agricola, animal, agroindustrial, adicional })
-                } catch { if (activo) setSecciones(null) }
-            }
-            if (activo) setLoading(false)
+            cargarSecciones(userId)
         }
         cargar()
-        return () => { activo = false }
-    }, [user, upId, location.state])
+    }, [user, upId, location.state, cargarSecciones])
 
     const estadoLabel = up?.estado_label ?? 'Sin estado'
-    const estadoClass = estadoStyle[estadoLabel] ?? 'bg-gray-100 text-gray-700'
+    const estadoClass = UP_ESTADO_STYLE[estadoLabel] ?? 'bg-gray-100 text-gray-700'
     const nombre = up?.productor_nombre ?? 'Unidad productiva'
     const personal = secciones?.personal ?? {}
 
@@ -111,7 +87,7 @@ export default function UPDetailView() {
                 componentLogo={<AgricultureIcon sx={{ fontSize: 40, color: 'ActiveCaption' }} />}
                 headerText={'Unidad Productiva'}
                 message={'Información completa de tu unidad productiva registrada.'}
-                colorLogo={'#3e9a8a'}
+                colorLogo={AGRO_COLORS.primaryLight}
             />
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
                 <button

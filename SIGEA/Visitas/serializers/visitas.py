@@ -16,11 +16,6 @@ class VisitasSerializer(serializers.ModelSerializer):
     def get_solicitud_info(self, obj):
         persona = getattr(obj.Solicitud.Usuario, 'persona', None)
         up = obj.Solicitud.UP
-        if up is None:
-            from UPs.models import UP as UPModel
-            productor = getattr(obj.Solicitud.Usuario, 'productores', None)
-            if productor is not None:
-                up = productor.up_set.first()
         return {
             'id': obj.Solicitud.id,
             'motivo': obj.Solicitud.MotivoSolicitud.MotivoSolicitud,

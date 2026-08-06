@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin, get_o_crear
 
-class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
+class InfoProduccionAnimalSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     Animales = serializers.ListField(child=serializers.DictField(), required=False)
 
     def get_Animales(self, obj):
@@ -101,20 +102,20 @@ class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
                                 raza_obj = Razas.objects.create(Raza=raza_nombre, Animal=animal)
                         
                         if grupo_nombre == 'Bovinos':
-                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
+                            prop = get_o_crear(Propositos, Proposito=detalles.get('Proposito')) if detalles.get('Proposito') else None
                             DetalleBovinos.objects.create(
                                 Animal=animal, Raza=raza_obj, Proposito=prop,
                                 NumeroMachos=detalles.get('Machos', 0),
-                                Hembras=detalles.get('Hembras', 0), RUV=detalles.get('RUV', '')
+                                NumeroHembras=detalles.get('Hembras', 0), RUV=detalles.get('RUV', '')
                             )
                         elif grupo_nombre == 'Aves':
-                            tipo_ave = TiposAves.objects.get_or_create(TipoAve=detalles.get('TipoAve'))[0] if detalles.get('TipoAve') else None
+                            tipo_ave = get_o_crear(TiposAves, TipoAve=detalles.get('TipoAve')) if detalles.get('TipoAve') else None
                             DetalleAves.objects.create(Animal=animal, Raza=raza_obj, TipoAve=tipo_ave, Cantidad=detalles.get('Cantidad', 0))
                         elif grupo_nombre == 'Porcinos':
-                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
+                            prop = get_o_crear(Propositos, Proposito=detalles.get('Proposito')) if detalles.get('Proposito') else None
                             DetallePorcinos.objects.create(Animal=animal, Raza=raza_obj, Proposito=prop, Chapeta=detalles.get('Chapeta', False))
                         elif grupo_nombre in ['Equinos', 'Caprinos', 'Ovinos', 'Conejos', 'Curies']:
-                            prop = Propositos.objects.get_or_create(Proposito=detalles.get('Proposito'))[0] if detalles.get('Proposito') else None
+                            prop = get_o_crear(Propositos, Proposito=detalles.get('Proposito')) if detalles.get('Proposito') else None
                             model_map = {
                                 'Equinos': DetalleEquinos, 'Caprinos': DetalleCaprinos, 
                                 'Ovinos': DetalleOvinos, 'Conejos': DetalleConejos, 'Curies': DetalleCuries
@@ -123,6 +124,6 @@ class InfoProduccionAnimalSerializer(serializers.ModelSerializer):
                         elif grupo_nombre == 'Peces':
                             DetallePeces.objects.create(Animal=animal, Raza=raza_obj, NumeroEstanques=detalles.get('Estanques', 0))
                         elif grupo_nombre == 'Abejas':
-                            prod_api = ProductosApicolas.objects.get_or_create(ProductoApicolas=detalles.get('ProductosApicolas'))[0] if detalles.get('ProductosApicolas') else None
+                            prod_api = get_o_crear(ProductosApicolas, ProductoApicolas=detalles.get('ProductosApicolas')) if detalles.get('ProductosApicolas') else None
                             DetalleApicolas.objects.create(Animal=animal, Raza=raza_obj, ProductosApicolas=prod_api)
         return instance

@@ -10,36 +10,39 @@ const SECCIONES = {
     adicional: 'info_adicional_caracterizacion',
 }
 
-const getSeccion = async (seccion, userId) => {
-    const response = await api.get(`/UPs/${SECCIONES[seccion]}/${userId}/`)
+const getSeccion = async (seccion, userId, solicitudId) => {
+    const url = `/UPs/${SECCIONES[seccion]}/${userId}/`
+    const params = solicitudId ? { params: { solicitud_id: solicitudId } } : {}
+    const response = await api.get(url, params)
     return response.data
 }
 
-const guardarSeccion = async (seccion, userId, data) => {
-    const response = await api.post(`/UPs/${SECCIONES[seccion]}/${userId}/`, data)
+const guardarSeccion = async (seccion, userId, solicitudId, data) => {
+    const payload = solicitudId ? { ...data, solicitud_id: solicitudId } : data
+    const response = await api.post(`/UPs/${SECCIONES[seccion]}/${userId}/`, payload)
     return response.data
 }
 
-export const getInfoPersonal = (userId) => getSeccion('personal', userId)
-export const saveInfoPersonal = (userId, data) => guardarSeccion('personal', userId, data)
+export const getInfoPersonal = (userId, solicitudId) => getSeccion('personal', userId, solicitudId)
+export const saveInfoPersonal = (userId, solicitudId, data) => guardarSeccion('personal', userId, solicitudId, data)
 
-export const getInfoPredio = (userId) => getSeccion('predio', userId)
-export const saveInfoPredio = (userId, data) => guardarSeccion('predio', userId, data)
+export const getInfoPredio = (userId, solicitudId) => getSeccion('predio', userId, solicitudId)
+export const saveInfoPredio = (userId, solicitudId, data) => guardarSeccion('predio', userId, solicitudId, data)
 
-export const getInfoUP = (userId) => getSeccion('up', userId)
-export const saveInfoUP = (userId, data) => guardarSeccion('up', userId, data)
+export const getInfoUP = (userId, solicitudId) => getSeccion('up', userId, solicitudId)
+export const saveInfoUP = (userId, solicitudId, data) => guardarSeccion('up', userId, solicitudId, data)
 
-export const getInfoAgricola = (userId) => getSeccion('agricola', userId)
-export const saveInfoAgricola = (userId, data) => guardarSeccion('agricola', userId, data)
+export const getInfoAgricola = (userId, solicitudId) => getSeccion('agricola', userId, solicitudId)
+export const saveInfoAgricola = (userId, solicitudId, data) => guardarSeccion('agricola', userId, solicitudId, data)
 
-export const getInfoAnimal = (userId) => getSeccion('animal', userId)
-export const saveInfoAnimal = (userId, data) => guardarSeccion('animal', userId, data)
+export const getInfoAnimal = (userId, solicitudId) => getSeccion('animal', userId, solicitudId)
+export const saveInfoAnimal = (userId, solicitudId, data) => guardarSeccion('animal', userId, solicitudId, data)
 
-export const getInfoAgroindustrial = (userId) => getSeccion('agroindustrial', userId)
-export const saveInfoAgroindustrial = (userId, data) => guardarSeccion('agroindustrial', userId, data)
+export const getInfoAgroindustrial = (userId, solicitudId) => getSeccion('agroindustrial', userId, solicitudId)
+export const saveInfoAgroindustrial = (userId, solicitudId, data) => guardarSeccion('agroindustrial', userId, solicitudId, data)
 
-export const getInfoAdicional = (userId) => getSeccion('adicional', userId)
-export const saveInfoAdicional = (userId, data) => guardarSeccion('adicional', userId, data)
+export const getInfoAdicional = (userId, solicitudId) => getSeccion('adicional', userId, solicitudId)
+export const saveInfoAdicional = (userId, solicitudId, data) => guardarSeccion('adicional', userId, solicitudId, data)
 
 const getCatalogo = async (url) => {
     const response = await api.get(url)

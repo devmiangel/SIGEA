@@ -32,19 +32,23 @@ def _get_productor(request, userId=None):
     return productor, None
 
 
-def _get_up_for_user(productor):
-    return UP.objects.filter(Productor=productor).select_related(
-        'Productor__usuario__persona',
-        'Predio__Sector__Vereda',
-        'Predio__Seguro',
-        'Predio__TipoTenencia',
-        'TipoUP'
-    ).prefetch_related(
-        'Productor__usuario__persona__contactos',
-        'Productor__usuario__persona__TipoNivelEducativo',
-        'Productor__usuario__persona__NivelSisben',
-        'Productor__usuario__persona__Empresa'
-    ).first()
+def _get_up_context(productor, solicitud_id=None):
+    """Devuelve (solicitud, up) de caracterizacion.
+
+    La UP de caracterizacion se resuelve siempre a partir de la solicitud.
+    De esta forma cada visita de caracterizacion registra una UP nueva e
+    independiente asociada al productor, en lugar de reutilizar (y sobrescribir)
+    la primera UP ya existente del productor.
+    """
+    from Visitas.models import Solicitudes
+
+    solicitud = None
+    if solicitud_id:
+        solicitud = Solicitudes.objects.filter(id=solicitud_id).first()
+        if solicitud is not None and solicitud.UP is not None:
+            return solicitud, solicitud.UP
+
+    return solicitud, None
 
 
 def _create_draft_up(productor):
@@ -108,11 +112,13 @@ def _caracterizacion_handler(request, userId, serializer_class):
     if error_response:
         return error_response
 
-    up = _get_up_for_user(productor)
+    solicitud_id = request.data.get('solicitud_id') or request.query_params.get('solicitud_id')
+    solicitud, up = _get_up_context(productor, solicitud_id)
 
     if request.method == 'POST':
         data = request.data.copy()
         data.pop('userId', None)
+        data.pop('solicitud_id', None)
 
         # Sin datos: se devuelve el estado actual
         if not data:
@@ -121,7 +127,7 @@ def _caracterizacion_handler(request, userId, serializer_class):
             serializer = serializer_class(up)
             return Response(serializer.data)
 
-        # Si no existe UP, se crea al guardar la primera seccion
+        # Si la solicitud aun no tiene UP, se crea una nueva y se vincula
         if up is None:
             up = _create_draft_up(productor)
             if up is None:
@@ -129,6 +135,9 @@ def _caracterizacion_handler(request, userId, serializer_class):
                     {"error": "No se pudieron obtener los datos base para crear la UP"},
                     status=status.HTTP_409_CONFLICT
                 )
+            if solicitud is not None:
+                solicitud.UP = up
+                solicitud.save(update_fields=['UP'])
 
         serializer = serializer_class(up, data=data, partial=True)
         if serializer.is_valid():
@@ -136,7 +145,7 @@ def _caracterizacion_handler(request, userId, serializer_class):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # GET: si no tiene UP, se devuelven los campos vacios para llenar
+    # GET: si la solicitud no tiene UP, se devuelven los campos vacios para llenar
     if up is None:
         return Response(_draft_response(productor, serializer_class))
 

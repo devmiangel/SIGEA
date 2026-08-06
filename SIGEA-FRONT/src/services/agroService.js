@@ -104,3 +104,53 @@ export const eliminarInsumo = async (insumoId) => {
     const response = await api.delete(`/inventario/insumos/${insumoId}/`);
     return response.data;
 }
+
+export const getHerramientas = async () => {
+    const response = await api.get('/inventario/herramientas/');
+    return response.data;
+}
+
+export const getHerramienta = async (herramientaId) => {
+    const response = await api.get(`/inventario/herramientas/${herramientaId}/`);
+    return response.data;
+}
+
+export const crearHerramienta = async (data) => {
+    const response = await api.post('/inventario/herramientas/', data);
+    return response.data;
+}
+
+export const actualizarHerramienta = async (herramientaId, data) => {
+    const response = await api.patch(`/inventario/herramientas/${herramientaId}/`, data);
+    return response.data;
+}
+
+export const eliminarHerramienta = async (herramientaId) => {
+    const response = await api.delete(`/inventario/herramientas/${herramientaId}/`);
+    return response.data;
+}
+
+export const getVehiculos = async () => {
+    const response = await api.get('/inventario/detalleVehiculos/');
+    return response.data;
+}
+
+export const getVehiculo = async (vehiculoId) => {
+    const response = await api.get(`/inventario/detalleVehiculos/${vehiculoId}/`);
+    return response.data;
+}
+
+export const crearVehiculo = async (data) => {
+    const response = await api.post('/inventario/detalleVehiculos/', data);
+    return response.data;
+}
+
+export const actualizarVehiculo = async (vehiculoId, data) => {
+    const response = await api.patch(`/inventario/detalleVehiculos/${vehiculoId}/`, data);
+    return response.data;
+}
+
+export const eliminarVehiculo = async (vehiculoId) => {
+    const response = await api.delete(`/inventario/detalleVehiculos/${vehiculoId}/`);
+    return response.data;
+}

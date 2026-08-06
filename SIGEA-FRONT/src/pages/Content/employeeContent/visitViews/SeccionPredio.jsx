@@ -19,7 +19,7 @@ const REQUERIDOS = [
     { nombre: 'Direccion', label: 'Dirección' },
 ]
 
-const SeccionPredio = forwardRef(({ userId }, ref) => {
+const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
     const [form, setForm] = useState(INICIAL)
     const [tenencias, setTenencias] = useState([])
     const [seguros, setSeguros] = useState([])
@@ -33,7 +33,7 @@ const SeccionPredio = forwardRef(({ userId }, ref) => {
         let activo = true
         cargarSeccion(async () => {
             const [data, ten, seg, ver, sec, ica] = await Promise.all([
-                getInfoPredio(userId),
+                getInfoPredio(userId, solicitudId),
                 getTiposTenencias(),
                 getSeguros(),
                 getVeredas(),
@@ -49,7 +49,7 @@ const SeccionPredio = forwardRef(({ userId }, ref) => {
             setIcas(ica.map((i) => i.CodigoICA))
         })
         return () => { activo = false }
-    }, [userId, cargarSeccion])
+    }, [userId, solicitudId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
@@ -71,8 +71,8 @@ const SeccionPredio = forwardRef(({ userId }, ref) => {
         if (faltantes.length) {
             return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return guardarSeccion(() => saveInfoPredio(userId, form))
-    }, [form, userId, guardarSeccion])
+        return guardarSeccion(() => saveInfoPredio(userId, solicitudId, form))
+    }, [form, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 

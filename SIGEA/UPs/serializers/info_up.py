@@ -1,21 +1,22 @@
 from rest_framework import serializers
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin, get_o_crear
 
-class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
+class InfoUPCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     
-    TipoUP_Nombre = serializers.CharField(source='TipoUP.TipoUP', required=False)
+    TipoUP_Nombre = serializers.CharField(source='TipoUP.TipoUP', required=False, allow_null=True)
     ActividadUP = serializers.CharField(required=False, allow_null=True)
     RUEA = serializers.CharField(required=False, allow_null=True)
-    NumeroEmpleados = serializers.IntegerField(required=False)
-    Asociatividad = serializers.BooleanField(required=False)
-    AreaCultivada = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
-    AreaPastos = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
-    NumeroPotreros = serializers.IntegerField(required=False)
-    NumeroInvernaderos = serializers.IntegerField(required=False)
-    NumeroTanques = serializers.IntegerField(required=False)
-    NumeroReservorios = serializers.IntegerField(required=False)
-    FuentesAgua = serializers.BooleanField(required=False)
+    NumeroEmpleados = serializers.IntegerField(required=False, allow_null=True)
+    Asociatividad = serializers.BooleanField(required=False, allow_null=True)
+    AreaCultivada = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    AreaPastos = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    NumeroPotreros = serializers.IntegerField(required=False, allow_null=True)
+    NumeroInvernaderos = serializers.IntegerField(required=False, allow_null=True)
+    NumeroTanques = serializers.IntegerField(required=False, allow_null=True)
+    NumeroReservorios = serializers.IntegerField(required=False, allow_null=True)
+    FuentesAgua = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
         model = UP
@@ -79,19 +80,21 @@ class InfoUPCaracterizacionSerializer(serializers.ModelSerializer):
             default_actividad = ActividadUP.objects.first()
             detalle, created = DetalleUP.objects.get_or_create(
                 UP=instance,
-                defaults={'NumeroEmpleados': 0, 'AreaCultivada': 0, 'AreaPastos': 0,
-                         'NumeroPotreros': 0, 'NumeroInvernaderos': 0, 'NumeroTanques': 0,
-                         'NumeroReservorios': 0, 'Actividad': default_actividad}
+                defaults={'NumeroEmpleados': None, 'AreaCultivada': None, 'AreaPastos': None,
+                         'NumeroPotreros': None, 'NumeroInvernaderos': None, 'NumeroTanques': None,
+                         'NumeroReservorios': None, 'Actividad': default_actividad}
             )
             
             # Actualizar Actividad (se crea si no existe)
             if actividad_str:
-                act_obj, _ = ActividadUP.objects.get_or_create(Actividad=actividad_str)
+                act_obj = get_o_crear(ActividadUP, Actividad=actividad_str)
                 detalle.Actividad = act_obj
 
             # Actualizar resto de campos del detalle
             for attr, value in validated_data.items():
                 if hasattr(detalle, attr):
+                    if attr in ('Asociatividad', 'FuentesAgua') and value is None:
+                        value = False
                     setattr(detalle, attr, value)
             
             detalle.FechaActualizacion = date.today()

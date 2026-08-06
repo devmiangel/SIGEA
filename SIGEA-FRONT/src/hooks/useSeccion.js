@@ -4,7 +4,7 @@ import { AGRO_COLORS } from '../utils/agroConstants'
 
 export function useSeccion({
     mensajeErrorCarga = 'No se pudieron cargar los datos de la sección. Intenta de nuevo.',
-}) {
+} = {}) {
     const [loading, setLoading] = useState(true)
 
     const cargarSeccion = useCallback(async (fn) => {

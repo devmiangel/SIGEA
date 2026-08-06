@@ -3,10 +3,11 @@ from datetime import date
 from django.core.validators import RegexValidator
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin
 
 #Formulario catracterizacion
 
-class InfoPersonalCaracterizacionSerializer(serializers.ModelSerializer):
+class InfoPersonalCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
 
     PrimerNombreProductor  = serializers.CharField(source ='Productor.usuario.persona.primer_nombre', required=False) 
     SegundoNombreProductor  = serializers.CharField(source ='Productor.usuario.persona.segundo_nombre', required=False, allow_null=True) 
@@ -19,7 +20,7 @@ class InfoPersonalCaracterizacionSerializer(serializers.ModelSerializer):
     NitProductor = serializers.CharField(required=False, allow_null=True)
     Celular = serializers.CharField(required=False, allow_null=True, validators=[RegexValidator(r'^\+?\d{7,15}$', 'Ingrese un número de celular válido (7-15 dígitos, opcional +)')])
     Correo = serializers.EmailField(required=False, allow_null=True)
-    FechaNacimiento = serializers.DateField(source='Productor.usuario.persona.fecha_nacimiento', required=False)
+    FechaNacimiento = serializers.DateField(source='Productor.usuario.persona.fecha_nacimiento', required=False, allow_null=True)
     NivelEducativo = serializers.CharField(required=False, allow_null=True)
     Sisben = serializers.CharField(required=False, allow_null=True)
     

@@ -1,58 +1,62 @@
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import { esInsumoActivo } from '../../utils/insumoHelpers'
+import DriveEtaIcon from '@mui/icons-material/DriveEta'
+import { esRegistroActivo } from '../../utils/insumoHelpers'
+import { ACTIVO_STYLE } from '../../utils/agroConstants'
 
-export default function InsumoPreviewCard({ insumo, onEdit, onDelete }) {
-  const activo = esInsumoActivo(insumo)
-  const cantidad = Number(insumo?.Cantidad ?? 0)
+export default function VehiculoPreviewCard({ vehiculo, onEdit, onDelete }) {
+  const activo = esRegistroActivo(vehiculo)
+  const statusClass = activo ? ACTIVO_STYLE.activo : ACTIVO_STYLE.inactivo
+  const estadoLabel = activo ? 'Activo' : 'Inactivo'
+  const placa = vehiculo?.Placa ?? 'Sin placa'
+  const modelo = vehiculo?.Modelo ?? 'Sin modelo'
 
   const handleEdit = (e) => {
     e.stopPropagation()
-    onEdit?.(insumo)
+    onEdit?.(vehiculo)
   }
 
   const handleDelete = (e) => {
     e.stopPropagation()
-    onDelete?.(insumo)
+    onDelete?.(vehiculo)
   }
 
   return (
     <div className="flex items-center gap-4 px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-[#3e9a8a] transition-all duration-200 w-full m-1">
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
-        <Inventory2OutlinedIcon sx={{ fontSize: 24, color: '#fff' }} />
+        <DriveEtaIcon sx={{ fontSize: 24, color: '#fff' }} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate" title={insumo?.Nombre}>
-          {insumo?.Nombre ?? 'Insumo sin nombre'}
+        <p className="text-sm font-semibold text-gray-900 truncate" title={placa}>
+          {placa}
         </p>
         <p className="text-xs text-gray-500 line-clamp-2">
-          {insumo?.Descripcion || 'Sin descripción'}
+          {vehiculo?.Descripcion || modelo}
         </p>
       </div>
 
-      <span className="px-3 py-1 rounded-full text-xs font-medium shrink-0 bg-[#015d3b]/10 text-[#015d3b]">
-        Cantidad: {cantidad}
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#015d3b]/10 text-[#015d3b] shrink-0">
+        Modelo: {modelo}
       </span>
 
-      <span className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-        {activo ? 'Activo' : 'Inactivo'}
+      <span className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${statusClass}`}>
+        {estadoLabel}
       </span>
 
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={handleEdit}
-          aria-label="Editar insumo"
-          title="Editar insumo"
+          aria-label="Editar vehículo"
+          title="Editar vehículo"
           className="p-2 rounded-lg text-gray-500 hover:text-[#015d3b] hover:bg-[#015d3b]/10 transition-colors"
         >
           <EditIcon fontSize="small" />
         </button>
         <button
           onClick={handleDelete}
-          aria-label="Eliminar insumo"
-          title="Eliminar insumo"
+          aria-label="Eliminar vehículo"
+          title="Eliminar vehículo"
           className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
         >
           <DeleteIcon fontSize="small" />

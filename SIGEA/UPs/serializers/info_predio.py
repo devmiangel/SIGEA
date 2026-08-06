@@ -1,19 +1,20 @@
 from rest_framework import serializers
 
 from ..models import UP
+from .mixins import PermitirVaciosMixin, get_o_crear
 
-class InfoPredioCaracterizacionSerializer(serializers.ModelSerializer):
+class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     
-    NombrePredio = serializers.CharField(source='Predio.NombrePredio', required=False)
-    AreaPredio = serializers.CharField(source='Predio.AreaPredio', required=False)
-    RegistroICA = serializers.ListField(child=serializers.CharField(), required=False)
+    NombrePredio = serializers.CharField(source='Predio.NombrePredio', required=False, allow_null=True)
+    AreaPredio = serializers.DecimalField(max_digits=10, decimal_places=3, source='Predio.AreaPredio', required=False, allow_null=True)
+    RegistroICA = serializers.ListField(child=serializers.CharField(), required=False, allow_null=True)
     
     Seguro = serializers.CharField(required=False, allow_null=True)
-    AccesoCredito = serializers.BooleanField(source='Predio.AccesoCredito', required=False)
-    UsoSuelo = serializers.BooleanField(source='Predio.UsoSuelo', required=False)
+    AccesoCredito = serializers.BooleanField(source='Predio.AccesoCredito', required=False, allow_null=True)
+    UsoSuelo = serializers.BooleanField(source='Predio.UsoSuelo', required=False, allow_null=True)
     Latitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Latitud', required=False, allow_null=True)
     Longitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Longitud', required=False, allow_null=True)
-    Direccion = serializers.CharField(source='Predio.Direccion', required=False)
+    Direccion = serializers.CharField(source='Predio.Direccion', required=False, allow_null=True)
 
     TipoTenencia = serializers.CharField(required=False, allow_null=True)
     Vereda = serializers.CharField(required=False, allow_null=True)
@@ -55,30 +56,31 @@ class InfoPredioCaracterizacionSerializer(serializers.ModelSerializer):
             
             # Actualizar datos básicos del Predio
             for attr, value in predio_data.items():
+                if attr in ('AccesoCredito', 'UsoSuelo') and value is None:
+                    value = False
                 setattr(predio, attr, value)
             
             # Actualizar Seguro (se crea si no existe)
             if seguro_str:
-                seguro_obj, _ = Seguros.objects.get_or_create(NombreSeguro=seguro_str)
+                seguro_obj = get_o_crear(Seguros, NombreSeguro=seguro_str)
                 predio.Seguro = seguro_obj
             
             # Actualizar Tipo Tenencia (se crea si no existe)
             if tipo_tenencia_str:
-                tenencia_obj, _ = TiposTenencias.objects.get_or_create(TipoTenencia=tipo_tenencia_str)
+                tenencia_obj = get_o_crear(TiposTenencias, TipoTenencia=tipo_tenencia_str)
                 predio.TipoTenencia = tenencia_obj
 
             # Actualizar Vereda (se crea si no existe)
             vereda_obj = None
             if vereda_str:
-                vereda_obj, _ = Veredas.objects.get_or_create(NombreVereda=vereda_str)
+                vereda_obj = get_o_crear(Veredas, NombreVereda=vereda_str)
 
             # Actualizar Sector y Vereda (sector se crea si no existe, ligado a la vereda)
             if sector_str:
                 if vereda_obj:
-                    sector_obj, _ = Sectores.objects.get_or_create(
-                        NombreSector=sector_str,
-                        defaults={'Vereda': vereda_obj},
-                    )
+                    sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
+                    if sector_obj is None:
+                        sector_obj = Sectores.objects.create(NombreSector=sector_str, Vereda=vereda_obj)
                 else:
                     sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
                     if sector_obj is None:
@@ -89,7 +91,7 @@ class InfoPredioCaracterizacionSerializer(serializers.ModelSerializer):
             if registro_ica_list is not None:
                 icas = []
                 for ica_code in registro_ica_list:
-                    ica_obj, _ = TiposRegistrosICA.objects.get_or_create(CodigoICA=ica_code)
+                    ica_obj = get_o_crear(TiposRegistrosICA, CodigoICA=ica_code)
                     icas.append(ica_obj)
                 predio.TiposRegistroICA.set(icas)
 

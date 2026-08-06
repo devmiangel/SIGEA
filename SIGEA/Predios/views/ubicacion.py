@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 from ..models import Sectores, Veredas, TiposTenencias, Seguros, TiposRegistrosICA
 
@@ -25,6 +26,14 @@ class TiposTenenciasViewSet(viewsets.ModelViewSet):
 class SegurosViewSet(viewsets.ModelViewSet):
     queryset = Seguros.objects.all()
     serializer_class = SegurosSerializer
+
+    def create(self, request, *args, **kwargs):
+        nombre = (request.data.get('NombreSeguro') or '').strip()
+        if nombre:
+            obj = Seguros.objects.filter(NombreSeguro=nombre).first()
+            if obj is not None:
+                return Response(self.get_serializer(obj).data, status=200)
+        return super().create(request, *args, **kwargs)
 
 class TiposRegistrosICAViewSet(viewsets.ModelViewSet):
     queryset = TiposRegistrosICA.objects.all()

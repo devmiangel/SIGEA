@@ -19,7 +19,7 @@ class TiposTenencias(models.Model):
 
 
 class Seguros(models.Model):
-    NombreSeguro = models.CharField(max_length=255)
+    NombreSeguro = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.NombreSeguro
@@ -34,7 +34,7 @@ class TiposRegistrosICA(models.Model):
 
 class Predios(models.Model):
     NombrePredio = models.CharField(max_length=255)
-    AreaPredio = models.DecimalField(max_digits=10, decimal_places=3)
+    AreaPredio = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
     AccesoCredito = models.BooleanField(default=False)
     UsoSuelo = models.BooleanField(default=False)
     Latitud = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
