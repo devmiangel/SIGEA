@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { Campo, CampoSelectDinamico, BotonGuardar } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
+import { Campo, CampoSelectDinamico } from './fields'
 import {
     getInfoPersonal, saveInfoPersonal, getNivelesEducativos, getSisben,
 } from '../../../../services/caracterizacionService'
-import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import { useSeccion } from '../../../../hooks/useSeccion'
 
 const CAMPOS = [
     { name: 'PrimerNombreProductor', label: 'Primer nombre', requerido: true },
@@ -26,70 +25,38 @@ const INICIAL = {
     NivelEducativo: '', Sisben: '', Edad: null, Rudea: null,
 }
 
-export default function SeccionProductor({ userId }) {
+const SeccionProductor = forwardRef(({ userId }, ref) => {
     const [form, setForm] = useState(INICIAL)
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [niveles, setNiveles] = useState([])
     const [sisbenes, setSisbenes] = useState([])
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([getInfoPersonal(userId), getNivelesEducativos(), getSisben()])
-            .then(([data, niv, sis]) => {
-                if (!activo) return
-                setForm({ ...INICIAL, ...data })
-                setNiveles(niv.map((n) => n.TipoNivelEducativo))
-                setSisbenes(sis.map((s) => s.NivelSisben))
-            })
-            .catch(() => { if (activo) setForm(INICIAL) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const [data, niv, sis] = await Promise.all([getInfoPersonal(userId), getNivelesEducativos(), getSisben()])
+            if (!activo) return
+            setForm({ ...INICIAL, ...data })
+            setNiveles(niv.map((n) => n.TipoNivelEducativo))
+            setSisbenes(sis.map((s) => s.NivelSisben))
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
-    const validar = () => {
+    const guardar = useCallback(async () => {
         const faltantes = CAMPOS
             .filter((c) => c.requerido && !String(form[c.name] ?? '').trim())
             .map((c) => c.label)
         if (faltantes.length) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campos obligatorios',
-                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
-                confirmButtonColor: AGRO_COLORS.success,
-            })
-            return false
+            return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return true
-    }
+        return guardarSeccion(() => saveInfoPersonal(userId, form))
+    }, [form, userId, guardarSeccion])
 
-    const guardar = async () => {
-        if (!validar()) return
-        setGuardando(true)
-        try {
-            await saveInfoPersonal(userId, form)
-            Swal.fire({
-                icon: 'success',
-                title: 'Productor guardado',
-                text: 'La información del productor se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando información del productor...</p>
 
@@ -118,7 +85,8 @@ export default function SeccionProductor({ userId }) {
             {form.Rudea && (
                 <p className="text-sm text-gray-600"><strong>RUEA:</strong> {form.Rudea}</p>
             )}
-            <BotonGuardar onClick={guardar} guardando={guardando} />
         </div>
     )
-}
+})
+
+export default SeccionProductor

@@ -11,21 +11,15 @@ import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled'
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-
-const formatFecha = (fecha) => {
-    if (!fecha) return '—'
-    return new Date(fecha).toLocaleString('es-CO', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-    })
-}
+import { AGRO_COLORS } from '../../utils/agroConstants'
+import { formatFecha } from '../../utils/dateHelpers'
 
 function Tile({ icono, etiqueta, valor, full = false }) {
     const Icono = icono
     return (
         <div className={`${full ? 'md:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
             <div className="flex items-center gap-1.5">
-                <Icono sx={{ fontSize: 14, color: '#3e9a8a' }} />
+                <Icono sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{etiqueta}</span>
             </div>
             <p className="text-xs font-medium text-gray-800 mt-1">{valor ?? '—'}</p>

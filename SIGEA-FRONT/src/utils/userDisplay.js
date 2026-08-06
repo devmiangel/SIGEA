@@ -1,8 +1,8 @@
 export function getNombreCompleto(user) {
-    if (user?.persona_info) {
-        const { primer_nombre = '', primer_apellido = '' } = user.persona_info
-        return `${primer_nombre} ${primer_apellido}`.trim() || (user?.email ?? 'Nombre no disponible')
-    }
+    const persona = user?.persona_info ?? user
+    const { primer_nombre = '', primer_apellido = '' } = persona ?? {}
+    const nombre = `${primer_nombre} ${primer_apellido}`.trim()
+    if (nombre) return nombre
     return user?.email || 'Nombre no disponible'
 }
 

@@ -5,16 +5,15 @@ import TabList from "../../../components/TabList/TabList"
 import UpValidationCard from "../../../components/UpValidationCard/UpValidationCard"
 import UpValidationModal from "../../../components/UpValidationModal/UpValidationModal"
 import { useVisitas } from "../../../hooks/useVisitas"
+import { ESTADO_VISITA, UP_ESTADO_RAW } from "../../../utils/agroConstants"
 
 const mapEstado = (upEstado) => {
-    if (upEstado === 'Aceptada') return 'aceptada'
-    if (upEstado === 'Rechazada') return 'rechazada'
-    return 'pendiente'
+    if (upEstado === UP_ESTADO_RAW.ACEPTADA) return ESTADO_VISITA.ACEPTADA
+    if (upEstado === UP_ESTADO_RAW.RECHAZADA) return ESTADO_VISITA.RECHAZADA
+    return ESTADO_VISITA.PENDIENTE
 }
 
-const esPendiente = (upEstado) => {
-    return upEstado === 'En revision'
-}
+const esPendiente = (upEstado) => upEstado === UP_ESTADO_RAW.EN_REVISION
 
 export default function UpValidationAdmin(){
     const { visitas, loading, refresh } = useVisitas()

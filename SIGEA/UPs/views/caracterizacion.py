@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -84,6 +86,23 @@ def _empty_caracterizacion(serializer_class):
     return {field: None for field in serializer.fields}
 
 
+def _personal_draft(productor):
+    """Devuelve la informacion personal del productor aun sin tener una UP creada."""
+    up_stub = SimpleNamespace(Productor=productor, RUEA=None)
+    return InfoPersonalCaracterizacionSerializer(up_stub).data
+
+
+def _draft_response(productor, serializer_class):
+    """Respuesta de seccion cuando el productor aun no tiene UP.
+
+    La seccion personal se precarga desde los datos del usuario; el resto se
+    entrega vacio porque aun no existe predio/UP que llenar.
+    """
+    if serializer_class is InfoPersonalCaracterizacionSerializer:
+        return _personal_draft(productor)
+    return _empty_caracterizacion(serializer_class)
+
+
 def _caracterizacion_handler(request, userId, serializer_class):
     productor, error_response = _get_productor(request, userId)
     if error_response:
@@ -98,7 +117,7 @@ def _caracterizacion_handler(request, userId, serializer_class):
         # Sin datos: se devuelve el estado actual
         if not data:
             if up is None:
-                return Response(_empty_caracterizacion(serializer_class))
+                return Response(_draft_response(productor, serializer_class))
             serializer = serializer_class(up)
             return Response(serializer.data)
 
@@ -119,7 +138,7 @@ def _caracterizacion_handler(request, userId, serializer_class):
 
     # GET: si no tiene UP, se devuelven los campos vacios para llenar
     if up is None:
-        return Response(_empty_caracterizacion(serializer_class))
+        return Response(_draft_response(productor, serializer_class))
 
     serializer = serializer_class(up)
     return Response(serializer.data)

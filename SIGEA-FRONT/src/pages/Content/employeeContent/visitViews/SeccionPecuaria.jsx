@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { BotonGuardar, CampoSelectDinamico } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
+import { CampoSelectDinamico } from './fields'
 import {
     getInfoAnimal, saveInfoAnimal, getGruposAnimales, getPropositos,
     getTiposAves, getRazas, getProductosApicolas,
     crearProposito, crearTipoAve, crearProductoApicola,
 } from '../../../../services/caracterizacionService'
-import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import { useSeccion } from '../../../../hooks/useSeccion'
 
 const GRUPOS_CON_RAZA = ['Bovinos', 'Aves', 'Porcinos', 'Equinos', 'Caprinos', 'Ovinos', 'Conejos', 'Curies', 'Peces', 'Abejas']
 
@@ -93,40 +92,37 @@ function TextOpc({ label, value, onChange }) {
     )
 }
 
-export default function SeccionPecuaria({ userId }) {
+const SeccionPecuaria = forwardRef(({ userId }, ref) => {
     const [items, setItems] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [grupos, setGrupos] = useState([])
     const [propositos, setPropositos] = useState([])
     const [tiposAves, setTiposAves] = useState([])
     const [razas, setRazas] = useState([])
     const [productosApicolas, setProductosApicolas] = useState([])
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([
-            getInfoAnimal(userId), getGruposAnimales(), getPropositos(),
-            getTiposAves(), getRazas(), getProductosApicolas(),
-        ])
-            .then(([data, g, prop, aves, raz, api]) => {
-                if (!activo) return
-                setItems((data?.Animales || []).map((a) => ({
-                    GrupoAnimal: a.GrupoAnimal,
-                    CantidadTotal: a.CantidadTotal,
-                    Detalles: a.Detalles || {},
-                })))
-                setGrupos(g.map((x) => x.GrupoAnimal))
-                setPropositos(prop.map((x) => x.Proposito))
-                setTiposAves(aves.map((x) => x.TipoAve))
-                setRazas(raz.map((x) => x.Raza))
-                setProductosApicolas(api.map((x) => x.ProductoApicolas))
-            })
-            .catch(() => { if (activo) setItems([]) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const [data, g, prop, aves, raz, api] = await Promise.all([
+                getInfoAnimal(userId), getGruposAnimales(), getPropositos(),
+                getTiposAves(), getRazas(), getProductosApicolas(),
+            ])
+            if (!activo) return
+            setItems((data?.Animales || []).map((a) => ({
+                GrupoAnimal: a.GrupoAnimal,
+                CantidadTotal: a.CantidadTotal,
+                Detalles: a.Detalles || {},
+            })))
+            setGrupos(g.map((x) => x.GrupoAnimal))
+            setPropositos(prop.map((x) => x.Proposito))
+            setTiposAves(aves.map((x) => x.TipoAve))
+            setRazas(raz.map((x) => x.Raza))
+            setProductosApicolas(api.map((x) => x.ProductoApicolas))
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -153,31 +149,13 @@ export default function SeccionPecuaria({ userId }) {
         return null
     }
 
-    const guardar = async () => {
-        setGuardando(true)
-        try {
-            await saveInfoAnimal(userId, {
-                Animales: items.filter((i) => i.GrupoAnimal && GRUPOS_CON_RAZA.includes(i.GrupoAnimal)),
-            })
-            Swal.fire({
-                icon: 'success',
-                title: 'Producción pecuaria guardada',
-                text: 'La información se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+    const guardar = useCallback(async () => {
+        return guardarSeccion(() => saveInfoAnimal(userId, {
+            Animales: items.filter((i) => i.GrupoAnimal && GRUPOS_CON_RAZA.includes(i.GrupoAnimal)),
+        }))
+    }, [items, userId, guardarSeccion])
+
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando producción pecuaria...</p>
 
@@ -208,8 +186,8 @@ export default function SeccionPecuaria({ userId }) {
                 className="self-start px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors">
                 + Agregar grupo animal
             </button>
-
-            <BotonGuardar onClick={guardar} guardando={guardando} texto="Guardar producción pecuaria" />
         </div>
     )
-}
+})
+
+export default SeccionPecuaria

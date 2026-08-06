@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import TabList from "../../../../components/TabList/TabList"
 import { Header } from "../../../../components/Tettles-Buttons/Title"
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
@@ -15,6 +15,7 @@ import EstadoVisita from "../../../../components/EstadoVisita/EstadoVisita"
 import { marcarVisitaRealizada } from "../../../../services/agroService"
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
+import { escapeHtml } from "../../../../utils/sanitize"
 
 const SECCIONES = [
     { nombre: 'Productor', componente: SeccionProductor },
@@ -33,9 +34,34 @@ export default function CaracterForm() {
     const userId = visita?.solicitud_info?.solicitante?.usuario_id
     const [active, setActive] = useState(SECCIONES[0].nombre)
     const [finalizando, setFinalizando] = useState(false)
+    const seccionesRef = useRef({})
 
     const finalizar = async () => {
         setFinalizando(true)
+
+        const fallidas = []
+        for (const s of SECCIONES) {
+            const ref = seccionesRef.current[s.nombre]
+            if (!ref?.guardar) continue
+            const res = await ref.guardar()
+            if (!res?.ok) {
+                fallidas.push({ seccion: s.nombre, motivo: res?.motivo || 'No se pudo guardar la sección.' })
+            }
+        }
+
+        if (fallidas.length) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo finalizar la visita',
+                html: fallidas
+                    .map((f) => `<strong>${escapeHtml(f.seccion)}</strong>: ${escapeHtml(f.motivo)}`)
+                    .join('<br/>'),
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+            setFinalizando(false)
+            return
+        }
+
         try {
             await marcarVisitaRealizada(visita.id)
             Swal.fire({
@@ -51,7 +77,7 @@ export default function CaracterForm() {
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo marcar la visita como realizada. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
+                confirmButtonColor: AGRO_COLORS.primary
             })
         } finally {
             setFinalizando(false)
@@ -121,7 +147,10 @@ export default function CaracterForm() {
                                 const Seccion = s.componente
                                 return (
                                     <div key={s.nombre} className={s.nombre === active ? 'block' : 'hidden'}>
-                                        <Seccion userId={userId} />
+                                        <Seccion
+                                            ref={(el) => { seccionesRef.current[s.nombre] = el }}
+                                            userId={userId}
+                                        />
                                     </div>
                                 )
                             })}
@@ -145,7 +174,7 @@ export default function CaracterForm() {
                                         disabled={finalizando}
                                         className="px-4 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {finalizando ? 'Finalizando...' : 'Finalizar visita'}
+                                        {finalizando ? 'Guardando...' : 'Guardar y finalizar visita'}
                                     </button>
                                 )}
                                 {active !== SECCIONES[SECCIONES.length - 1].nombre && (

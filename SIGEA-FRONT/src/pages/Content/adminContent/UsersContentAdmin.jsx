@@ -1,39 +1,19 @@
-import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import GroupIcon from '@mui/icons-material/Group'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import UserPreviewCard from "../../../components/UserPreviewCard/UserPreviewCard"
-import { getUsuarios, actualizarUsuario, eliminarUsuario } from "../../../services/agroService"
+import { useUsuarios } from "../../../hooks/useUsuarios"
+import { esRegistroActivo } from "../../../utils/insumoHelpers"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function UsersContentAdmin(){
     const navigate = useNavigate()
-    const [usuarios, setUsuarios] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    const cargarUsuarios = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getUsuarios()
-            setUsuarios(data)
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudieron cargar los usuarios.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargarUsuarios() }, [cargarUsuarios])
+    const { usuarios, loading, error, actualizar, eliminar } = useUsuarios()
 
     const handleEditar = async (user) => {
-        const esActivo = user?.Estado !== false && user?.Estado !== 0 && user?.Estado != null
+        const esActivo = esRegistroActivo(user)
         const result = await Swal.fire({
             title: 'Editar usuario',
             text: 'Selecciona el estado del usuario.',
@@ -55,9 +35,8 @@ export default function UsersContentAdmin(){
 
         if (!result.isConfirmed) return
 
-        try {
-            await actualizarUsuario(user.id, { Estado: result.value === 'activo' })
-            await cargarUsuarios()
+        const res = await actualizar(user.id, { Estado: result.value === 'activo' })
+        if (res.ok) {
             Swal.fire({
                 icon: 'success',
                 title: 'Usuario actualizado',
@@ -65,12 +44,12 @@ export default function UsersContentAdmin(){
                 timerProgressBar: true,
                 showConfirmButton: false
             })
-        } catch {
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo actualizar el usuario.',
-                confirmButtonColor: AGRO_COLORS.success
+                confirmButtonColor: AGRO_COLORS.primary
             })
         }
     }
@@ -83,14 +62,13 @@ export default function UsersContentAdmin(){
             showCancelButton: true,
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#d9534f'
+            confirmButtonColor: AGRO_COLORS.danger
         })
 
         if (!confirmacion.isConfirmed) return
 
-        try {
-            await eliminarUsuario(user.id)
-            await cargarUsuarios()
+        const res = await eliminar(user.id)
+        if (res.ok) {
             Swal.fire({
                 icon: 'success',
                 title: 'Usuario eliminado',
@@ -98,12 +76,12 @@ export default function UsersContentAdmin(){
                 timerProgressBar: true,
                 showConfirmButton: false
             })
-        } catch {
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo eliminar el usuario.',
-                confirmButtonColor: AGRO_COLORS.success
+                confirmButtonColor: AGRO_COLORS.primary
             })
         }
     }
@@ -134,6 +112,8 @@ export default function UsersContentAdmin(){
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando usuarios...</p>
+                ) : error ? (
+                    <p className="text-red-600 text-sm">No se pudieron cargar los usuarios. Intenta de nuevo.</p>
                 ) : usuarios.length === 0 ? (
                     <p className="text-gray-500 text-sm">No hay usuarios registrados en el sistema.</p>
                 ) : (

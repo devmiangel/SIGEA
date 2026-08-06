@@ -4,20 +4,19 @@ import { Header } from "../../../../components/Tettles-Buttons/Title"
 import TabList from "../../../../components/TabList/TabList"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import UserRequest from "../../../../components/UserRequest/UserRequest"
-import AlertRequestInfo from "../../../../components/AlertRequestInfo/AlertRequestInfo"
 import UPPReviewCard from "../../../../components/UPPReviewCard/UPPReviewCard"
 import Swal from 'sweetalert2'
 import { getMisUPs } from "../../../../services/agroService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useSolicitudes } from "../../../../hooks/useSolicitudes"
 import { abrirModalNuevaSolicitud } from "../../../../components/AgroModals/NuevaSolicitudModal"
+import { mostrarInfoSolicitud } from "../../../../components/AgroModals/AlertRequestInfoModal"
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
 
 export default function ProductorView(){
     const navigate = useNavigate()
     const { user } = useCurrentDataUser()
     const { solicitudes, loading, crear } = useSolicitudes(user)
-    const [selectedSolicitud, setSelectedSolicitud] = useState(null)
     const [activeTab, setActiveTab] = useState('Mis UPs')
     const [ups, setUps] = useState([])
     const [loadingUps, setLoadingUps] = useState(true)
@@ -134,7 +133,7 @@ export default function ProductorView(){
                                         key={s.id}
                                         numero={i + 1}
                                         solicitud={s}
-                                        onClick={() => setSelectedSolicitud(s)}
+                                        onClick={() => mostrarInfoSolicitud(s, i + 1, user)}
                                     />
                                 ))}
                             </div>
@@ -142,15 +141,6 @@ export default function ProductorView(){
                     )}
                 </div>
             </div>
-
-            {selectedSolicitud && (
-                <AlertRequestInfo
-                    solicitud={selectedSolicitud}
-                    numero={solicitudes.findIndex(s => s.id === selectedSolicitud.id) + 1}
-                    user={user}
-                    onClose={() => setSelectedSolicitud(null)}
-                />
-            )}
         </>
     )
 }

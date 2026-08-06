@@ -1,32 +1,29 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { BotonGuardar } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
 import { getInfoAdicional, saveInfoAdicional, subirArchivoUP } from '../../../../services/caracterizacionService'
+import { useSeccion } from '../../../../hooks/useSeccion'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import Swal from 'sweetalert2'
 
 const EXT_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf']
 
-export default function SeccionAdicional({ userId }) {
+const SeccionAdicional = forwardRef(({ userId }, ref) => {
     const [archivos, setArchivos] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [fechaActualizacion, setFechaActualizacion] = useState(null)
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        getInfoAdicional(userId)
-            .then((data) => {
-                if (!activo) return
-                setArchivos((data?.Archivos || []).map((a) => ({
-                    RutaArchivo: a.RutaArchivo || '', NombreArchivo: a.NombreArchivo || '', Descripcion: a.Descripcion || '',
-                })))
-                setFechaActualizacion(data?.FechaActualizacion || null)
-            })
-            .catch(() => { if (activo) setArchivos([]) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const data = await getInfoAdicional(userId)
+            if (!activo) return
+            setArchivos((data?.Archivos || []).map((a) => ({
+                RutaArchivo: a.RutaArchivo || '', NombreArchivo: a.NombreArchivo || '', Descripcion: a.Descripcion || '',
+            })))
+            setFechaActualizacion(data?.FechaActualizacion || null)
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setArchivos((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -43,7 +40,7 @@ export default function SeccionAdicional({ userId }) {
                 icon: 'error',
                 title: 'Tipo de archivo no permitido',
                 text: 'Solo se aceptan imágenes (JPG, PNG, GIF, WEBP, BMP) o PDF.',
-                confirmButtonColor: AGRO_COLORS.success,
+                confirmButtonColor: AGRO_COLORS.primary,
             })
             return
         }
@@ -62,45 +59,21 @@ export default function SeccionAdicional({ userId }) {
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo subir el archivo. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success,
+                confirmButtonColor: AGRO_COLORS.primary,
             })
         }
     }
 
-    const guardar = async () => {
+    const guardar = useCallback(async () => {
         if (archivos.some((a) => a.subiendo)) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Espera',
-                text: 'Hay archivos que aún se están subiendo. Espera a que terminen.',
-                confirmButtonColor: AGRO_COLORS.success,
-            })
-            return
+            return { ok: false, motivo: 'Hay archivos que aún se están subiendo. Espera a que terminen.' }
         }
-        setGuardando(true)
-        try {
-            await saveInfoAdicional(userId, {
-                Archivos: archivos.filter((a) => a.RutaArchivo),
-            })
-            Swal.fire({
-                icon: 'success',
-                title: 'Información adicional guardada',
-                text: 'La información se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+        return guardarSeccion(() => saveInfoAdicional(userId, {
+            Archivos: archivos.filter((a) => a.RutaArchivo),
+        }))
+    }, [archivos, userId, guardarSeccion])
+
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando información adicional...</p>
 
@@ -160,8 +133,8 @@ export default function SeccionAdicional({ userId }) {
                 className="self-start px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors">
                 + Agregar archivo
             </button>
-
-            <BotonGuardar onClick={guardar} guardando={guardando} texto="Guardar información adicional" />
         </div>
     )
-}
+})
+
+export default SeccionAdicional

@@ -1,22 +1,17 @@
-const estadoStyle = {
-  1: 'bg-yellow-100 text-yellow-800',
-  2: 'bg-green-100 text-green-800',
-  3: 'bg-red-100 text-red-800',
-}
-
-const estadoLabel = {
-  1: 'En Proceso',
-  2: 'Aprobado',
-  3: 'Rechazado',
-}
+import { ESTADO_SOLICITUD_INFO } from '../../utils/agroConstants'
+import { formatFecha } from '../../utils/dateHelpers'
 
 export default function UserRequest({ solicitud, numero, onClick }) {
-  const badgeClass = estadoStyle[solicitud?.Estado] ?? 'bg-gray-100 text-gray-800'
-  const label = estadoLabel[solicitud?.Estado] ?? 'Desconocido'
+  const { label, class: badgeClass } = ESTADO_SOLICITUD_INFO[solicitud?.Estado] ?? { label: 'Desconocido', class: 'bg-gray-100 text-gray-800' }
+
+  const handleActivate = () => onClick?.(solicitud)
 
   return (
     <div
-      onClick={() => onClick?.(solicitud)}
+      onClick={handleActivate}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleActivate() }}
       className="flex items-center gap-4 w-full max-w-full h-25 px-5 py-3 bg-white rounded-xl border border-gray-200 cursor-pointer hover:border-[#015d3b] hover:shadow-sm transition-all duration-200"
     >
       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#015d3b] text-white font-bold text-sm shrink-0">
@@ -28,7 +23,7 @@ export default function UserRequest({ solicitud, numero, onClick }) {
           {solicitud?.Observacion ?? 'Sin descripción'}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">
-          {solicitud?.FechaSolicitud ?? '—'}
+          {formatFecha(solicitud?.FechaSolicitud)}
         </p>
       </div>
 

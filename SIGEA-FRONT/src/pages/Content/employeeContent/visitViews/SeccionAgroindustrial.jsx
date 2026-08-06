@@ -1,36 +1,32 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { BotonGuardar, CampoSelectDinamico } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
+import { CampoSelectDinamico } from './fields'
 import {
     getInfoAgroindustrial, saveInfoAgroindustrial, getProductosUPs, getUnidades, crearProducto, crearUnidad,
 } from '../../../../services/caracterizacionService'
-import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import { useSeccion } from '../../../../hooks/useSeccion'
 
-export default function SeccionAgroindustrial({ userId }) {
+const SeccionAgroindustrial = forwardRef(({ userId }, ref) => {
     const [items, setItems] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [productos, setProductos] = useState([])
     const [unidades, setUnidades] = useState([])
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([getInfoAgroindustrial(userId), getProductosUPs(), getUnidades()])
-            .then(([data, prods, unds]) => {
-                if (!activo) return
-                const inicial = (data?.ProduccionAgroindustrial || []).map((p) => ({
-                    NombreProducto: p.NombreProducto, Cantidad: p.Cantidad, INVIMA: !!p.INVIMA,
-                    Unidad: p.UnidadMedida || '',
-                }))
-                setItems(inicial)
-                setProductos(prods.map((p) => p.Producto))
-                setUnidades(unds.map((u) => u.Unidad))
-            })
-            .catch(() => { if (activo) setItems([]) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const [data, prods, unds] = await Promise.all([getInfoAgroindustrial(userId), getProductosUPs(), getUnidades()])
+            if (!activo) return
+            const inicial = (data?.ProduccionAgroindustrial || []).map((p) => ({
+                NombreProducto: p.NombreProducto, Cantidad: p.Cantidad, INVIMA: !!p.INVIMA,
+                Unidad: p.UnidadMedida || '',
+            }))
+            setItems(inicial)
+            setProductos(prods.map((p) => p.Producto))
+            setUnidades(unds.map((u) => u.Unidad))
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -39,31 +35,13 @@ export default function SeccionAgroindustrial({ userId }) {
     const agregar = () => setItems((arr) => [...arr, { NombreProducto: '', Cantidad: '', INVIMA: false, Unidad: '' }])
     const eliminar = (idx) => setItems((arr) => arr.filter((_, i) => i !== idx))
 
-    const guardar = async () => {
-        setGuardando(true)
-        try {
-            await saveInfoAgroindustrial(userId, {
-                ProduccionAgroindustrial: items.filter((i) => i.NombreProducto),
-            })
-            Swal.fire({
-                icon: 'success',
-                title: 'Producción agroindustrial guardada',
-                text: 'La información se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+    const guardar = useCallback(async () => {
+        return guardarSeccion(() => saveInfoAgroindustrial(userId, {
+            ProduccionAgroindustrial: items.filter((i) => i.NombreProducto),
+        }))
+    }, [items, userId, guardarSeccion])
+
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando producción agroindustrial...</p>
 
@@ -103,8 +81,8 @@ export default function SeccionAgroindustrial({ userId }) {
                 className="self-start px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors">
                 + Agregar producto
             </button>
-
-            <BotonGuardar onClick={guardar} guardando={guardando} texto="Guardar producción agroindustrial" />
         </div>
     )
-}
+})
+
+export default SeccionAgroindustrial

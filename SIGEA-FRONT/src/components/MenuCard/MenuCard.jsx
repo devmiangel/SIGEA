@@ -1,4 +1,5 @@
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { Link } from 'react-router-dom';
 
 export default function MenuCard({componentLogo, title, message, path, colorLogo}){
     return(
@@ -10,10 +11,10 @@ export default function MenuCard({componentLogo, title, message, path, colorLogo
                 <h3 className="my-2.5 mb-0.5 font-bold">{title}</h3>
                 <p className='text-[15px]'>{message}</p>
                 <div className="mt-5 border-t-2 border-[#00000030] h-6.25 flex items-center">
-                    <a href={path} className="flex items-center justify-between pt-1 no-underline text-black w-full rounded px-2.5 hover:bg-[#41414116] transition-colors">
+                    <Link to={path} className="flex items-center justify-between pt-1 no-underline text-black w-full rounded px-2.5 hover:bg-[#41414116] transition-colors">
                         ver mas 
                         <NavigateNextIcon/>
-                    </a> 
+                    </Link> 
                 </div>
             </div>
         </div>

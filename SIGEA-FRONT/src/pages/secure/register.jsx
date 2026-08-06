@@ -1,6 +1,8 @@
 import logo_sigea from '../../assets/img/logo_sigea.png'
 import titulo from '../../assets/img/letras_sigea.png'
-import {InputLogReg, LinkLog, ButtonLink} from '../../components/formElements/form-input'
+import { Input } from '../../components/formElements/Input'
+import { NavLink } from '../../components/formElements/NavLink'
+import { SubmitButton } from '../../components/formElements/SubmitButton'
 import Selection from '../../components/selecComponent/Selectstyling'
 import { useForm, Controller } from 'react-hook-form'
 import OtherCalendar from '../../components/calendar/OtherCalendar'
@@ -73,7 +75,7 @@ export default function Register() {
                     
                     <div className="box-border grid grid-cols-[49%_49%] gap-x-1.25">
                         <div className="relative mb-4">
-                            <InputLogReg 
+                            <Input 
                                 {...register('primer_nombre', {
                                     required: 'Campo Obligatorio',
                                     pattern: {
@@ -91,7 +93,7 @@ export default function Register() {
                                 })}
                                 type={'text'} 
                                 placeholder={'Primer Nombre'} 
-                                aditionalClass = {'fst-name'}
+                                additionalClass = {'fst-name'}
         
                             />
                             {errors.primer_nombre && (
@@ -100,7 +102,7 @@ export default function Register() {
                         </div>
 
                         <div className="relative mb-4">
-                            <InputLogReg 
+                            <Input 
                                 {...register('segundo_nombre', {
                                     pattern: {
                                         value: /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$/,
@@ -124,7 +126,7 @@ export default function Register() {
                         </div>
 
                         <div className="relative mb-4">
-                            <InputLogReg 
+                            <Input 
                                 {...register('primer_apellido', {
                                     required: 'Campo Obligatorio',
                                     pattern: {
@@ -149,7 +151,7 @@ export default function Register() {
                             )}
                         </div>
                         <div className="relative mb-4">
-                            <InputLogReg 
+                            <Input 
                                 {...register('segundo_apellido', {
                                     pattern: {
                                         value: /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$/,
@@ -174,7 +176,7 @@ export default function Register() {
                     </div>
 
                     <section className="mb-6 relative">
-                        <InputLogReg 
+                        <Input 
                             {...register('email', {
                                 required: 'Campo Obligatorio',
                                 pattern: {
@@ -217,7 +219,7 @@ export default function Register() {
                     </section>
 
                     <section className="mb-6 relative">
-                        <InputLogReg    
+                        <Input    
                             {...register('numero_documento', {
                                 required: 'Campo Obligatorio',
                                 pattern: {
@@ -261,7 +263,7 @@ export default function Register() {
                     </section>
                     
                     <section className="mb-6 relative">
-                        <InputLogReg 
+                        <Input 
                             {...register('password', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
                                 minLength: {
@@ -283,7 +285,7 @@ export default function Register() {
                     </section>
 
                     <section className="mb-6 relative">
-                        <InputLogReg 
+                        <Input 
                             {...register('passwconf', {
                                 required: 'Campo Obligatorio entre 6 y 20 caracteres',
                                 minLength: {
@@ -310,12 +312,12 @@ export default function Register() {
                     </section>
                     
                     <div>
-                        <ButtonLink text={'Registrarse'}/> 
+                        <SubmitButton text={'Registrarse'}/> 
                     </div>
                     
-                    <LinkLog href={'https://chatgpt.com/'}>
+                    <NavLink href={'https://chatgpt.com/'}>
                         ¿Necesitas ayuda? visita nuestro <strong>centro de ayuda</strong>
-                    </LinkLog>
+                    </NavLink>
                 </form>
             </div>
         </div>

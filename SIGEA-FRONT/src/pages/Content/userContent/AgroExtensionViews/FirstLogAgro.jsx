@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Title } from "../../../../components/Tettles-Buttons/Title"
 import InputDisable from "../../../../components/formElements/forms/InputDisable"
-import { ButtonLink } from "../../../../components/formElements/form-input"
+import { SubmitButton } from "../../../../components/formElements/SubmitButton"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import PersonIcon from '@mui/icons-material/Person'
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer'
@@ -77,9 +77,7 @@ export default function FirstLogAgro({ onSolicitudCreada }){
                             {error && (
                                 <p className="text-red-600 text-sm mt-2">{error}</p>
                             )}
-                            <div className={creando ? 'opacity-50 pointer-events-none' : ''}>
-                                <ButtonLink text={creando ? 'Enviando...' : 'Enviar'}/>
-                            </div>
+                            <SubmitButton text={creando ? 'Enviando...' : 'Enviar'} disabled={creando} />
                         </form>
                     </section>
                 </div>

@@ -1,22 +1,19 @@
 import { useState } from 'react'
 import logo_sigea from '../../assets/img/logo_sigea.png'
 import { SidebarData } from './SidebarData'
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CloseIcon from '@mui/icons-material/Close'
 import LogoutIcon from '@mui/icons-material/Logout'
 
 import { useCurrentDataUser } from '../../hooks/currentUserHook'
 import { logoutService } from '../../services/authService'
+import { getNombreCompleto } from '../../utils/userDisplay'
 
 export default function Sidebar () {
   const navigate = useNavigate()
   const { user, logout } = useCurrentDataUser()
-  const [isOpen, setIsOpen] = useState(false)
-
-  console.log(user);
-  
+  const [isOpen, setIsOpen] = useState(false)  
 
   const role = user?.rol
 
@@ -26,14 +23,14 @@ export default function Sidebar () {
   const handleLogout = async () => {
     try {
       await logoutService()
-    } catch {}
+    } catch {
+      // el logout local se ejecuta igual aunque fallen las llamadas remotas
+    }
     logout()
     navigate('/')
   }
 
-  const nombrePersona = user?.persona_info
-    ? `${user.persona_info.primer_nombre || ''} ${user.persona_info.primer_apellido || ''}`.trim()
-    : user?.email || ''
+  const nombrePersona = getNombreCompleto(user)
 
   return (
     <>
@@ -66,14 +63,19 @@ export default function Sidebar () {
           <ul className="flex flex-col items-center px-0 overflow-y-auto">
             {SidebarData
               .filter(item => item.roles.includes(role))
-              .map((val, key) => (
+              .map((val) => (
                 <li
-                  key={key}
-                  onClick={() => { navigate(val.link); close() }}
-                  className="flex items-center gap-3 w-full py-2.5 px-14 my-1 text-white cursor-pointer hover:bg-[#4d8d74] transition-colors"
+                  key={val.link}
+                  className="flex items-center w-full my-1"
                 >
-                  <div>{val.icon}</div>
-                  <div>{val.title}</div>
+                  <Link
+                    to={val.link}
+                    onClick={close}
+                    className="flex items-center gap-3 w-full py-2.5 px-14 text-white no-underline hover:bg-[#4d8d74] transition-colors"
+                  >
+                    <div>{val.icon}</div>
+                    <div>{val.title}</div>
+                  </Link>
                 </li>
               ))}
           </ul>

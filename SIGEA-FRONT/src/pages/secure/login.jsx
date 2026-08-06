@@ -1,6 +1,8 @@
 import logo_sigea from '../../assets/img/logo_sigea.png'
 import titulo from '../../assets/img/letras_sigea.png'
-import {InputLogReg, LinkLog, ButtonLink} from '../../components/formElements/form-input'
+import { Input } from '../../components/formElements/Input'
+import { NavLink } from '../../components/formElements/NavLink'
+import { SubmitButton } from '../../components/formElements/SubmitButton'
 
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -53,7 +55,7 @@ export default function Login() {
                 <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Iniciar Sesión</h2>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <section className='mb-6 relative'>
-                        <InputLogReg 
+                        <Input 
                             {...register('email', {
                                 required: 'Campo Obligatorio',
                                 pattern: {
@@ -74,13 +76,13 @@ export default function Login() {
                         {errors.email && (
                             <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.email.message}</p>
                         )}
-                        <LinkLog href={'https://google.com'}>
+                        <NavLink href={'https://google.com'}>
                             Olvidaste tu correo
-                        </LinkLog> 
+                        </NavLink> 
                     </section>
 
                     < section className='mb-6 relative'>
-                        <InputLogReg 
+                        <Input 
                             {...register('password', {
                                 required: 'Campo Obligatorio',
                                 minLength: {
@@ -99,16 +101,16 @@ export default function Login() {
                         {errors.password && (
                             <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.password.message}</p>
                         )}
-                        <LinkLog href={'https://google.com'}>
+                        <NavLink href={'https://google.com'}>
                             Olvidaste tu contraseña
-                        </LinkLog>
+                        </NavLink>
                     </section>   
                     
-                    <ButtonLink text={'Iniciar sesion'}/>
+                    <SubmitButton text={'Iniciar sesion'}/>
                     
-                    <LinkLog href={'/registro'}>
+                    <NavLink href={'/registro'}>
                         no tienes cuenta? <strong>Registrate</strong>
-                    </LinkLog>
+                    </NavLink>
 
                     {errorMsg && (
                         <div className='flex justify-center items-center w-full mt-4'>

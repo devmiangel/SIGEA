@@ -99,6 +99,7 @@ class Insumos(models.Model):
     Nombre = models.CharField(max_length=255)
     Cantidad = models.IntegerField()
     Unidades = models.ForeignKey(Unidades, on_delete=models.PROTECT)
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):

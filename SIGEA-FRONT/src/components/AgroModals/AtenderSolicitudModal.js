@@ -1,17 +1,7 @@
 import Swal from 'sweetalert2'
 import { getFuncionarios, getTiposVisitas } from '../../services/agroService'
-import { AGRO_COLORS } from '../../utils/agroConstants'
-
-const estadoLabel = {
-  1: 'En Proceso',
-  2: 'Aprobado',
-  3: 'Rechazado',
-}
-
-const motivoLabel = {
-  1: 'Visita',
-  2: 'Caracterización',
-}
+import { AGRO_COLORS, ESTADO_LABEL, MOTIVO_LABEL, AUTOCOMPLETE_MAX_RESULTS } from '../../utils/agroConstants'
+import { escapeHtml } from '../../utils/sanitize'
 
 const inputStyle = 'width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; background:#fff; color:#374151;'
 const labelStyle = 'display:block; margin-bottom:6px; font-weight:600; font-size:13px;'
@@ -28,13 +18,14 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
         email: f.email
     }))
 
-    const estado = estadoLabel[solicitud.Estado] ?? 'Desconocido'
-    const motivo = motivoLabel[solicitud.MotivoSolicitud] ?? '—'
+    const estado = ESTADO_LABEL[solicitud.Estado] ?? 'Desconocido'
+    const motivo = MOTIVO_LABEL[solicitud.MotivoSolicitud] ?? '—'
     const upInfo = solicitud.UP ? `UP #${solicitud.UP}` : 'No asignada'
     const solicitante = solicitud.solicitante ?? {}
-    const nombre = solicitante.primer_nombre ?? '—'
-    const apellido = solicitante.primer_apellido ?? ''
-    const email = solicitante.email ?? '—'
+    const nombre = escapeHtml(solicitante.primer_nombre ?? '—')
+    const apellido = escapeHtml(solicitante.primer_apellido ?? '')
+    const email = escapeHtml(solicitante.email ?? '—')
+    const observacion = escapeHtml(solicitud.Observacion) || 'Sin descripción'
 
     const result = await Swal.fire({
         title: `Atención de Solicitud #${numero}`,
@@ -44,7 +35,7 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                 <div style="text-align:left; font-size:13px; line-height:1.7; background:#f9fafb; padding:10px 12px; border-radius:8px; margin-bottom:16px;">
                     <p style="margin:0;"><strong>Motivo:</strong> ${motivo} · <strong>Estado:</strong> ${estado}</p>
                     <p style="margin:0;"><strong>Solicitante:</strong> ${nombre} ${apellido} <span style="color:#6b7280;">(${email})</span></p>
-                    <p style="margin:0;"><strong>Observación:</strong> ${solicitud.Observacion ?? 'Sin descripción'}</p>
+                    <p style="margin:0;"><strong>Observación:</strong> ${observacion}</p>
                     <p style="margin:0;"><strong>Unidad Productiva:</strong> ${upInfo}</p>
                 </div>
 
@@ -64,7 +55,7 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                 <label style="${labelStyle} margin:16px 0 6px;">Tipo de visita</label>
                 <select id="swal-tipo-visita" style="${inputStyle}">
                     <option value="">Selecciona un tipo de visita</option>
-                    ${tiposVisitas.map(t => `<option value="${t.id}">${t.TipoVisita}</option>`).join('')}
+                    ${tiposVisitas.map(t => `<option value="${t.id}">${escapeHtml(t.TipoVisita)}</option>`).join('')}
                 </select>
             </div>
         `,
@@ -73,7 +64,7 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
         confirmButtonText: 'Aceptar solicitud',
         cancelButtonText: 'Rechazar solicitud',
         confirmButtonColor: AGRO_COLORS.success,
-        cancelButtonColor: '#d9534f',
+        cancelButtonColor: AGRO_COLORS.danger,
         didOpen: () => {
             const input = document.getElementById('swal-funcionario-input')
             const lista = document.getElementById('swal-funcionario-lista')
@@ -99,10 +90,10 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                     return
                 }
 
-                lista.innerHTML = items.slice(0, 8).map(f => `
+                lista.innerHTML = items.slice(0, AUTOCOMPLETE_MAX_RESULTS).map(f => `
                     <div data-id="${f.id}" style="padding:9px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9;">
-                        <div style="font-size:13px; font-weight:500; color:#1e293b;">${f.nombre}</div>
-                        <div style="font-size:12px; color:#94a3b8;">${f.email}</div>
+                        <div style="font-size:13px; font-weight:500; color:#1e293b;">${escapeHtml(f.nombre)}</div>
+                        <div style="font-size:12px; color:#94a3b8;">${escapeHtml(f.email)}</div>
                     </div>
                 `).join('')
 

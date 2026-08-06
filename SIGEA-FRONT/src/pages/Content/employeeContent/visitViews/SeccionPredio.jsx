@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck, BotonGuardar } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
+import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck } from './fields'
 import {
     getInfoPredio, saveInfoPredio,
     getTiposTenencias, getSeguros, getVeredas, getSectores, getTiposRegistrosICA,
     crearSeguro, crearVereda, crearSector,
 } from '../../../../services/caracterizacionService'
-import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import { useSeccion } from '../../../../hooks/useSeccion'
 
 const INICIAL = {
     NombrePredio: '', AreaPredio: '', RegistroICA: [], Seguro: '',
@@ -14,40 +13,43 @@ const INICIAL = {
     Direccion: '', TipoTenencia: '', Vereda: '', Sector: '',
 }
 
-export default function SeccionPredio({ userId }) {
+const REQUERIDOS = [
+    { nombre: 'NombrePredio', label: 'Nombre del predio' },
+    { nombre: 'TipoTenencia', label: 'Tipo de tenencia' },
+    { nombre: 'Direccion', label: 'Dirección' },
+]
+
+const SeccionPredio = forwardRef(({ userId }, ref) => {
     const [form, setForm] = useState(INICIAL)
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [tenencias, setTenencias] = useState([])
     const [seguros, setSeguros] = useState([])
     const [veredas, setVeredas] = useState([])
     const [sectores, setSectores] = useState([])
     const [icas, setIcas] = useState([])
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([
-            getInfoPredio(userId),
-            getTiposTenencias(),
-            getSeguros(),
-            getVeredas(),
-            getSectores(),
-            getTiposRegistrosICA(),
-        ])
-            .then(([data, ten, seg, ver, sec, ica]) => {
-                if (!activo) return
-                setForm({ ...INICIAL, ...data })
-                setTenencias(ten.map((t) => t.TipoTenencia))
-                setSeguros(seg.map((s) => s.NombreSeguro))
-                setVeredas(ver.map((v) => v.NombreVereda))
-                setSectores(sec.map((s) => s.NombreSector))
-                setIcas(ica.map((i) => i.CodigoICA))
-            })
-            .catch(() => { if (activo) setForm(INICIAL) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const [data, ten, seg, ver, sec, ica] = await Promise.all([
+                getInfoPredio(userId),
+                getTiposTenencias(),
+                getSeguros(),
+                getVeredas(),
+                getSectores(),
+                getTiposRegistrosICA(),
+            ])
+            if (!activo) return
+            setForm({ ...INICIAL, ...data })
+            setTenencias(ten.map((t) => t.TipoTenencia))
+            setSeguros(seg.map((s) => s.NombreSeguro))
+            setVeredas(ver.map((v) => v.NombreVereda))
+            setSectores(sec.map((s) => s.NombreSector))
+            setIcas(ica.map((i) => i.CodigoICA))
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
@@ -62,52 +64,17 @@ export default function SeccionPredio({ userId }) {
         })
     }
 
-    const REQUERIDOS = [
-        { nombre: 'NombrePredio', label: 'Nombre del predio' },
-        { nombre: 'TipoTenencia', label: 'Tipo de tenencia' },
-        { nombre: 'Direccion', label: 'Dirección' },
-    ]
-
-    const validar = () => {
+    const guardar = useCallback(async () => {
         const faltantes = REQUERIDOS
             .filter((r) => !String(form[r.nombre] ?? '').trim())
             .map((r) => r.label)
         if (faltantes.length) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campos obligatorios',
-                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
-                confirmButtonColor: AGRO_COLORS.success,
-            })
-            return false
+            return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return true
-    }
+        return guardarSeccion(() => saveInfoPredio(userId, form))
+    }, [form, userId, guardarSeccion])
 
-    const guardar = async () => {
-        if (!validar()) return
-        setGuardando(true)
-        try {
-            await saveInfoPredio(userId, form)
-            Swal.fire({
-                icon: 'success',
-                title: 'Predio guardado',
-                text: 'La información del predio se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando información del predio...</p>
 
@@ -146,8 +113,8 @@ export default function SeccionPredio({ userId }) {
                 <CampoCheck name="AccesoCredito" label="Acceso a crédito" checked={form.AccesoCredito} onChange={onChange} />
                 <CampoCheck name="UsoSuelo" label="Uso de suelo" checked={form.UsoSuelo} onChange={onChange} />
             </div>
-
-            <BotonGuardar onClick={guardar} guardando={guardando} />
         </div>
     )
-}
+})
+
+export default SeccionPredio

@@ -5,14 +5,14 @@ import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import TabList from "../../../components/TabList/TabList"
 import UserRequest from "../../../components/UserRequest/UserRequest"
-import AlertRequestInfo from "../../../components/AlertRequestInfo/AlertRequestInfo"
 import CalendarioVisitas from "../../../components/calendar/CalendarioVisitas"
 import { useTodasSolicitudes } from "../../../hooks/useTodasSolicitudes"
 import { useVisitas } from "../../../hooks/useVisitas"
 import { useCurrentDataUser } from "../../../hooks/currentUserHook"
 import { atenderSolicitud, rechazarSolicitud } from "../../../services/agroService"
 import { abrirModalAtenderSolicitud } from "../../../components/AgroModals/AtenderSolicitudModal"
-import { AGRO_COLORS } from "../../../utils/agroConstants"
+import { mostrarInfoSolicitud } from "../../../components/AgroModals/AlertRequestInfoModal"
+import { AGRO_COLORS, ESTADO_SOLICITUD } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
@@ -20,22 +20,18 @@ export default function ScheduleContentAdmin(){
     const { user } = useCurrentDataUser()
     const { solicitudes, loading, refresh } = useTodasSolicitudes()
     const { visitas, refresh: refreshVisitas } = useVisitas()
-    const [selectedSolicitud, setSelectedSolicitud] = useState(null)
     const [activeTab, setActiveTab] = useState('Pendientes')
 
-    const pendientes = useMemo(() => solicitudes.filter(s => s.Estado === 1), [solicitudes])
-    const atendidas = useMemo(() => solicitudes.filter(s => s.Estado !== 1), [solicitudes])
+    const pendientes = useMemo(() => solicitudes.filter(s => s.Estado === ESTADO_SOLICITUD.EN_PROCESO), [solicitudes])
+    const atendidas = useMemo(() => solicitudes.filter(s => s.Estado !== ESTADO_SOLICITUD.EN_PROCESO), [solicitudes])
 
     const currentContent = activeTab === 'Pendientes' ? pendientes : atendidas
 
-    const handleClickSolicitud = async (s) => {
-        if (activeTab !== 'Pendientes') {
-            setSelectedSolicitud(s)
-            return
-        }
+    const handleVerSolicitud = (s, numero) => {
+        mostrarInfoSolicitud(s, numero, user)
+    }
 
-        const numero = currentContent.findIndex(x => x.id === s.id) + 1
-
+    const handleAtenderSolicitud = async (s, numero) => {
         try {
             const result = await abrirModalAtenderSolicitud(s, numero)
 
@@ -50,37 +46,62 @@ export default function ScheduleContentAdmin(){
                     timer: 2000,
                     timerProgressBar: true
                 })
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                const confirmacion = await Swal.fire({
-                    icon: 'warning',
-                    title: '¿Rechazar solicitud?',
-                    text: 'La solicitud pasará a la lista de atendidas como rechazada.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, rechazar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#d9534f'
-                })
+                return
+            }
 
-                if (confirmacion.isConfirmed) {
-                    await rechazarSolicitud(s.id)
-                    await refresh()
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Solicitud rechazada',
-                        text: 'La solicitud fue rechazada correctamente.',
-                        confirmButtonColor: AGRO_COLORS.success,
-                        timer: 2000,
-                        timerProgressBar: true
-                    })
-                }
+            if (result.dismiss === Swal.DismissReason.cancel) {
+                await handleRechazarSolicitud(s)
             }
         } catch {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo procesar la solicitud. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
+                confirmButtonColor: AGRO_COLORS.primary
             })
+        }
+    }
+
+    const handleRechazarSolicitud = async (s) => {
+        const confirmacion = await Swal.fire({
+            icon: 'warning',
+            title: '¿Rechazar solicitud?',
+            text: 'La solicitud pasará a la lista de atendidas como rechazada.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, rechazar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: AGRO_COLORS.danger
+        })
+
+        if (!confirmacion.isConfirmed) return
+
+        try {
+            await rechazarSolicitud(s.id)
+            await refresh()
+            Swal.fire({
+                icon: 'success',
+                title: 'Solicitud rechazada',
+                text: 'La solicitud fue rechazada correctamente.',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true
+            })
+        } catch {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo procesar la solicitud. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary
+            })
+        }
+    }
+
+    const handleClickSolicitud = (s) => {
+        const numero = currentContent.findIndex(x => x.id === s.id) + 1
+        if (activeTab === 'Pendientes') {
+            handleAtenderSolicitud(s, numero)
+        } else {
+            handleVerSolicitud(s, numero)
         }
     }
 
@@ -130,15 +151,6 @@ export default function ScheduleContentAdmin(){
                     )}
                 </div>
             </div>
-
-            {selectedSolicitud && activeTab !== 'Pendientes' && (
-                <AlertRequestInfo
-                    solicitud={selectedSolicitud}
-                    numero={currentContent.findIndex(s => s.id === selectedSolicitud.id) + 1}
-                    user={user}
-                    onClose={() => setSelectedSolicitud(null)}
-                />
-            )}
         </>
     )
 }

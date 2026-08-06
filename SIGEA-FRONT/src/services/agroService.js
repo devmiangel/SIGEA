@@ -79,3 +79,28 @@ export const rechazarSolicitud = async (solicitudId) => {
     const response = await api.post(`/visitas/solicitudes/${solicitudId}/rechazar/`);
     return response.data;
 }
+
+export const getInsumos = async () => {
+    const response = await api.get('/inventario/insumos/');
+    return response.data;
+}
+
+export const getInsumo = async (insumoId) => {
+    const response = await api.get(`/inventario/insumos/${insumoId}/`);
+    return response.data;
+}
+
+export const crearInsumo = async (data) => {
+    const response = await api.post('/inventario/insumos/', data);
+    return response.data;
+}
+
+export const actualizarInsumo = async (insumoId, data) => {
+    const response = await api.patch(`/inventario/insumos/${insumoId}/`, data);
+    return response.data;
+}
+
+export const eliminarInsumo = async (insumoId) => {
+    const response = await api.delete(`/inventario/insumos/${insumoId}/`);
+    return response.data;
+}

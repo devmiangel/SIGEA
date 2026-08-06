@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck, BotonGuardar } from './fields'
+import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
+import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck } from './fields'
 import {
     getInfoUP, saveInfoUP, getTiposUP, getActividadesUP, crearActividadUP,
 } from '../../../../services/caracterizacionService'
-import { AGRO_COLORS } from '../../../../utils/agroConstants'
+import { useSeccion } from '../../../../hooks/useSeccion'
 
 const INICIAL = {
     TipoUP_Nombre: '', ActividadUP: '', RUEA: '', NumeroEmpleados: '', Asociatividad: false,
@@ -19,70 +18,38 @@ const REQUERIDOS = [
     { nombre: 'RUEA', label: 'RUEA' },
 ]
 
-export default function SeccionUP({ userId }) {
+const SeccionUP = forwardRef(({ userId }, ref) => {
     const [form, setForm] = useState(INICIAL)
-    const [loading, setLoading] = useState(true)
-    const [guardando, setGuardando] = useState(false)
     const [tipos, setTipos] = useState([])
     const [actividades, setActividades] = useState([])
+    const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
         if (!userId) return
         let activo = true
-        Promise.all([getInfoUP(userId), getTiposUP(), getActividadesUP()])
-            .then(([data, t, a]) => {
-                if (!activo) return
-                setForm({ ...INICIAL, ...data })
-                setTipos(t.map((x) => x.TipoUP))
-                setActividades(a.map((x) => x.Actividad))
-            })
-            .catch(() => { if (activo) setForm(INICIAL) })
-            .finally(() => { if (activo) setLoading(false) })
+        cargarSeccion(async () => {
+            const [data, t, a] = await Promise.all([getInfoUP(userId), getTiposUP(), getActividadesUP()])
+            if (!activo) return
+            setForm({ ...INICIAL, ...data })
+            setTipos(t.map((x) => x.TipoUP))
+            setActividades(a.map((x) => x.Actividad))
+        })
         return () => { activo = false }
-    }, [userId])
+    }, [userId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
-    const validar = () => {
+    const guardar = useCallback(async () => {
         const faltantes = REQUERIDOS
             .filter((r) => !String(form[r.nombre] ?? '').trim())
             .map((r) => r.label)
         if (faltantes.length) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campos obligatorios',
-                html: `Faltan: <strong>${faltantes.join(', ')}</strong>`,
-                confirmButtonColor: AGRO_COLORS.success,
-            })
-            return false
+            return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return true
-    }
+        return guardarSeccion(() => saveInfoUP(userId, form))
+    }, [form, userId, guardarSeccion])
 
-    const guardar = async () => {
-        if (!validar()) return
-        setGuardando(true)
-        try {
-            await saveInfoUP(userId, form)
-            Swal.fire({
-                icon: 'success',
-                title: 'UP guardada',
-                text: 'La información de la unidad productiva se guardó correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 1800,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo guardar la información. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.success
-            })
-        } finally {
-            setGuardando(false)
-        }
-    }
+    useImperativeHandle(ref, () => ({ guardar }))
 
     if (loading) return <p className="text-sm text-gray-500">Cargando información de la UP...</p>
 
@@ -105,8 +72,8 @@ export default function SeccionUP({ userId }) {
                 <CampoCheck name="Asociatividad" label="Asociatividad" checked={form.Asociatividad} onChange={onChange} />
                 <CampoCheck name="FuentesAgua" label="Fuentes de agua" checked={form.FuentesAgua} onChange={onChange} />
             </div>
-
-            <BotonGuardar onClick={guardar} guardando={guardando} />
         </div>
     )
-}
+})
+
+export default SeccionUP

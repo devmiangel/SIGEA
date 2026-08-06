@@ -1,7 +1,107 @@
-export default function InvSourceContentAdmin(){
-    return(
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
+import { Header } from "../../../components/Tettles-Buttons/Title"
+import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
+import InsumoPreviewCard from "../../../components/InsumoPreviewCard/InsumoPreviewCard"
+import { useInsumos } from "../../../hooks/useInsumos"
+import { AGRO_COLORS } from "../../../utils/agroConstants"
+import Swal from 'sweetalert2'
+
+export default function InvSourceContentAdmin() {
+    const { insumos, loading, error, eliminar } = useInsumos()
+
+    const handleAnadir = () => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Añadir insumo',
+            text: 'El formulario de creación de insumos estará disponible a continuación.',
+            confirmButtonColor: AGRO_COLORS.primary
+        })
+    }
+
+    const handleEditar = (insumo) => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Editar insumo',
+            text: `El formulario de edición de "${insumo?.Nombre}" estará disponible a continuación.`,
+            confirmButtonColor: AGRO_COLORS.primary
+        })
+    }
+
+    const handleEliminar = async (insumo) => {
+        const confirmacion = await Swal.fire({
+            icon: 'warning',
+            title: '¿Eliminar insumo?',
+            text: `Se eliminará "${insumo?.Nombre}". Esta acción no se puede deshacer.`,
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: AGRO_COLORS.danger
+        })
+
+        if (!confirmacion.isConfirmed) return
+
+        const result = await eliminar(insumo.id)
+        if (result.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Insumo eliminado',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            })
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo eliminar el insumo.',
+                confirmButtonColor: AGRO_COLORS.primary
+            })
+        }
+    }
+
+    return (
         <>
-            <p>CONTENIDO DE los insumos dentro del panel inventario PARA EL ADMINISTRADOR</p>
+            <Header
+                componentLogo={
+                    <Inventory2OutlinedIcon
+                        sx={{fontSize: 40, color:"ActiveCaption"}}
+                    />
+                }
+                headerText={'Gestión de insumos'}
+                message={'Lista y administra los insumos registrados en el sistema'}
+                colorLogo={AGRO_COLORS.primaryLight}
+                firstButton={
+                    <ButtonLink
+                        buttonText={'Añadir insumo'}
+                        onClick={handleAnadir}
+                    />
+                }
+            />
+            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+                <div className="mb-4">
+                    <h3 className="text-base font-semibold text-gray-900">Insumos del sistema</h3>
+                    <p className="text-xs text-gray-500">{insumos.length} insumo(s) registrado(s)</p>
+                </div>
+
+                {loading ? (
+                    <p className="text-gray-500 text-sm">Cargando insumos...</p>
+                ) : error ? (
+                    <p className="text-red-600 text-sm">No se pudieron cargar los insumos. Intenta de nuevo.</p>
+                ) : insumos.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No hay insumos registrados en el sistema.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {insumos.map((insumo) => (
+                            <InsumoPreviewCard
+                                key={insumo.id}
+                                insumo={insumo}
+                                onEdit={handleEditar}
+                                onDelete={handleEliminar}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </>
     )
 }
