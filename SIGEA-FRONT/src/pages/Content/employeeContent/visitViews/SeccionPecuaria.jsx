@@ -1,5 +1,5 @@
 import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
-import { CampoSelectDinamico } from './fields'
+import { CampoSelect, CampoSelectDinamico } from './fields'
 import {
     getInfoAnimal, saveInfoAnimal, getGruposAnimales, getPropositos,
     getTiposAves, getRazas, getProductosApicolas,
@@ -17,11 +17,18 @@ function SelectOpc({ label, value, opciones, onChange, onCrear }) {
     )
 }
 
-function DetalleBovino({ det, update, razas, propositos }) {
+function SelectGrupo({ value, opciones, onChange }) {
+    return (
+        <CampoSelect label="Grupo animal" name="GrupoAnimal" value={value ?? ''} options={opciones}
+            onChange={(n, v) => onChange(v)} />
+    )
+}
+
+function DetalleBovino({ det, update, razas, propositos, onCreateProposito }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={crearProposito} onChange={(v) => update('Proposito', v)} />
+            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={onCreateProposito} onChange={(v) => update('Proposito', v)} />
             <NumOpc label="Machos" value={det.Machos} onChange={(v) => update('Machos', v)} />
             <NumOpc label="Hembras" value={det.Hembras} onChange={(v) => update('Hembras', v)} />
             <TextOpc label="RUV" value={det.RUV} onChange={(v) => update('RUV', v)} />
@@ -29,21 +36,21 @@ function DetalleBovino({ det, update, razas, propositos }) {
     )
 }
 
-function DetalleAves({ det, update, razas, tiposAves }) {
+function DetalleAves({ det, update, razas, tiposAves, onCreateTipoAve }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Tipo de ave" value={det.TipoAve} opciones={tiposAves} onCrear={crearTipoAve} onChange={(v) => update('TipoAve', v)} />
+            <SelectOpc label="Tipo de ave" value={det.TipoAve} opciones={tiposAves} onCrear={onCreateTipoAve} onChange={(v) => update('TipoAve', v)} />
             <NumOpc label="Cantidad" value={det.Cantidad} onChange={(v) => update('Cantidad', v)} />
         </div>
     )
 }
 
-function DetalleSimple({ det, update, razas, propositos, conChapeta = false }) {
+function DetalleSimple({ det, update, razas, propositos, onCreateProposito, conChapeta = false }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={crearProposito} onChange={(v) => update('Proposito', v)} />
+            <SelectOpc label="Propósito" value={det.Proposito} opciones={propositos} onCrear={onCreateProposito} onChange={(v) => update('Proposito', v)} />
             {conChapeta && (
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                     <input type="checkbox" checked={!!det.Chapeta} onChange={(e) => update('Chapeta', e.target.checked)} className="w-4 h-4 accent-[#015d3b]" />
@@ -63,11 +70,11 @@ function DetallePeces({ det, update, razas }) {
     )
 }
 
-function DetalleAbejas({ det, update, razas, productosApicolas }) {
+function DetalleAbejas({ det, update, razas, productosApicolas, onCreateProductoApicola }) {
     return (
         <div className="grid grid-cols-2 gap-2">
             <SelectOpc label="Raza" value={det.Raza} opciones={razas} onChange={(v) => update('Raza', v)} />
-            <SelectOpc label="Productos apícolas" value={det.ProductosApicolas} opciones={productosApicolas} onCrear={crearProductoApicola} onChange={(v) => update('ProductosApicolas', v)} />
+            <SelectOpc label="Productos apícolas" value={det.ProductosApicolas} opciones={productosApicolas} onCrear={onCreateProductoApicola} onChange={(v) => update('ProductosApicolas', v)} />
         </div>
     )
 }
@@ -136,16 +143,31 @@ const SeccionPecuaria = forwardRef(({ userId, solicitudId }, ref) => {
     const agregar = () => setItems((arr) => [...arr, { GrupoAnimal: '', CantidadTotal: '', Detalles: {} }])
     const eliminar = (idx) => setItems((arr) => arr.filter((_, i) => i !== idx))
 
+    const handleCrearProposito = async (valor) => {
+        const r = await crearProposito(valor)
+        setPropositos((prev) => [...prev, r.Proposito])
+    }
+
+    const handleCrearTipoAve = async (valor) => {
+        const r = await crearTipoAve(valor)
+        setTiposAves((prev) => [...prev, r.TipoAve])
+    }
+
+    const handleCrearProductoApicola = async (valor) => {
+        const r = await crearProductoApicola(valor)
+        setProductosApicolas((prev) => [...prev, r.ProductoApicolas])
+    }
+
     const renderDetalle = (it, idx) => {
         const g = it.GrupoAnimal
         if (!g) return null
-        if (g === 'Bovinos') return <DetalleBovino det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} />
-        if (g === 'Aves') return <DetalleAves det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} tiposAves={tiposAves} />
-        if (g === 'Porcinos') return <DetalleSimple det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} conChapeta />
+        if (g === 'Bovinos') return <DetalleBovino det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} onCreateProposito={handleCrearProposito} />
+        if (g === 'Aves') return <DetalleAves det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} tiposAves={tiposAves} onCreateTipoAve={handleCrearTipoAve} />
+        if (g === 'Porcinos') return <DetalleSimple det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} onCreateProposito={handleCrearProposito} conChapeta />
         if (g === 'Equinos' || g === 'Caprinos' || g === 'Ovinos' || g === 'Conejos' || g === 'Curies')
-            return <DetalleSimple det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} />
+            return <DetalleSimple det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} propositos={propositos} onCreateProposito={handleCrearProposito} />
         if (g === 'Peces') return <DetallePeces det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} />
-        if (g === 'Abejas') return <DetalleAbejas det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} productosApicolas={productosApicolas} />
+        if (g === 'Abejas') return <DetalleAbejas det={it.Detalles} update={(c, v) => updateDetalle(idx, c, v)} razas={razas} productosApicolas={productosApicolas} onCreateProductoApicola={handleCrearProductoApicola} />
         return null
     }
 
@@ -168,7 +190,7 @@ const SeccionPecuaria = forwardRef(({ userId, solicitudId }, ref) => {
                 {items.map((it, idx) => (
                     <div key={idx} className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <SelectOpc label="Grupo animal" value={it.GrupoAnimal} opciones={grupos}
+                            <SelectGrupo value={it.GrupoAnimal} opciones={grupos}
                                 onChange={(v) => updateItem(idx, 'GrupoAnimal', v)} />
                             <NumOpc label="Cantidad total" value={it.CantidadTotal}
                                 onChange={(v) => updateItem(idx, 'CantidadTotal', v)} />

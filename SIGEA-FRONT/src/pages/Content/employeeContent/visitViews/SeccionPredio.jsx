@@ -6,6 +6,8 @@ import {
     crearSeguro, crearVereda, crearSector,
 } from '../../../../services/caracterizacionService'
 import { useSeccion } from '../../../../hooks/useSeccion'
+import Swal from 'sweetalert2'
+import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 const INICIAL = {
     NombrePredio: '', AreaPredio: '', RegistroICA: [], Seguro: '',
@@ -43,15 +45,40 @@ const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
             if (!activo) return
             setForm({ ...INICIAL, ...data })
             setTenencias(ten.map((t) => t.TipoTenencia))
-            setSeguros(seg.map((s) => s.NombreSeguro))
-            setVeredas(ver.map((v) => v.NombreVereda))
-            setSectores(sec.map((s) => s.NombreSector))
+            setSeguros(seg.map((s) => ({ id: s.id, texto: s.NombreSeguro })))
+            setVeredas(ver.map((v) => ({ id: v.id, texto: v.NombreVereda })))
+            setSectores(sec.map((s) => ({ id: s.id, texto: s.NombreSector })))
             setIcas(ica.map((i) => i.CodigoICA))
         })
         return () => { activo = false }
     }, [userId, solicitudId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
+
+    const handleCrearSeguro = async (valor) => {
+        const r = await crearSeguro(valor)
+        setSeguros((prev) => [...prev, { id: r.id, texto: r.NombreSeguro }])
+    }
+
+    const handleCrearVereda = async (valor) => {
+        const r = await crearVereda(valor)
+        setVeredas((prev) => [...prev, { id: r.id, texto: r.NombreVereda }])
+    }
+
+    const handleCrearSector = async (valor) => {
+        const veredaId = veredas.find((v) => v.texto === form.Vereda)?.id
+        if (!veredaId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Vereda requerida',
+                text: 'Primero seleccione o cree la vereda y luego defina el sector.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+            return
+        }
+        const r = await crearSector(valor, veredaId)
+        setSectores((prev) => [...prev, { id: r.id, texto: r.NombreSector }])
+    }
 
     const toggleICA = (codigo) => {
         setForm((f) => {
@@ -84,9 +111,9 @@ const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
                 <Campo name="NombrePredio" label="Nombre del predio" value={form.NombrePredio} onChange={onChange} />
                 <Campo name="AreaPredio" label="Área (ha)" type="number" value={form.AreaPredio} onChange={onChange} />
                 <CampoSelect name="TipoTenencia" label="Tipo de tenencia" value={form.TipoTenencia} options={tenencias} onChange={onChange} />
-                <CampoSelectDinamico name="Seguro" label="Seguro" value={form.Seguro} options={seguros} onCrear={crearSeguro} onChange={onChange} />
-                <CampoSelectDinamico name="Vereda" label="Vereda" value={form.Vereda} options={veredas} onCrear={crearVereda} onChange={onChange} />
-                <CampoSelectDinamico name="Sector" label="Sector" value={form.Sector} options={sectores} onCrear={crearSector} onChange={onChange} />
+                <CampoSelectDinamico name="Seguro" label="Seguro" value={form.Seguro} options={seguros.map((s) => s.texto)} onCrear={handleCrearSeguro} onChange={onChange} />
+                <CampoSelectDinamico name="Vereda" label="Vereda" value={form.Vereda} options={veredas.map((v) => v.texto)} onCrear={handleCrearVereda} onChange={onChange} />
+                <CampoSelectDinamico name="Sector" label="Sector" value={form.Sector} options={sectores.map((s) => s.texto)} onCrear={handleCrearSector} onChange={onChange} />
                 <Campo name="Latitud" label="Latitud" type="number" value={form.Latitud} onChange={onChange} />
                 <Campo name="Longitud" label="Longitud" type="number" value={form.Longitud} onChange={onChange} />
                 <Campo name="Direccion" label="Dirección" value={form.Direccion} onChange={onChange} />

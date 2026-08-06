@@ -1,4 +1,5 @@
 import HandymanIcon from '@mui/icons-material/Handyman'
+import { useNavigate } from 'react-router-dom'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import HerramientaPreviewCard from "../../../components/HerramientaPreviewCard/HerramientaPreviewCard"
@@ -7,15 +8,11 @@ import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function InvToolsContentAdmin() {
+    const navigate = useNavigate()
     const { herramientas, loading, error, eliminar } = useHerramientas()
 
     const handleAnadir = () => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Añadir herramienta',
-            text: 'El formulario de creación de herramientas estará disponible a continuación.',
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate('/administrador/inventario/herramientas/nuevo')
     }
 
     const handleEditar = (herramienta) => {

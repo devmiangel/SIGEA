@@ -28,11 +28,11 @@ export function useCaracterizacion() {
     const [secciones, setSecciones] = useState(null)
     const [loading, setLoading] = useState(true)
 
-    const cargar = useCallback(async (userId) => {
+    const cargar = useCallback(async (userId, upId) => {
         if (!userId) return
         setLoading(true)
         try {
-            const respuestas = await Promise.all(CALLS.map((fn) => fn(userId)))
+            const respuestas = await Promise.all(CALLS.map((fn) => fn(userId, null, upId)))
             setSecciones(Object.fromEntries(KEYS.map((k, i) => [k, respuestas[i]])))
         } catch {
             setSecciones(null)

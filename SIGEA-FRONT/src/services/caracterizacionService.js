@@ -10,10 +10,12 @@ const SECCIONES = {
     adicional: 'info_adicional_caracterizacion',
 }
 
-const getSeccion = async (seccion, userId, solicitudId) => {
+const getSeccion = async (seccion, userId, solicitudId, upId) => {
     const url = `/UPs/${SECCIONES[seccion]}/${userId}/`
-    const params = solicitudId ? { params: { solicitud_id: solicitudId } } : {}
-    const response = await api.get(url, params)
+    const params = {}
+    if (solicitudId) params.solicitud_id = solicitudId
+    if (upId) params.up_id = upId
+    const response = await api.get(url, { params })
     return response.data
 }
 
@@ -23,25 +25,25 @@ const guardarSeccion = async (seccion, userId, solicitudId, data) => {
     return response.data
 }
 
-export const getInfoPersonal = (userId, solicitudId) => getSeccion('personal', userId, solicitudId)
+export const getInfoPersonal = (userId, solicitudId, upId) => getSeccion('personal', userId, solicitudId, upId)
 export const saveInfoPersonal = (userId, solicitudId, data) => guardarSeccion('personal', userId, solicitudId, data)
 
-export const getInfoPredio = (userId, solicitudId) => getSeccion('predio', userId, solicitudId)
+export const getInfoPredio = (userId, solicitudId, upId) => getSeccion('predio', userId, solicitudId, upId)
 export const saveInfoPredio = (userId, solicitudId, data) => guardarSeccion('predio', userId, solicitudId, data)
 
-export const getInfoUP = (userId, solicitudId) => getSeccion('up', userId, solicitudId)
+export const getInfoUP = (userId, solicitudId, upId) => getSeccion('up', userId, solicitudId, upId)
 export const saveInfoUP = (userId, solicitudId, data) => guardarSeccion('up', userId, solicitudId, data)
 
-export const getInfoAgricola = (userId, solicitudId) => getSeccion('agricola', userId, solicitudId)
+export const getInfoAgricola = (userId, solicitudId, upId) => getSeccion('agricola', userId, solicitudId, upId)
 export const saveInfoAgricola = (userId, solicitudId, data) => guardarSeccion('agricola', userId, solicitudId, data)
 
-export const getInfoAnimal = (userId, solicitudId) => getSeccion('animal', userId, solicitudId)
+export const getInfoAnimal = (userId, solicitudId, upId) => getSeccion('animal', userId, solicitudId, upId)
 export const saveInfoAnimal = (userId, solicitudId, data) => guardarSeccion('animal', userId, solicitudId, data)
 
-export const getInfoAgroindustrial = (userId, solicitudId) => getSeccion('agroindustrial', userId, solicitudId)
+export const getInfoAgroindustrial = (userId, solicitudId, upId) => getSeccion('agroindustrial', userId, solicitudId, upId)
 export const saveInfoAgroindustrial = (userId, solicitudId, data) => guardarSeccion('agroindustrial', userId, solicitudId, data)
 
-export const getInfoAdicional = (userId, solicitudId) => getSeccion('adicional', userId, solicitudId)
+export const getInfoAdicional = (userId, solicitudId, upId) => getSeccion('adicional', userId, solicitudId, upId)
 export const saveInfoAdicional = (userId, solicitudId, data) => guardarSeccion('adicional', userId, solicitudId, data)
 
 const getCatalogo = async (url) => {
@@ -75,14 +77,14 @@ export const getSisben = () => getCatalogo('/usuarios/sisben/')
 
 export const crearActividadUP = (nombre) => crearCatalogo('/UPs/actividadesUP/', { Actividad: nombre })
 export const crearUnidad = (nombre) => crearCatalogo('/UPs/unidades/', { Unidad: nombre })
-export const crearProducto = (nombre) => crearCatalogo('/UPs/productosUPs/', { Producto: nombre })
+export const crearProducto = (nombre, unidadId) => crearCatalogo('/UPs/productosUPs/', { Producto: nombre, Unidad: unidadId })
 export const crearProposito = (nombre) => crearCatalogo('/UPs/propositos/', { Proposito: nombre })
 export const crearTipoAve = (nombre) => crearCatalogo('/UPs/tiposAves/', { TipoAve: nombre })
 export const crearProductoApicola = (nombre) => crearCatalogo('/UPs/productosApicolas/', { ProductoApicolas: nombre })
 
 export const crearSeguro = (nombre) => crearCatalogo('/predios/seguros/', { NombreSeguro: nombre })
 export const crearVereda = (nombre) => crearCatalogo('/predios/veredas/', { NombreVereda: nombre })
-export const crearSector = (nombre) => crearCatalogo('/predios/sectores/', { NombreSector: nombre })
+export const crearSector = (nombre, veredaId) => crearCatalogo('/predios/sectores/', { NombreSector: nombre, Vereda: veredaId })
 
 export const subirArchivoUP = async (userId, archivo) => {
     const formData = new FormData()

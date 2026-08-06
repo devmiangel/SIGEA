@@ -3,7 +3,7 @@ from datetime import date
 from django.core.validators import RegexValidator
 
 from ..models import UP
-from .mixins import PermitirVaciosMixin
+from .mixins import PermitirVaciosMixin, get_o_crear
 
 #Formulario catracterizacion
 
@@ -119,15 +119,13 @@ class InfoPersonalCaracterizacionSerializer(PermitirVaciosMixin, serializers.Mod
 
             # Actualizar Nivel Educativo
             if nivel_educativo_str:
-                nivel = TiposNivelesEducativos.objects.filter(TipoNivelEducativo=nivel_educativo_str).first()
-                if nivel:
-                    persona.TipoNivelEducativo.set([nivel])
+                nivel = get_o_crear(TiposNivelesEducativos, TipoNivelEducativo=nivel_educativo_str)
+                persona.TipoNivelEducativo.set([nivel])
 
             # Actualizar Sisben
             if sisben_str:
-                nivel_s = Sisben.objects.filter(NivelSisben=sisben_str).first()
-                if nivel_s:
-                    persona.NivelSisben.set([nivel_s])
+                nivel_s = get_o_crear(Sisben, NivelSisben=sisben_str)
+                persona.NivelSisben.set([nivel_s])
 
             # RUEA y otros campos de UP no se actualizan aquí por regla de negocio general
             # pero si fuera necesario se haría sobre 'instance'

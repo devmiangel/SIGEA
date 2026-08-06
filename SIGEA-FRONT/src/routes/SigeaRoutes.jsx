@@ -19,6 +19,9 @@ import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 import InvSourceContentAdmin from "../pages/Content/adminContent/InvSourceConetn";
 import InvToolsContentAdmin from "../pages/Content/adminContent/InvToolsContentAdmin";
 import InvVehicleContentAdmin from "../pages/Content/adminContent/InvVehicleContentAdmin";
+import InvVehicleFormContentAdmin from "../pages/Content/adminContent/InvVehicleFormContentAdmin";
+import InsumoFormContentAdmin from "../pages/Content/adminContent/InsumoFormContentAdmin";
+import HerramientaFormContentAdmin from "../pages/Content/adminContent/HerramientaFormContentAdmin";
 
 import AgendaContentEmployee from "../pages/Content/employeeContent/AgendaContentEmployee";
 import HomeContentEmployee from "../pages/Content/employeeContent/HomeContentEmployee";
@@ -49,8 +52,12 @@ export default function SigeaRoutes(){
                 <Route path="validacion-ups" element={<UpValidationAdmin/>}/> 
 
                 <Route path='inventario/insumos' element={<InvSourceContentAdmin/>}/>
+                <Route path='inventario/insumos/nuevo' element={<InsumoFormContentAdmin/>}/>
+                <Route path='inventario/insumos/actualizar/:insumoId' element={<InsumoFormContentAdmin/>}/>
                 <Route path='inventario/herramientas' element={<InvToolsContentAdmin/>}/>
+                <Route path='inventario/herramientas/nuevo' element={<HerramientaFormContentAdmin/>}/>
                 <Route path='inventario/vehiculos' element={<InvVehicleContentAdmin/>}/>
+                <Route path='inventario/vehiculos/nuevo' element={<InvVehicleFormContentAdmin/>}/>
             </Route>
 
             <Route path="/funcionario" element={

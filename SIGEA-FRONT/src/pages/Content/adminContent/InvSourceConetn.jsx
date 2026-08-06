@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
@@ -8,23 +9,14 @@ import Swal from 'sweetalert2'
 
 export default function InvSourceContentAdmin() {
     const { insumos, loading, error, eliminar } = useInsumos()
+    const navigate = useNavigate()
 
     const handleAnadir = () => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Añadir insumo',
-            text: 'El formulario de creación de insumos estará disponible a continuación.',
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate('/administrador/inventario/insumos/nuevo')
     }
 
     const handleEditar = (insumo) => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Editar insumo',
-            text: `El formulario de edición de "${insumo?.Nombre}" estará disponible a continuación.`,
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate(`/administrador/inventario/insumos/actualizar/${insumo.id}`)
     }
 
     const handleEliminar = async (insumo) => {

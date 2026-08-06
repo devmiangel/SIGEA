@@ -70,8 +70,10 @@ export default function UPDetailView() {
                     upData = ups.find((u) => String(u.id) === String(upId)) ?? null
                 } catch { /* sin datos */ }
             }
-            if (upData) setUp(upData)
-            cargarSecciones(userId)
+            if (upData) {
+                setUp(upData)
+                cargarSecciones(userId, upData.id)
+            }
         }
         cargar()
     }, [user, upId, location.state, cargarSecciones])

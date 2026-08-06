@@ -32,17 +32,23 @@ def _get_productor(request, userId=None):
     return productor, None
 
 
-def _get_up_context(productor, solicitud_id=None):
+def _get_up_context(productor, solicitud_id=None, up_id=None):
     """Devuelve (solicitud, up) de caracterizacion.
 
-    La UP de caracterizacion se resuelve siempre a partir de la solicitud.
-    De esta forma cada visita de caracterizacion registra una UP nueva e
-    independiente asociada al productor, en lugar de reutilizar (y sobrescribir)
-    la primera UP ya existente del productor.
+    La UP se resuelve en este orden:
+    1. Por up_id: cuando se consulta una UP existente del productor
+       (apartado de extension agropecuaria / validacion de caracterizacion).
+    2. Por solicitud_id: cuando se caracteriza una visita nueva, cada visita
+       registra una UP nueva e independiente vinculada a la solicitud.
     """
     from Visitas.models import Solicitudes
 
     solicitud = None
+    if up_id:
+        up = UP.objects.filter(id=up_id, Productor=productor).first()
+        if up is not None:
+            return solicitud, up
+
     if solicitud_id:
         solicitud = Solicitudes.objects.filter(id=solicitud_id).first()
         if solicitud is not None and solicitud.UP is not None:
@@ -113,12 +119,14 @@ def _caracterizacion_handler(request, userId, serializer_class):
         return error_response
 
     solicitud_id = request.data.get('solicitud_id') or request.query_params.get('solicitud_id')
-    solicitud, up = _get_up_context(productor, solicitud_id)
+    up_id = request.data.get('up_id') or request.query_params.get('up_id')
+    solicitud, up = _get_up_context(productor, solicitud_id, up_id)
 
     if request.method == 'POST':
         data = request.data.copy()
         data.pop('userId', None)
         data.pop('solicitud_id', None)
+        data.pop('up_id', None)
 
         # Sin datos: se devuelve el estado actual
         if not data:

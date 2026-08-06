@@ -105,6 +105,11 @@ export const eliminarInsumo = async (insumoId) => {
     return response.data;
 }
 
+export const getTiposHerramientas = async () => {
+    const response = await api.get('/inventario/tiposHerramientas/');
+    return response.data;
+}
+
 export const getHerramientas = async () => {
     const response = await api.get('/inventario/herramientas/');
     return response.data;
@@ -130,6 +135,46 @@ export const eliminarHerramienta = async (herramientaId) => {
     return response.data;
 }
 
+export const getMarcasVehiculos = async () => {
+    const response = await api.get('/inventario/marcasVehiculos/');
+    return response.data;
+}
+
+export const crearMarcaVehiculo = async (nombre) => {
+    const response = await api.post('/inventario/marcasVehiculos/', { MarcaVehiculo: nombre });
+    return response.data;
+}
+
+export const getLineasVehiculos = async () => {
+    const response = await api.get('/inventario/lineasVehiculos/');
+    return response.data;
+}
+
+export const crearLineaVehiculo = async (linea, marcaId) => {
+    const response = await api.post('/inventario/lineasVehiculos/', { LineaVehiculo: linea, MarcaVehiculo: marcaId });
+    return response.data;
+}
+
+export const getTiposVehiculos = async () => {
+    const response = await api.get('/inventario/tiposVehiculos/');
+    return response.data;
+}
+
+export const crearTipoVehiculo = async (nombre) => {
+    const response = await api.post('/inventario/tiposVehiculos/', { TipoVehiculo: nombre });
+    return response.data;
+}
+
+export const getTiposCombustibles = async () => {
+    const response = await api.get('/inventario/tiposCombustibles/');
+    return response.data;
+}
+
+export const crearTipoCombustible = async (nombre) => {
+    const response = await api.post('/inventario/tiposCombustibles/', { TipoCombustible: nombre });
+    return response.data;
+}
+
 export const getVehiculos = async () => {
     const response = await api.get('/inventario/detalleVehiculos/');
     return response.data;
@@ -137,6 +182,16 @@ export const getVehiculos = async () => {
 
 export const getVehiculo = async (vehiculoId) => {
     const response = await api.get(`/inventario/detalleVehiculos/${vehiculoId}/`);
+    return response.data;
+}
+
+export const crearRegistroVehiculo = async (data) => {
+    const response = await api.post('/inventario/vehiculos/', data);
+    return response.data;
+}
+
+export const crearDetalleVehiculo = async (data) => {
+    const response = await api.post('/inventario/detalleVehiculos/', data);
     return response.data;
 }
 

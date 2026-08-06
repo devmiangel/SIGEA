@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import DriveEtaIcon from '@mui/icons-material/DriveEta'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
@@ -8,14 +9,10 @@ import Swal from 'sweetalert2'
 
 export default function InvVehicleContentAdmin() {
     const { vehiculos, loading, error, eliminar } = useVehiculos()
+    const navigate = useNavigate()
 
     const handleAnadir = () => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Añadir vehículo',
-            text: 'El formulario de creación de vehículos estará disponible a continuación.',
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate('/administrador/inventario/vehiculos/nuevo')
     }
 
     const handleEditar = (vehiculo) => {

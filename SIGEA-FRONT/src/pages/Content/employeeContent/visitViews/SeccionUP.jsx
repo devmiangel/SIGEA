@@ -32,12 +32,17 @@ const SeccionUP = forwardRef(({ userId, solicitudId }, ref) => {
             if (!activo) return
             setForm({ ...INICIAL, ...data })
             setTipos(t.map((x) => x.TipoUP))
-            setActividades(a.map((x) => x.Actividad))
+            setActividades(a.map((x) => ({ id: x.id, texto: x.Actividad })))
         })
         return () => { activo = false }
     }, [userId, solicitudId, cargarSeccion])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
+
+    const handleCrearActividad = async (valor) => {
+        const r = await crearActividadUP(valor)
+        setActividades((prev) => [...prev, { id: r.id, texto: r.Actividad }])
+    }
 
     const guardar = useCallback(async () => {
         const faltantes = REQUERIDOS
@@ -57,7 +62,7 @@ const SeccionUP = forwardRef(({ userId, solicitudId }, ref) => {
         <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <CampoSelect name="TipoUP_Nombre" label="Tipo de UP" value={form.TipoUP_Nombre} options={tipos} onChange={onChange} />
-                <CampoSelectDinamico name="ActividadUP" label="Actividad de la UP" value={form.ActividadUP} options={actividades} onCrear={crearActividadUP} onChange={onChange} />
+                <CampoSelectDinamico name="ActividadUP" label="Actividad de la UP" value={form.ActividadUP} options={actividades.map((a) => a.texto)} onCrear={handleCrearActividad} onChange={onChange} />
                 <Campo name="RUEA" label="RUEA" value={form.RUEA} onChange={onChange} />
                 <Campo name="NumeroEmpleados" label="Número de empleados" type="number" value={form.NumeroEmpleados} onChange={onChange} />
                 <Campo name="AreaCultivada" label="Área cultivada (ha)" type="number" value={form.AreaCultivada} onChange={onChange} />
