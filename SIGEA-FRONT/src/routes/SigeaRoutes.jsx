@@ -14,6 +14,7 @@ import ReportContentAdmin from "../pages/Content/adminContent/ReportContentAdmin
 import InventaryContentAdmin from "../pages/Content/adminContent/inventaryContentAdmin";
 import ScheduleContentAdmin from "../pages/Content/adminContent/ScheduleContentAdmin";
 import UsersContentAdmin from "../pages/Content/adminContent/UsersContentAdmin";
+import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 
 import InvSourceContentAdmin from "../pages/Content/adminContent/InvSourceConetn";
 import InvToolsContentAdmin from "../pages/Content/adminContent/InvToolsContentAdmin";
@@ -45,6 +46,7 @@ export default function SigeaRoutes(){
                 <Route path="inventario" element={<InventaryContentAdmin/>}/>
                 <Route path="horarios" element={<ScheduleContentAdmin/>}/>
                 <Route path="usuarios" element={<UsersContentAdmin/>}/> 
+                <Route path="validacion-ups" element={<UpValidationAdmin/>}/> 
 
                 <Route path='inventario/insumos' element={<InvSourceContentAdmin/>}/>
                 <Route path='inventario/herramientas' element={<InvToolsContentAdmin/>}/>

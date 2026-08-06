@@ -23,7 +23,7 @@ const formatFecha = (fecha) => {
 function Tile({ icono, etiqueta, valor, full = false }) {
     const Icono = icono
     return (
-        <div className={`${full ? 'md:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-[120px]`}>
+        <div className={`${full ? 'md:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
             <div className="flex items-center gap-1.5">
                 <Icono sx={{ fontSize: 14, color: '#3e9a8a' }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{etiqueta}</span>
@@ -38,7 +38,7 @@ function Bloque({ titulo, subtitulo, icono, estado, children }) {
     return (
         <div className="w-full bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
+                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
                     <Icono sx={{ fontSize: 22, color: '#fff' }} />
                 </div>
                 <div className="flex-1 min-w-0">

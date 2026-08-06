@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
@@ -15,6 +16,7 @@ import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
+    const navigate = useNavigate()
     const { user } = useCurrentDataUser()
     const { solicitudes, loading, refresh } = useTodasSolicitudes()
     const { visitas, refresh: refreshVisitas } = useVisitas()
@@ -94,7 +96,8 @@ export default function ScheduleContentAdmin(){
                 message={'Gestiona la asignacion de las visitas a productores a los funcionarios correspondientes'}
                 colorLogo={'#55bd85'}
                 firstButton={
-                    <ButtonLink buttonText={'Ver asignaciones'}/>
+                    <ButtonLink buttonText={'Validacion de UPs'}
+                        onClick={() => navigate('/administrador/validacion-ups')}/>
                 }
             />
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">

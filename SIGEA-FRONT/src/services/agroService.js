@@ -25,6 +25,11 @@ export const getMisUPs = async () => {
     return response.data;
 }
 
+export const validarUP = async (upId, aprobada) => {
+    const response = await api.post(`/UPs/validar-ups/${upId}/`, { aprobada });
+    return response.data;
+}
+
 export const getFuncionarios = async () => {
     const response = await api.get('/usuarios/funcionarios/');
     return response.data;

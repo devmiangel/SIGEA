@@ -34,6 +34,7 @@ urlpatterns = router.urls
 
 urlpatterns = [
     path('mis-ups/', mis_ups, name='mis_ups'),
+    path('validar-ups/<int:upId>/', validar_ups, name='validar_ups'),
     path('upload-archivo-up/', upload_archivo_up, name='upload_archivo_up'),
 ] + router.urls
 

@@ -87,6 +87,11 @@ class VisitasSerializer(serializers.ModelSerializer):
     def get_solicitud_info(self, obj):
         persona = getattr(obj.Solicitud.Usuario, 'persona', None)
         up = obj.Solicitud.UP
+        if up is None:
+            from UPs.models import UP as UPModel
+            productor = getattr(obj.Solicitud.Usuario, 'productores', None)
+            if productor is not None:
+                up = productor.up_set.first()
         return {
             'id': obj.Solicitud.id,
             'motivo': obj.Solicitud.MotivoSolicitud.MotivoSolicitud,
@@ -94,6 +99,9 @@ class VisitasSerializer(serializers.ModelSerializer):
             'fecha_solicitud': obj.Solicitud.FechaSolicitud,
             'estado': getattr(obj.Solicitud.Estado, 'Estado', None),
             'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
+            'up_id': getattr(up, 'id', None),
+            'predio': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
+            'up_estado': getattr(getattr(up, 'idEstado', None), 'Estado', None),
             'solicitante': {
                 'usuario_id': obj.Solicitud.Usuario.id,
                 'email': obj.Solicitud.Usuario.email,

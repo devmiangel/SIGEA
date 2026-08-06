@@ -169,6 +169,26 @@ class UPViewSet(viewsets.ModelViewSet):
     queryset = UP.objects.all()
     serializer_class = UPSerializer
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def validar_ups(request, upId=None):
+    from .models import EstadosUP
+
+    up = get_object_or_404(UP, id=upId)
+    aprobada = request.data.get('aprobada')
+
+    if aprobada is None:
+        return Response({"error": "El campo 'aprobada' es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+
+    estado_nombre = 'Aceptada' if aprobada else 'Rechazada'
+    estado, _ = EstadosUP.objects.get_or_create(Estado=estado_nombre)
+    up.idEstado = estado
+    up.save()
+
+    serializer = UPSerializer(up)
+    return Response(serializer.data)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def mis_ups(request):
