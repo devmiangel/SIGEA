@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from .models import TiposVehiculos,TiposCombustibles,MarcasVehiculos,LineasVehiculos,Vehiculos,DetalleVehiculos,Conductores,RegistroAsignacionVehiculos,TiposHerramientas,Herramientas,AsignacionHerramientas,Insumos,InventarioFuncionario,CardexInsumoFuncionario
+
+from ..models import (
+    TiposVehiculos,
+    TiposCombustibles,
+    MarcasVehiculos,
+    LineasVehiculos,
+    Vehiculos,
+    DetalleVehiculos,
+    Conductores,
+    RegistroAsignacionVehiculos,
+)
 
 class TiposVehiculosSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,34 +49,4 @@ class ConductoresSerializer(serializers.ModelSerializer):
 class RegistroAsignacionVehiculosSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegistroAsignacionVehiculos
-        fields = '__all__'
-
-class TiposHerramientasSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TiposHerramientas
-        fields = '__all__'
-
-class HerramientasSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Herramientas
-        fields = '__all__'
-
-class AsignacionHerramientasSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AsignacionHerramientas
-        fields = '__all__'
-
-class InsumosSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Insumos
-        fields = '__all__'
-
-class InventarioFuncionarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InventarioFuncionario
-        fields = '__all__'
-
-class CardexInsumoFuncionarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CardexInsumoFuncionario
         fields = '__all__'

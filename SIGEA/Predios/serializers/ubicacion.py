@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Sectores, Veredas, TiposTenencias, Seguros, TiposRegistrosICA, Predios
+
+from ..models import Sectores, Veredas, TiposTenencias, Seguros, TiposRegistrosICA
 
 class SectoresSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,9 +25,4 @@ class SegurosSerializer(serializers.ModelSerializer):
 class TiposRegistrosICASerializer(serializers.ModelSerializer):
     class Meta:
         model = TiposRegistrosICA
-        fields = '__all__'
-
-class PrediosSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Predios
         fields = '__all__'

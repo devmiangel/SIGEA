@@ -1,21 +1,13 @@
 from rest_framework import viewsets
 
-from .models import (
-    Sectores,
-    Veredas,
-    TiposTenencias,
-    Seguros,
-    TiposRegistrosICA,
-    Predios
-)
+from ..models import Sectores, Veredas, TiposTenencias, Seguros, TiposRegistrosICA
 
-from .serializers import (
+from ..serializers import (
     SectoresSerializer,
     VeredasSerializer,
     TiposTenenciasSerializer,
     SegurosSerializer,
     TiposRegistrosICASerializer,
-    PrediosSerializer
 )
 
 class SectoresViewSet(viewsets.ModelViewSet):
@@ -37,7 +29,3 @@ class SegurosViewSet(viewsets.ModelViewSet):
 class TiposRegistrosICAViewSet(viewsets.ModelViewSet):
     queryset = TiposRegistrosICA.objects.all()
     serializer_class = TiposRegistrosICASerializer
-
-class PrediosViewSet(viewsets.ModelViewSet):
-    queryset = Predios.objects.all()
-    serializer_class = PrediosSerializer

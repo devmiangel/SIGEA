@@ -1,0 +1,57 @@
+from rest_framework import serializers
+
+from ..models import Visitas
+
+class VisitasSerializer(serializers.ModelSerializer):
+    solicitud_info = serializers.SerializerMethodField()
+    funcionario_info = serializers.SerializerMethodField()
+    administrador_info = serializers.SerializerMethodField()
+    tipo_visita_label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Visitas
+        fields = ['id', 'Solicitud', 'Funcionario', 'Administrador', 'TipoVisita', 'FechaYHoraVisita', 'Ubicacion', 'RutaDocumento', 'estado',
+                  'solicitud_info', 'funcionario_info', 'administrador_info', 'tipo_visita_label']
+
+    def get_solicitud_info(self, obj):
+        persona = getattr(obj.Solicitud.Usuario, 'persona', None)
+        up = obj.Solicitud.UP
+        if up is None:
+            from UPs.models import UP as UPModel
+            productor = getattr(obj.Solicitud.Usuario, 'productores', None)
+            if productor is not None:
+                up = productor.up_set.first()
+        return {
+            'id': obj.Solicitud.id,
+            'motivo': obj.Solicitud.MotivoSolicitud.MotivoSolicitud,
+            'observacion': obj.Solicitud.Observacion,
+            'fecha_solicitud': obj.Solicitud.FechaSolicitud,
+            'estado': getattr(obj.Solicitud.Estado, 'Estado', None),
+            'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
+            'up_id': getattr(up, 'id', None),
+            'predio': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
+            'up_estado': getattr(getattr(up, 'idEstado', None), 'Estado', None),
+            'solicitante': {
+                'usuario_id': obj.Solicitud.Usuario.id,
+                'email': obj.Solicitud.Usuario.email,
+                'primer_nombre': persona.primer_nombre if persona else None,
+                'primer_apellido': persona.primer_apellido if persona else None,
+            },
+        }
+
+    def get_funcionario_info(self, obj):
+        persona = getattr(obj.Funcionario.usuario, 'persona', None)
+        return {
+            'nombre': f"{persona.primer_nombre} {persona.primer_apellido}".strip() if persona else None,
+            'email': obj.Funcionario.usuario.email,
+        }
+
+    def get_administrador_info(self, obj):
+        persona = getattr(obj.Administrador.usuario, 'persona', None)
+        return {
+            'nombre': f"{persona.primer_nombre} {persona.primer_apellido}".strip() if persona else None,
+            'email': obj.Administrador.usuario.email,
+        }
+
+    def get_tipo_visita_label(self, obj):
+        return obj.TipoVisita.TipoVisita

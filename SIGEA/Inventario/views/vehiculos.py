@@ -1,22 +1,17 @@
 from rest_framework import viewsets
 
-from .models import (
+from ..models import (
     TiposVehiculos,
     TiposCombustibles,
-    MarcasVehiculos,LineasVehiculos,
+    MarcasVehiculos,
+    LineasVehiculos,
     Vehiculos,
     DetalleVehiculos,
     Conductores,
     RegistroAsignacionVehiculos,
-    TiposHerramientas,
-    Herramientas,
-    AsignacionHerramientas,
-    Insumos,
-    InventarioFuncionario,
-    CardexInsumoFuncionario
 )
 
-from .serializers import (
+from ..serializers import (
     TiposVehiculosSerializer,
     TiposCombustiblesSerializer,
     MarcasVehiculosSerializer,
@@ -25,12 +20,6 @@ from .serializers import (
     DetalleVehiculosSerializer,
     ConductoresSerializer,
     RegistroAsignacionVehiculosSerializer,
-    TiposHerramientasSerializer,
-    HerramientasSerializer,
-    AsignacionHerramientasSerializer,
-    InsumosSerializer,
-    InventarioFuncionarioSerializer,
-    CardexInsumoFuncionarioSerializer
 )
 
 class TiposVehiculosViewSet(viewsets.ModelViewSet):
@@ -64,27 +53,3 @@ class ConductoresViewSet(viewsets.ModelViewSet):
 class RegistroAsignacionVehiculosViewSet(viewsets.ModelViewSet):
     queryset = RegistroAsignacionVehiculos.objects.all()
     serializer_class = RegistroAsignacionVehiculosSerializer
-
-class TiposHerramientasViewSet(viewsets.ModelViewSet):
-    queryset = TiposHerramientas.objects.all()
-    serializer_class = TiposHerramientasSerializer
-
-class HerramientasViewSet(viewsets.ModelViewSet):
-    queryset = Herramientas.objects.all()
-    serializer_class = HerramientasSerializer
-
-class AsignacionHerramientasViewSet(viewsets.ModelViewSet):
-    queryset = AsignacionHerramientas.objects.all()
-    serializer_class = AsignacionHerramientasSerializer
-
-class InsumosViewSet(viewsets.ModelViewSet):
-    queryset = Insumos.objects.all()
-    serializer_class = InsumosSerializer
-
-class InventarioFuncionarioViewSet(viewsets.ModelViewSet):
-    queryset = InventarioFuncionario.objects.all()
-    serializer_class = InventarioFuncionarioSerializer
-
-class CardexInsumoFuncionarioViewSet(viewsets.ModelViewSet):
-    queryset = CardexInsumoFuncionario.objects.all()
-    serializer_class = CardexInsumoFuncionarioSerializer    
