@@ -184,7 +184,11 @@ class FormularioVisitaTecnicaView(APIView):
             Calificacion=calificacion,
             ObservacionVisita=data.get('observaciones', '') or '',
             AccionSeguimiento=data.get('accion_tomada', '') or '',
-            Firmado=bool(data.get('firmado', False)),
+            Firmado=bool(
+                data.get('firmado', False)
+                or data.get('firma_usuario')
+                or data.get('firma_funcionario')
+            ),
         )
 
         return Response({

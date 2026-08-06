@@ -31,6 +31,8 @@ class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     hora_salida = serializers.CharField(required=False, allow_blank=True)
     calificacion = serializers.CharField(required=False, allow_blank=True)
     firmado = serializers.BooleanField(required=False, default=False)
+    firma_usuario = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    firma_funcionario = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     funcionario_id = serializers.IntegerField(required=False, allow_null=True)
     administrador_id = serializers.IntegerField(required=False, allow_null=True)

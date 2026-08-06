@@ -22,7 +22,6 @@ ENV/
 .env.*
 
 # Archivos estáticos
-media/
 staticfiles/
 
 # Caché de Python

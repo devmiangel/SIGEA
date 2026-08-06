@@ -1,6 +1,9 @@
+import base64
+from io import BytesIO
 from pathlib import Path
 
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 from reportlab.lib.units import mm
@@ -136,6 +139,28 @@ def generar_visita_tecnica(salida, datos=None):
             lineas = lineas[:max_lines]
         for i, y_top in enumerate(rows_y[:len(lineas)]):
             rellenar(x0, x1, y_top, row_h, lineas[i], size)
+
+
+    def dibujar_firma(b64, x0, x1, linea_y, max_h=42):
+        """Draw a base64 signature image centred above the signature line."""
+        if not b64:
+            return
+        b64 = str(b64).strip()
+        if ',' in b64 and b64.lower().startswith('data:'):
+            b64 = b64.split(',', 1)[1]
+        try:
+            data = base64.b64decode(b64)
+            img = ImageReader(BytesIO(data))
+            iw, ih = img.getSize()
+        except Exception:
+            return
+        max_w = x1 - x0
+        scale = min(max_w / iw, max_h / ih)
+        w = iw * scale
+        h = ih * scale
+        x = x0 + (max_w - w) / 2
+        y = linea_y - h
+        c.drawImage(img, x, y, width=w, height=h, mask='auto')
 
 
     # =========================================================
@@ -285,7 +310,7 @@ def generar_visita_tecnica(salida, datos=None):
     y_bot = y - dp_row_h
     rect(LEFT, y_bot, RIGHT, y, w=0.8)
     text(LEFT + 3, y_bot + 4, "DIAGNÓSTICO PRESUNTIVO:", size=8, bold=True)
-    rellenar(LEFT + 105, RIGHT, y, dp_row_h, datos.get("diagnostico_presuntivo"))
+    rellenar(LEFT + 160, RIGHT, y, dp_row_h, datos.get("diagnostico_presuntivo"))
     y = y_bot
 
     # Fecha de visita row
@@ -430,6 +455,8 @@ def generar_visita_tecnica(salida, datos=None):
     sig_line_y = y_bot + 16
     h_line(LEFT + 40, mid - 20, sig_line_y, w=0.6)
     h_line(mid + 20, RIGHT - 40, sig_line_y, w=0.6)
+    dibujar_firma(datos.get("firma_usuario"), LEFT + 40, mid - 20, sig_line_y)
+    dibujar_firma(datos.get("firma_funcionario"), mid + 20, RIGHT - 40, sig_line_y)
     text_center((LEFT + mid) / 2, y_bot + 6, "FIRMA DEL USUARIO", size=8, bold=True)
     text_center((mid + RIGHT) / 2, y_bot + 6, "FIRMA DEL FUNCIONARIO", size=8, bold=True)
     y = y_bot
