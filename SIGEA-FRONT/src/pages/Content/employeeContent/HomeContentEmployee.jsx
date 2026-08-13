@@ -7,6 +7,7 @@ import EventIcon from '@mui/icons-material/Event';
 export default function HomeContentEmployee(){
     return(
         <>
+        <div className='md:flex md:flex-wrap md:justify-center'>
             <MenuCard 
                 componentLogo={
                     <InventoryIcon sx={{fontSize: 40}}/>
@@ -26,6 +27,8 @@ export default function HomeContentEmployee(){
                 path={'/funcionario/agenda'} 
                 colorLogo={'#55bd85'}
             />
+        </div>
+            
         </>
     )
 }
