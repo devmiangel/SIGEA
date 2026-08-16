@@ -41,8 +41,9 @@ class Visitas(models.Model):
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
     Ubicacion = models.CharField(max_length=255, blank=True, null=True)
-    RutaDocumento = models.CharField(max_length=255)
     estado = models.BooleanField(default=False)
+    FirmaProductor = models.TextField(blank=True, null=True)
+    FirmaFuncionario = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return str(self.TipoVisita.TipoVisita)

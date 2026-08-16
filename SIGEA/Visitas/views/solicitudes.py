@@ -79,7 +79,6 @@ def atender_solicitud(request, solicitud_id):
         TipoVisita=tipo_visita,
         FechaYHoraVisita=fecha_visita,
         Ubicacion=str(ubicacion).strip(),
-        RutaDocumento='Pendiente de generación del documento'
     )
 
     solicitud.Estado_id = 2

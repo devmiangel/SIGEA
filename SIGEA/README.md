@@ -37,8 +37,8 @@ Las aplicaciones pueden depender unas de otras a través de claves foráneas (FK
 | `Usuarios` | Autenticación y roles: administradores, funcionarios y productores. | [README Usuarios](Usuarios/README.md) |
 | `Predios` | Registro de predios y catálogos de ubicación. | [README Predios](Predios/README.md) |
 | `UPs` | Unidades productivas y su caracterización (agrícola, pecuario, etc.). | [README UPs](UPs/README.md) |
-| `Visitas` | Solicitudes y visitas técnicas, con formulario y generación de PDF. | [README Visitas](Visitas/README.md) |
-| `documentos` | Generación y administración de documentos (reportes). | Pendiente |
+| `Visitas` | Solicitudes y visitas técnicas, con formulario de visita técnica. | [README Visitas](Visitas/README.md) |
+| `documentos` | Generación de documentos: PDF de la visita técnica al vuelo (reportlab). | [README documentos](documentos/README.md) |
 | `seeders` | Datos semilla / carga inicial. | Pendiente |
 
 ## Estructura del proyecto
@@ -105,6 +105,7 @@ python manage.py runserver
 | `/api/predios/` | Endpoints de la app Predios |
 | `/api/UPs/` | Endpoints de la app UPs |
 | `/api/visitas/` | Endpoints de la app Visitas |
+| `/api/documentos/` | Endpoints de la app documentos (generación de PDFs) |
 | `/api/auth/` | Login / tokens (Knox) |
 | `/admin/` | Panel de administración de Django |
 

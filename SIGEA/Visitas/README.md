@@ -1,6 +1,6 @@
 # Visitas - Documentación
 
-Aplicación encargada de la gestión de **solicitudes de visita, asignación de visitas técnicas, registro de insumos usados en cada visita y el formulario de visita técnica con generación de PDF**.
+Aplicación encargada de la gestión de **solicitudes de visita, asignación de visitas técnicas, registro de insumos usados en cada visita y el formulario de visita técnica**. La generación del **PDF de la visita técnica** se realiza en la app [`documentos`](../documentos/README.md).
 
 Estructura interna de la app:
 
@@ -33,7 +33,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django.
 | `Estados` | `Estado` (CharField) | Sin FK |
 | `Solicitudes` | `FechaSolicitud` (DateField, `auto_now_add`); `Observacion` (CharField 255); `motivoAdmin` (CharField, nullable) | FK `UP` (PROTECT, nullable) — app UPs; FK `MotivosSolicitudes` (PROTECT); FK `Estados` (PROTECT); FK `Usuario` (CASCADE, `related_name="solicitudes"`) — app Usuarios |
 | `TiposVisitas` | `TipoVisita` (CharField) | Sin FK |
-| `Visitas` | `FechaYHoraVisita` (DateTimeField); `Ubicacion` (CharField, nullable); `RutaDocumento` (CharField); `estado` (BooleanField, default False) | FK `Solicitudes` (CASCADE); FK `Funcionarios` (CASCADE, `related_name="visitas_funcionario"`); FK `Administradores` (CASCADE, `related_name="visitas_administrador"`); FK `TiposVisitas` (PROTECT) — apps Usuarios/UPs |
+| `Visitas` | `FechaYHoraVisita` (DateTimeField); `Ubicacion` (CharField, nullable); `estado` (BooleanField, default False); `FirmaProductor`, `FirmaFuncionario` (TextField, nullable) | FK `Solicitudes` (CASCADE); FK `Funcionarios` (CASCADE, `related_name="visitas_funcionario"`); FK `Administradores` (CASCADE, `related_name="visitas_administrador"`); FK `TiposVisitas` (PROTECT) — apps Usuarios/UPs |
 | `InsumoVisita` | `Cantidad` (IntegerField) | FK `Visitas` (CASCADE); FK `InventarioFuncionario` (PROTECT) — app Inventario |
 | `Calificaciones` | `Calificacion` (CharField) | Sin FK |
 | `InfoVisita` | `ObservacionVisita` (TextField); `AccionSeguimiento` (CharField); `Firmado` (BooleanField) | FK `Visitas` (CASCADE); FK `Calificaciones` (PROTECT) |
@@ -93,7 +93,7 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Vista | Tipo | Descripción |
 |---|---|---|
-| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs generados en `media/formularios/visitas/`. `POST`: autollenado de datos del usuario, genera el PDF de la visita técnica (reportlab) y registra en BD la solicitud, visita, calificación e `InfoVisita`. |
+| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs de `media/formularios/visitas/`. `POST`: autollenado de datos del usuario y registra en BD la solicitud, visita, calificación e `InfoVisita`. El PDF se genera al vuelo en la app `documentos` (`GET /api/documentos/visita/<id>/generar/`). |
 
 ---
 

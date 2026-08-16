@@ -9,6 +9,80 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 
 
+def _datos_desde_visita(visita):
+    solicitud = visita.Solicitud
+    persona = getattr(solicitud.Usuario, 'persona', None)
+    funcionario_persona = getattr(visita.Funcionario.usuario, 'persona', None)
+
+    info_visita = getattr(visita, 'info_visita', None)
+    if info_visita is None:
+        try:
+            from Visitas.models import InfoVisita
+            info_visita = InfoVisita.objects.filter(Visita=visita).first()
+        except Exception:
+            info_visita = None
+
+    telefono = ''
+    if persona is not None:
+        contacto = persona.contactos.filter(TipoContacto_id=1).first() or persona.contactos.first()
+        if contacto:
+            telefono = contacto.contacto
+
+    vereda_sector = visita.Ubicacion or ''
+    up = solicitud.UP
+    if up is not None and up.Predio is not None:
+        sector = up.Predio.Sector
+        if sector:
+            vereda_sector = f"{sector.Vereda.NombreVereda} - {sector.NombreSector}" if sector.Vereda else sector.NombreSector
+
+    return {
+        'fecha_recepcion': str(solicitud.FechaSolicitud) if solicitud.FechaSolicitud else '',
+        'nruea': getattr(up, 'RUEA', '') or '',
+        'nombres_apellidos': (
+            ' '.join(filter(None, [
+                persona.primer_nombre,
+                persona.segundo_nombre,
+                persona.primer_apellido,
+                persona.segundo_apellido,
+            ])) if persona else ''
+        ),
+        'sisben': (
+            ' '.join(x.NivelSisben for x in persona.NivelSisben.all())
+            if persona else ''
+        ),
+        'documento_identidad': persona.numero_documento if persona else '',
+        'vereda_sector': vereda_sector,
+        'telefono': telefono,
+        'tipo_visita': visita.TipoVisita.TipoVisita,
+        'descripcion_solicitud': solicitud.Observacion or '',
+        'diagnostico_presuntivo': '',
+        'fecha_visita': str(visita.FechaYHoraVisita),
+        'funcionario': (
+            ' '.join(filter(None, [
+                funcionario_persona.primer_nombre,
+                funcionario_persona.primer_apellido,
+            ])) if funcionario_persona else ''
+        ),
+        'cc_funcionario': funcionario_persona.numero_documento if funcionario_persona else '',
+        'acciones': [],
+        'hora_inicio': '',
+        'accion_tomada': info_visita.AccionSeguimiento if info_visita else '',
+        'observaciones': info_visita.ObservacionVisita if info_visita else '',
+        'hora_salida': '',
+        'calificacion': info_visita.Calificacion.Calificacion if info_visita else '',
+        'firma_usuario': visita.FirmaProductor or '',
+        'firma_funcionario': visita.FirmaFuncionario or '',
+    }
+
+
+def generar_documento_visita_bytes(visita_id):
+    from Visitas.models import Visitas
+    visita = Visitas.objects.get(id=visita_id)
+    buf = BytesIO()
+    generar_visita_tecnica(buf, _datos_desde_visita(visita))
+    return buf.getvalue()
+
+
 def _buscar_logo():
     logo_dir = Path(__file__).resolve().parents[1] / "logo"
     if not logo_dir.exists():
@@ -25,7 +99,10 @@ LOGO_PATH = _buscar_logo()
 def generar_visita_tecnica(salida, datos=None):
     datos = datos or {}
 
-    Path(salida).parent.mkdir(parents=True, exist_ok=True)
+    if not isinstance(salida, (str, Path)):
+        pass
+    else:
+        Path(salida).parent.mkdir(parents=True, exist_ok=True)
 
     W, H = letter
 
@@ -159,7 +236,7 @@ def generar_visita_tecnica(salida, datos=None):
         w = iw * scale
         h = ih * scale
         x = x0 + (max_w - w) / 2
-        y = linea_y - h
+        y = linea_y + 4
         c.drawImage(img, x, y, width=w, height=h, mask='auto')
 
 
@@ -452,7 +529,7 @@ def generar_visita_tecnica(salida, datos=None):
     rect(LEFT, y_bot, RIGHT, y, w=0.8)
     mid = (LEFT + RIGHT) / 2
     v_line(mid, y_bot, y)
-    sig_line_y = y_bot + 16
+    sig_line_y = y_bot + 15
     h_line(LEFT + 40, mid - 20, sig_line_y, w=0.6)
     h_line(mid + 20, RIGHT - 40, sig_line_y, w=0.6)
     dibujar_firma(datos.get("firma_usuario"), LEFT + 40, mid - 20, sig_line_y)
