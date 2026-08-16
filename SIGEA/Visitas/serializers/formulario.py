@@ -1,3 +1,6 @@
+import base64
+import binascii
+
 from rest_framework import serializers
 
 ACCIONES_VISITA = [
@@ -31,8 +34,8 @@ class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     hora_salida = serializers.CharField(required=False, allow_blank=True)
     calificacion = serializers.CharField(required=False, allow_blank=True)
     firmado = serializers.BooleanField(required=False, default=False)
-    firma_usuario = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    firma_funcionario = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    firma_usuario = serializers.CharField()
+    firma_funcionario = serializers.CharField()
 
     funcionario_id = serializers.IntegerField(required=False, allow_null=True)
     administrador_id = serializers.IntegerField(required=False, allow_null=True)
@@ -43,3 +46,23 @@ class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     estado_id = serializers.IntegerField(required=False, allow_null=True)
     up_id = serializers.IntegerField(required=False, allow_null=True)
     motivo_admin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def validar_firma(self, value, nombre):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError(f'{nombre} es requerida.')
+        if value.startswith('data:'):
+            if ';base64,' not in value:
+                raise serializers.ValidationError(f'{nombre} debe ser un data URI base64 válido.')
+            value = value.split(';base64,', 1)[1]
+        try:
+            base64.b64decode(value, validate=True)
+        except (binascii.Error, ValueError):
+            raise serializers.ValidationError(f'{nombre} contiene un base64 inválido.')
+        return value
+
+    def validate_firma_usuario(self, value):
+        return self.validar_firma(value, 'La firma del productor')
+
+    def validate_firma_funcionario(self, value):
+        return self.validar_firma(value, 'La firma del funcionario')

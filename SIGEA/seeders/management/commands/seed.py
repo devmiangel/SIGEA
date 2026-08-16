@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
+from Usuarios.models import Usuario, Personas, Contactos, Administradores, Funcionarios, Productores
 from Visitas.models import MotivosSolicitudes, Estados, TiposVisitas
 from UPs.models import TipoUP, ActividadUP, Unidades, GrupoAnimal, TiposAves, Propositos, ProductosApicolas
 from Predios.models import TiposTenencias, Veredas, Sectores
@@ -42,6 +43,9 @@ class Command(BaseCommand):
         self.seed_maestro(Sisben, 'NivelSisben', [
             'A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'C1', 'C2', 'D1'
         ])
+
+        # --- Usuarios por rol ---
+        self.seed_usuarios()
 
         # --- UPs ---
         self.seed_maestro(TipoUP, 'TipoUP', [
@@ -85,8 +89,92 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Seed ejecutado correctamente'))
 
+    def seed_usuarios(self):
+        usuarios = [
+            {
+                'rol': 'Administradores',
+                'clase': Administradores,
+                'email': 'admin@example.com',
+                'persona': {
+                    'primer_nombre': 'Ana',
+                    'segundo_nombre': 'María',
+                    'primer_apellido': 'Gómez',
+                    'segundo_apellido': 'López',
+                    'numero_documento': '1000000001',
+                    'fecha_nacimiento': date(1985, 3, 12),
+                },
+            },
+            {
+                'rol': 'Funcionarios',
+                'clase': Funcionarios,
+                'email': 'funcionario@example.com',
+                'persona': {
+                    'primer_nombre': 'Luis',
+                    'segundo_nombre': 'Alberto',
+                    'primer_apellido': 'Martínez',
+                    'segundo_apellido': 'Ríos',
+                    'numero_documento': '1000000002',
+                    'fecha_nacimiento': date(1990, 7, 25),
+                },
+            },
+            {
+                'rol': 'Productores',
+                'clase': Productores,
+                'email': 'productor@example.com',
+                'persona': {
+                    'primer_nombre': 'Carlos',
+                    'segundo_nombre': 'Andrés',
+                    'primer_apellido': 'Rodríguez',
+                    'segundo_apellido': 'Gómez',
+                    'numero_documento': '1000000003',
+                    'fecha_nacimiento': date(1988, 11, 3),
+                },
+            },
+        ]
+
+        tipo_documento, _ = TiposDocumentos.objects.get_or_create(
+            TipoDocumento='Cédula de Ciudadanía'
+        )
+
+        for u in usuarios:
+            persona, persona_created = Personas.objects.get_or_create(
+                numero_documento=u['persona']['numero_documento'],
+                defaults={
+                    'primer_nombre': u['persona']['primer_nombre'],
+                    'segundo_nombre': u['persona']['segundo_nombre'],
+                    'primer_apellido': u['persona']['primer_apellido'],
+                    'segundo_apellido': u['persona']['segundo_apellido'],
+                    'fecha_nacimiento': u['persona']['fecha_nacimiento'],
+                    'TipoDocumento': tipo_documento,
+                },
+            )
+
+            if persona_created:
+                celular, _ = Contactos.objects.get_or_create(
+                    contacto='3110000000', TipoContacto_id=1
+                )
+                correo, _ = Contactos.objects.get_or_create(
+                    contacto=u['email'], TipoContacto_id=2
+                )
+                persona.contactos.add(celular, correo)
+
+            usuario, created = Usuario.objects.get_or_create(
+                email=u['email'],
+                defaults={'persona': persona, 'is_active': True},
+            )
+            if created:
+                usuario.set_password('admin123')
+                usuario.save()
+
+            rol, _ = u['clase'].objects.get_or_create(usuario=usuario)
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"  - {u['rol']}: {u['email']} (password: admin123, id persona: {persona.id})"
+                )
+            )
+
     def seed_grupos(self):
-        # Configuración de grupos y permisos revisar los permisos de cada modelo para asignar correctamente
         grupos_config = {
             'Administradores': None,  # None significa todos los permisos
             'Funcionarios': [

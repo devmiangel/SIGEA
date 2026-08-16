@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/predios/', include('Predios.urls')),
     path('api/UPs/', include('UPs.urls')),
     path('api/visitas/', include('Visitas.urls')),
+    path('api/documentos/', include('documentos.urls')),
     path(r'api/auth/', include('knox.urls'))
 ]
 

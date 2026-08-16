@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 from django.conf import settings
@@ -8,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-from documentos.services.pdf_service import generar_visita_tecnica
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
 from ..models import (
@@ -91,25 +89,9 @@ class FormularioVisitaTecnicaView(APIView):
 
         self._auto_llenar_usuario(usuario, data)
 
-        cedula = str(data.get('documento_identidad') or '').strip()
         fecha_visita = str(data.get('fecha_visita') or '').strip()
-        if not cedula:
-            return Response({'error': 'documento_identidad es requerido (o el usuario no tiene persona asociada)'}, status=400)
         if not fecha_visita:
             return Response({'error': 'fecha_visita es requerido'}, status=400)
-
-        fecha_nombre = re.sub(r'[^0-9-]', '', fecha_visita.split('T')[0])
-        if not fecha_nombre:
-            return Response({'error': 'fecha_visita no tiene un formato valido'}, status=400)
-
-        nombre = f"{cedula}_{fecha_nombre}.pdf"
-        media_dir = Path(settings.BASE_DIR) / "media" / "formularios" / "visitas"
-        ruta = media_dir / nombre
-
-        try:
-            generar_visita_tecnica(str(ruta), data)
-        except Exception as e:
-            return Response({'error': f'No se pudo generar el PDF: {e}'}, status=500)
 
         # ---------- Registros en BD ----------
         funcionario = None
@@ -167,8 +149,9 @@ class FormularioVisitaTecnicaView(APIView):
             Administrador=administrador,
             TipoVisita=tipo_visita,
             FechaYHoraVisita=fhv,
-            RutaDocumento=f"formularios/visitas/{nombre}",
             estado=True,
+            FirmaProductor=data.get('firma_usuario') or '',
+            FirmaFuncionario=data.get('firma_funcionario') or '',
         )
 
         calificacion = None
@@ -192,8 +175,6 @@ class FormularioVisitaTecnicaView(APIView):
         )
 
         return Response({
-            'ruta': f'/media/formularios/visitas/{nombre}',
-            'archivo': nombre,
             'visita': visita.id,
             'info_visita': info_visita.id,
             'solicitud': solicitud.id,
