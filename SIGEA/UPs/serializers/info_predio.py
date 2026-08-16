@@ -7,7 +7,7 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
     
     NombrePredio = serializers.CharField(source='Predio.NombrePredio', required=False, allow_null=True)
     AreaPredio = serializers.DecimalField(max_digits=10, decimal_places=3, source='Predio.AreaPredio', required=False, allow_null=True)
-    RegistroICA = serializers.ListField(child=serializers.CharField(), required=False, allow_null=True)
+    RegistroICA = serializers.CharField(required=False, allow_null=True)
     
     Seguro = serializers.CharField(required=False, allow_null=True)
     AccesoCredito = serializers.BooleanField(source='Predio.AccesoCredito', required=False, allow_null=True)
@@ -37,7 +37,8 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
             sector = predio.Sector
             ret['Sector'] = sector.NombreSector if sector else None
             ret['Vereda'] = sector.Vereda.NombreVereda if sector and sector.Vereda else None
-            ret['RegistroICA'] = [ica.CodigoICA for ica in predio.TiposRegistroICA.all()]
+            primer_ica = predio.TiposRegistroICA.first()
+            ret['RegistroICA'] = primer_ica.CodigoICA if primer_ica else None
         return ret
 
     def update(self, instance, validated_data):
@@ -45,7 +46,7 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
         from Predios.models import Seguros, TiposTenencias, Sectores, Veredas, TiposRegistrosICA
 
         predio_data = validated_data.pop('Predio', {})
-        registro_ica_list = validated_data.pop('RegistroICA', None)
+        registro_ica_str = validated_data.pop('RegistroICA', None)
         seguro_str = validated_data.pop('Seguro', None)
         tipo_tenencia_str = validated_data.pop('TipoTenencia', None)
         sector_str = validated_data.pop('Sector', None)
@@ -87,13 +88,11 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
                         sector_obj = Sectores.objects.create(NombreSector=sector_str)
 
                 predio.Sector = sector_obj
-            # Actualizar Registros ICA
-            if registro_ica_list is not None:
-                icas = []
-                for ica_code in registro_ica_list:
-                    ica_obj = get_o_crear(TiposRegistrosICA, CodigoICA=ica_code)
-                    icas.append(ica_obj)
-                predio.TiposRegistroICA.set(icas)
+            # Actualizar Registro ICA (varchar): se crea el codigo si no existe
+            # y se asigna como unico registro del predio
+            if registro_ica_str:
+                ica_obj = get_o_crear(TiposRegistrosICA, CodigoICA=registro_ica_str)
+                predio.TiposRegistroICA.set([ica_obj])
 
             predio.save()
 

@@ -3,14 +3,14 @@ import { Campo, CampoSelect, CampoSelectDinamico, CampoCheck } from './fields'
 import {
     getInfoPredio, saveInfoPredio,
     getTiposTenencias, getSeguros, getVeredas, getSectores, getTiposRegistrosICA,
-    crearSeguro, crearVereda, crearSector,
+    crearSeguro, crearVereda, crearSector, crearRegistroICA,
 } from '../../../../services/caracterizacionService'
 import { useSeccion } from '../../../../hooks/useSeccion'
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 
 const INICIAL = {
-    NombrePredio: '', AreaPredio: '', RegistroICA: [], Seguro: '',
+    NombrePredio: '', AreaPredio: '', RegistroICA: '', Seguro: '',
     AccesoCredito: false, UsoSuelo: false, Latitud: '', Longitud: '',
     Direccion: '', TipoTenencia: '', Vereda: '', Sector: '',
 }
@@ -80,15 +80,9 @@ const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
         setSectores((prev) => [...prev, { id: r.id, texto: r.NombreSector }])
     }
 
-    const toggleICA = (codigo) => {
-        setForm((f) => {
-            const actuales = f.RegistroICA || []
-            const existe = actuales.includes(codigo)
-            return {
-                ...f,
-                RegistroICA: existe ? actuales.filter((c) => c !== codigo) : [...actuales, codigo],
-            }
-        })
+    const handleCrearRegistroICA = async (valor) => {
+        const r = await crearRegistroICA(valor)
+        setIcas((prev) => (prev.includes(r.CodigoICA) ? prev : [...prev, r.CodigoICA]))
     }
 
     const guardar = useCallback(async () => {
@@ -114,26 +108,10 @@ const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
                 <CampoSelectDinamico name="Seguro" label="Seguro" value={form.Seguro} options={seguros.map((s) => s.texto)} onCrear={handleCrearSeguro} onChange={onChange} />
                 <CampoSelectDinamico name="Vereda" label="Vereda" value={form.Vereda} options={veredas.map((v) => v.texto)} onCrear={handleCrearVereda} onChange={onChange} />
                 <CampoSelectDinamico name="Sector" label="Sector" value={form.Sector} options={sectores.map((s) => s.texto)} onCrear={handleCrearSector} onChange={onChange} />
+                <CampoSelectDinamico name="RegistroICA" label="Registro ICA" value={form.RegistroICA} options={icas} onCrear={handleCrearRegistroICA} onChange={onChange} />
                 <Campo name="Latitud" label="Latitud" type="number" value={form.Latitud} onChange={onChange} />
                 <Campo name="Longitud" label="Longitud" type="number" value={form.Longitud} onChange={onChange} />
                 <Campo name="Direccion" label="Dirección" value={form.Direccion} onChange={onChange} />
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Registros ICA</span>
-                <div className="flex flex-wrap gap-3">
-                    {icas.map((codigo) => (
-                        <label key={codigo} className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={(form.RegistroICA || []).includes(codigo)}
-                                onChange={() => toggleICA(codigo)}
-                                className="w-4 h-4 accent-[#015d3b]"
-                            />
-                            <span className="text-sm text-gray-700">{codigo}</span>
-                        </label>
-                    ))}
-                </div>
             </div>
 
             <div className="flex gap-6">

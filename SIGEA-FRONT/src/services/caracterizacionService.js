@@ -85,6 +85,7 @@ export const crearProductoApicola = (nombre) => crearCatalogo('/UPs/productosApi
 export const crearSeguro = (nombre) => crearCatalogo('/predios/seguros/', { NombreSeguro: nombre })
 export const crearVereda = (nombre) => crearCatalogo('/predios/veredas/', { NombreVereda: nombre })
 export const crearSector = (nombre, veredaId) => crearCatalogo('/predios/sectores/', { NombreSector: nombre, Vereda: veredaId })
+export const crearRegistroICA = (codigo) => crearCatalogo('/predios/tiposRegistrosICA/', { CodigoICA: codigo })
 
 export const subirArchivoUP = async (userId, archivo) => {
     const formData = new FormData()

@@ -40,6 +40,11 @@ export const getUsuarios = async () => {
     return response.data;
 }
 
+export const getUsuario = async (usuarioId) => {
+    const response = await api.get(`/usuarios/usuarios/${usuarioId}/`);
+    return response.data;
+}
+
 export const actualizarUsuario = async (usuarioId, data) => {
     const response = await api.patch(`/usuarios/usuarios/${usuarioId}/`, data);
     return response.data;

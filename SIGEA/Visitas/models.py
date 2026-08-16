@@ -21,6 +21,7 @@ class Solicitudes(models.Model):
     FechaSolicitud = models.DateField(auto_now_add=True)
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
     Observacion = models.CharField(max_length=255)
+    Direccion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
     Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
     motivoAdmin = models.CharField(max_length=255, blank=True, null=True)

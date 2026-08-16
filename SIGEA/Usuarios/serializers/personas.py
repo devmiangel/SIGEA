@@ -32,6 +32,23 @@ class PersonasSerializer(serializers.ModelSerializer):
         return data
 
 class PersonaBasicaSerializer(serializers.ModelSerializer):
+    TipoDocumento_info = serializers.SerializerMethodField()
+
     class Meta:
         model = Personas
-        fields = ['primer_nombre', 'primer_apellido']
+        fields = [
+            'primer_nombre',
+            'segundo_nombre',
+            'primer_apellido',
+            'segundo_apellido',
+            'numero_documento',
+            'TipoDocumento',
+            'TipoDocumento_info',
+            'fecha_nacimiento',
+        ]
+
+    def get_TipoDocumento_info(self, obj):
+        return {
+            'id': obj.TipoDocumento.id,
+            'TipoDocumento': obj.TipoDocumento.TipoDocumento,
+        }

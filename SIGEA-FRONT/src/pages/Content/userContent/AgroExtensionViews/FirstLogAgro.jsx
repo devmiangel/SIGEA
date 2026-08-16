@@ -5,6 +5,7 @@ import { SubmitButton } from "../../../../components/formElements/SubmitButton"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import PersonIcon from '@mui/icons-material/Person'
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useSolicitudes } from "../../../../hooks/useSolicitudes"
 import { getNombreCompleto, getCorreo } from "../../../../utils/userDisplay"
@@ -13,6 +14,7 @@ export default function FirstLogAgro({ onSolicitudCreada }){
     const { user } = useCurrentDataUser()
     const { crear, creando } = useSolicitudes(user)
     const [observacion, setObservacion] = useState('')
+    const [direccion, setDireccion] = useState('')
     const [error, setError] = useState('')
 
     const nombreCompleto = getNombreCompleto(user)
@@ -20,9 +22,9 @@ export default function FirstLogAgro({ onSolicitudCreada }){
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!observacion.trim() || creando) return
+        if (!observacion.trim() || !direccion.trim() || creando) return
         setError('')
-        const result = await crear({ observacion: observacion.trim() })
+        const result = await crear({ observacion: observacion.trim(), direccion: direccion.trim() })
         if (result.ok) {
             onSolicitudCreada()
         } else {
@@ -63,6 +65,20 @@ export default function FirstLogAgro({ onSolicitudCreada }){
                             <h3>Solicitud</h3>
                         </div>
                         <form className="m-3 w-[96%] h-auto" onSubmit={handleSubmit}>
+                            <label htmlFor="Solicitud_Direccion" className="flex items-center gap-2 text-[#00000099] mb-2">
+                                <LocationOnIcon fontSize="small"/>
+                                Dirección de la unidad productiva
+                            </label>
+                            <input
+                                id="Solicitud_Direccion"
+                                name="Solicitud_Direccion"
+                                type="text"
+                                className="w-full p-3 border-[1.5px] border-[#3e9a8a] rounded-[10px]"
+                                placeholder="Escribe la dirección de tu unidad productiva, con referencias."
+                                maxLength={255}
+                                value={direccion}
+                                onChange={(e) => setDireccion(e.target.value)}
+                            />
                             <label htmlFor="Solicitud_Primera_visita" className="sr-only">Descripción de la solicitud</label>
                             <textarea
                                 id="Solicitud_Primera_visita"

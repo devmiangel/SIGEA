@@ -6,7 +6,8 @@ import { registerUser } from '../services/authService'
 import { formatRegisterData } from '../utils/formatRegisterData'
 import { AGRO_COLORS } from '../utils/agroConstants'
 
-export function useRegisterForm() {
+export function useRegisterForm(options = {}) {
+    const { successPath = '/', successTitle, successText } = options
     const form = useForm({ mode: 'onChange' })
     const { handleSubmit, reset } = form
     const navigate = useNavigate()
@@ -23,12 +24,12 @@ export function useRegisterForm() {
             reset()
             Swal.fire({
                 icon: 'success',
-                title: '¡Registro exitoso!',
-                text: 'Tu usuario fue registrado correctamente.',
+                title: successTitle || '¡Registro exitoso!',
+                text: successText || 'Tu usuario fue registrado correctamente.',
                 confirmButtonColor: AGRO_COLORS.success,
                 timer: 2000,
                 timerProgressBar: true,
-            }).then(() => navigate('/'))
+            }).then(() => navigate(successPath))
         } catch (e) {
             setError(e.message)
             console.error('Error en la petición:', e)

@@ -14,7 +14,7 @@ export default function SeccionDatosProductor({ form, onChange }) {
     return (
         <div className="flex flex-col gap-4">
             <p className="text-sm text-gray-500">
-                Datos del usuario o productor. Se pre-cargan desde la base de datos; corrígelos si es necesario.
+                Datos del usuario o productor. Se cargan automáticamente desde la base de datos.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {CAMPOS.map((c) => (
@@ -26,6 +26,7 @@ export default function SeccionDatosProductor({ form, onChange }) {
                         value={form[c.name]}
                         onChange={onChange}
                         required={c.requerido}
+                        disabled
                     />
                 ))}
             </div>

@@ -8,14 +8,7 @@ const ACCIONES = [
     { value: 'cirugia', label: 'Cirugía' },
 ]
 
-const CALIFICACIONES = [
-    { value: 'malo', label: 'Malo' },
-    { value: 'regular', label: 'Regular' },
-    { value: 'bueno', label: 'Bueno' },
-    { value: 'excelente', label: 'Excelente' },
-]
-
-const inputClase = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
+const inputClase = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"
 const labelClase = "text-xs font-semibold uppercase tracking-wide text-gray-500"
 
 const toggleAccion = (form, onChange, valor) => {
@@ -36,6 +29,7 @@ export default function SeccionAccion({ form, onChange }) {
                         value={form.funcionario ?? ''}
                         onChange={(e) => onChange('funcionario', e.target.value)}
                         className={inputClase}
+                        disabled
                     />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -46,6 +40,7 @@ export default function SeccionAccion({ form, onChange }) {
                         value={form.cc_funcionario ?? ''}
                         onChange={(e) => onChange('cc_funcionario', e.target.value)}
                         className={inputClase}
+                        disabled
                     />
                 </div>
             </div>
@@ -112,25 +107,6 @@ export default function SeccionAccion({ form, onChange }) {
                     placeholder="Observaciones o recomendaciones de la visita"
                     className={inputClase}
                 />
-            </div>
-
-            <div className="flex flex-col gap-1">
-                <label className={labelClase}>Calificación de la visita</label>
-                <div className="flex gap-4">
-                    {CALIFICACIONES.map((c) => (
-                        <label key={c.value} className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700">
-                            <input
-                                type="radio"
-                                name="calificacion"
-                                value={c.value}
-                                checked={form.calificacion === c.value}
-                                onChange={(e) => onChange('calificacion', e.target.value)}
-                                className="accent-[#015d3b]"
-                            />
-                            {c.label}
-                        </label>
-                    ))}
-                </div>
             </div>
         </div>
     )

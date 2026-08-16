@@ -144,7 +144,7 @@ export default function UPDetailView() {
                             <Fila etiqueta="Seguro" valor={secciones?.predio?.Seguro} />
                             <Fila etiqueta="Acceso a crédito" valor={secciones?.predio?.AccesoCredito ? 'Sí' : 'No'} />
                             <Fila etiqueta="Uso de suelo" valor={secciones?.predio?.UsoSuelo ? 'Sí' : 'No'} />
-                            <Fila etiqueta="Registro ICA" valor={secciones?.predio?.RegistroICA?.join(', ') || null} />
+                            <Fila etiqueta="Registro ICA" valor={secciones?.predio?.RegistroICA || null} />
                         </Bloque>
 
                         <Bloque titulo="Unidad Productiva">

@@ -15,11 +15,15 @@ def crear_solicitud(request):
 
     data = request.data
     observacion = data.get('observacion')
+    direccion = data.get('direccion')
     up_id = data.get('up_id')
     motivo_id = data.get('motivo_id')
 
     if not observacion:
         return Response({'error': 'La observación es requerida'}, status=400)
+
+    if not direccion or not str(direccion).strip():
+        return Response({'error': 'La dirección es requerida'}, status=400)
 
     up = None
     if up_id:
@@ -29,6 +33,7 @@ def crear_solicitud(request):
         UP=up,
         MotivoSolicitud_id=motivo_id or 2,
         Observacion=observacion,
+        Direccion=str(direccion).strip(),
         Estado_id=1,
         Usuario=request.user
     )

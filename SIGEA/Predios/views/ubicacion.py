@@ -38,3 +38,11 @@ class SegurosViewSet(viewsets.ModelViewSet):
 class TiposRegistrosICAViewSet(viewsets.ModelViewSet):
     queryset = TiposRegistrosICA.objects.all()
     serializer_class = TiposRegistrosICASerializer
+
+    def create(self, request, *args, **kwargs):
+        codigo = (request.data.get('CodigoICA') or '').strip()
+        if codigo:
+            obj = TiposRegistrosICA.objects.filter(CodigoICA=codigo).first()
+            if obj is not None:
+                return Response(self.get_serializer(obj).data, status=200)
+        return super().create(request, *args, **kwargs)

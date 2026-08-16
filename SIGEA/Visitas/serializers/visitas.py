@@ -39,6 +39,7 @@ class VisitasSerializer(serializers.ModelSerializer):
         return {
             'nombre': f"{persona.primer_nombre} {persona.primer_apellido}".strip() if persona else None,
             'email': obj.Funcionario.usuario.email,
+            'documento': persona.numero_documento if persona else None,
         }
 
     def get_administrador_info(self, obj):

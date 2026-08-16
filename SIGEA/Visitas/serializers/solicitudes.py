@@ -7,7 +7,7 @@ class SolicitudesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Solicitudes
-        fields = ['id', 'UP', 'FechaSolicitud', 'MotivoSolicitud', 'Observacion', 'Estado', 'Usuario', 'solicitante']
+        fields = ['id', 'UP', 'FechaSolicitud', 'MotivoSolicitud', 'Observacion', 'Direccion', 'Estado', 'Usuario', 'solicitante']
 
     def get_solicitante(self, obj):
         persona = getattr(obj.Usuario, 'persona', None)

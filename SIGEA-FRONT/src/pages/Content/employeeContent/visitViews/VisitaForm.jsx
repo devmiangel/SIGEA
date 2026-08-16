@@ -10,7 +10,7 @@ import SeccionDatosProductor from './visitas/SeccionDatosProductor'
 import SeccionDescripcion from './visitas/SeccionDescripcion'
 import SeccionAccion from './visitas/SeccionAccion'
 import SeccionFirmas from './visitas/SeccionFirmas'
-import { enviarFormularioVisita, getInfoProductor, getInfoUP } from './visitas/visitaService'
+import { enviarFormularioVisita, getInfoProductor, getInfoUP, getInfoPredio } from './visitas/visitaService'
 import { marcarVisitaRealizada } from "../../../../services/agroService"
 import { useSeccion } from "../../../../hooks/useSeccion"
 import Swal from 'sweetalert2'
@@ -20,7 +20,7 @@ const SECCIONES = [
     { nombre: 'Datos del productor', componente: SeccionDatosProductor },
     { nombre: 'Descripción', componente: SeccionDescripcion },
     { nombre: 'Acción tomada', componente: SeccionAccion },
-    { nombre: 'Firmas', componente: SeccionFirmas },
+    { nombre: 'Cierre', componente: SeccionFirmas },
 ]
 
 const INICIAL = {
@@ -85,6 +85,8 @@ export default function VisitaForm() {
             ...f,
             nombres_apellidos: f.nombres_apellidos || nombre,
             funcionario: f.funcionario || visita?.funcionario_info?.nombre || '',
+            cc_funcionario: f.cc_funcionario || visita?.funcionario_info?.documento || '',
+            tipo_visita: f.tipo_visita || visita?.tipo_visita_label || '',
             descripcion_solicitud: f.descripcion_solicitud || solicitud.observacion || '',
             fecha_visita: f.fecha_visita || aDatetimeLocal(visita?.FechaYHoraVisita),
         }))
@@ -94,15 +96,20 @@ export default function VisitaForm() {
         if (!userId || !solicitudId) return
         let activo = true
         cargarSeccion(async () => {
-            const [p, u] = await Promise.all([
+            const [p, u, pr] = await Promise.all([
                 getInfoProductor(userId, solicitudId, upId),
                 getInfoUP(userId, solicitudId, upId),
+                getInfoPredio(userId, solicitudId, upId),
             ])
             if (!activo) return
             setProductor(p)
             setUp(u)
+            const ruea = u?.RUEA || u?.Rudea || u?.Rudev || p?.Rudea || ''
+            const veredaSector = [pr?.Vereda, pr?.Sector].filter(Boolean).join(' - ')
             setForm((f) => ({
                 ...f,
+                nruea: f.nruea || ruea || '',
+                vereda_sector: f.vereda_sector || veredaSector || '',
                 documento_identidad: f.documento_identidad || p?.DocumentoProductor || '',
                 telefono: f.telefono || p?.Celular || '',
                 sisben: f.sisben || p?.Sisben || '',
@@ -234,9 +241,10 @@ export default function VisitaForm() {
 
                         <div className="mt-6">
                             {SECCIONES.map((s) => {
+                                if (s.nombre !== active) return null
                                 const Seccion = s.componente
                                 return (
-                                    <div key={s.nombre} className={s.nombre === active ? 'block' : 'hidden'}>
+                                    <div key={s.nombre}>
                                         <Seccion form={form} onChange={onChange} />
                                     </div>
                                 )
