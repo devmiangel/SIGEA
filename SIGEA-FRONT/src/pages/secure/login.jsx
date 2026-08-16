@@ -3,47 +3,13 @@ import titulo from '../../assets/img/letras_sigea.png'
 import { Input } from '../../components/formElements/Input'
 import { NavLink } from '../../components/formElements/NavLink'
 import { SubmitButton } from '../../components/formElements/SubmitButton'
-
-import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
-import { loginService } from '../../services/authService'
-import { useState } from 'react'
-import { getRouteByRole } from '../../utils/roleRedirect'
-import { useCurrentDataUser } from '../../hooks/currentUserHook'
+import { useLoginForm } from '../../hooks/useLoginForm'
+import { emailRules, passwordRules } from '../../utils/validationRules'
+import { FieldError } from './components/FieldError'
 
 export default function Login() {
-    const navigate = useNavigate()
-    const [errorMsg, setErrorMsg] = useState("")
+    const { register, formState: { errors }, loading, errorMsg, submitLogin } = useLoginForm()
 
-    const { login } = useCurrentDataUser()
-
-
-    const {
-        register, 
-        handleSubmit, 
-        formState: {errors}, 
-        reset
-    } = useForm({mode: 'onChange'})
-
-    const onSubmit = async(data) => {
-
-        try{
-            const result = await loginService(data)
-            console.log("usuario logeado",data)
-
-            login(result.user, result.token)
-
-            reset()
-
-            navigate(getRouteByRole(result.user.rol))
-        }
-        catch (error){
-            setErrorMsg(error.response?.data?.detail || error.message || 'Error al iniciar sesión')
-            console.error('error en la peticion', error);
-        }
-    }
-
-    
     return (
         <div className="flex flex-col md:flex-row justify-center items-center min-h-screen w-full p-0 md:gap-24 gap-3 bg-[#fdfcf8]">
             <div className="flex flex-col md:max-w-62.5 max-w-30">
@@ -52,76 +18,33 @@ export default function Login() {
             </div>
 
             <div className="my-1 flex flex-col min-w-[30%]">
-                <h2 className='mx-auto text-[#015d3b] text-2xl font-bold'>Iniciar Sesión</h2>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <section className='mb-6 relative'>
-                        <Input 
-                            {...register('email', {
-                                required: 'Campo Obligatorio',
-                                pattern: {
-                                    value: /^(?!\.)(?!.*\.\.)([a-zA-Z0-9_'+\-\.]*)[a-zA-Z0-9_+-]@([a-zA-Z0-9][a-zA-Z0-9\-]*\.)+[a-zA-Z]{2,}$/,
-                                    message: 'Correo invalido'
-                                },
-                                minLength: {
-                                    value: 10,
-                                    message: 'minimo 10 caracteres'
-                                }, 
-                                maxLength: {
-                                    value: 40,
-                                    message: 'maximo 40 caracteres'
-                                }
-                            })}
-                        placeholder={'Correo'} />
-                        
-                        {errors.email && (
-                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.email.message}</p>
-                        )}
-                        <NavLink href={'https://google.com'}>
-                            Olvidaste tu correo
-                        </NavLink> 
+                <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Iniciar Sesión</h2>
+                <form onSubmit={submitLogin}>
+                    <section className="mb-6 relative">
+                        <Input {...register('email', emailRules)} placeholder="Correo" />
+                        <FieldError message={errors.email?.message} />
+                        <NavLink href="https://google.com">Olvidaste tu correo</NavLink>
                     </section>
 
-                    < section className='mb-6 relative'>
-                        <Input 
-                            {...register('password', {
-                                required: 'Campo Obligatorio',
-                                minLength: {
-                                    value: 6,
-                                    message: 'minimo 6 caracteres'
-                                }, 
-                                maxLength: {
-                                    value: 20,
-                                    message: 'maximo 20 caracteres'
-                                }
-                            })}
-                            type={'password'} 
-                            placeholder={'contraseña'} 
-                            autoComplete = 'password'
-                        />
-                        {errors.password && (
-                            <p className='text-[#a22] text-[10px] absolute -bottom-4 left-1'>{errors.password.message}</p>
-                        )}
-                        <NavLink href={'https://google.com'}>
-                            Olvidaste tu contraseña
-                        </NavLink>
-                    </section>   
-                    
-                    <SubmitButton text={'Iniciar sesion'}/>
-                    
-                    <NavLink href={'/registro'}>
+                    <section className="mb-6 relative">
+                        <Input {...register('password', passwordRules)} type="password" placeholder="contraseña" autoComplete="password" />
+                        <FieldError message={errors.password?.message} />
+                        <NavLink href="https://google.com">Olvidaste tu contraseña</NavLink>
+                    </section>
+
+                    <SubmitButton text="Iniciar sesion" disabled={loading} />
+
+                    <NavLink href="/registro">
                         no tienes cuenta? <strong>Registrate</strong>
                     </NavLink>
 
                     {errorMsg && (
-                        <div className='flex justify-center items-center w-full mt-4'>
+                        <div className="flex justify-center items-center w-full mt-4">
                             <div className="text-red-600 text-sm text-center">{errorMsg}</div>
                         </div>
                     )}
-                
                 </form>
             </div>
         </div>
     )
 }
-
-

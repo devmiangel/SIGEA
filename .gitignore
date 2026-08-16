@@ -16,6 +16,7 @@ venv/
 .venv/
 env/
 ENV/
+media/
 
 # Variables de entorno
 .env
