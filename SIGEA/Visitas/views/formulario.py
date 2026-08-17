@@ -129,30 +129,54 @@ class FormularioVisitaTecnicaView(APIView):
             fhv = timezone.make_aware(fhv)
 
         up_id = data.get('up_id')
-        solicitud = Solicitudes.objects.create(
-            UP_id=up_id if up_id else None,
-            MotivoSolicitud_id=data.get('motivo_id', 2),
-            Observacion=(data.get('descripcion_solicitud') or '')[:255],
-            Estado_id=data.get('estado_id', 1),
-            Usuario=usuario,
-            motivoAdmin=data.get('motivo_admin', None),
-        )
+        visita_id = data.get('visita_id')
 
         Productores.objects.get_or_create(
             usuario=usuario,
             defaults={'Estado': True}
         )
 
-        visita = Visitas.objects.create(
-            Solicitud=solicitud,
-            Funcionario=funcionario,
-            Administrador=administrador,
-            TipoVisita=tipo_visita,
-            FechaYHoraVisita=fhv,
-            estado=True,
-            FirmaProductor=data.get('firma_usuario') or '',
-            FirmaFuncionario=data.get('firma_funcionario') or '',
-        )
+        # Si el frontend envia visita_id, se reutiliza la solicitud/visita ya
+        # creadas al atender la solicitud, en lugar de generar registros nuevos.
+        solicitud = None
+        visita = None
+        if visita_id:
+            visita = Visitas.objects.filter(id=visita_id).first()
+            if visita is not None:
+                solicitud = visita.Solicitud
+                if solicitud is not None:
+                    if up_id:
+                        solicitud.UP_id = up_id
+                    solicitud.Observacion = (data.get('descripcion_solicitud') or '')[:255]
+                    solicitud.motivoAdmin = data.get('motivo_admin', None)
+                    solicitud.save()
+                visita.FechaYHoraVisita = fhv
+                visita.estado = True
+                visita.FirmaProductor = data.get('firma_usuario') or ''
+                visita.FirmaFuncionario = data.get('firma_funcionario') or ''
+                visita.save()
+
+        if solicitud is None:
+            solicitud = Solicitudes.objects.create(
+                UP_id=up_id if up_id else None,
+                MotivoSolicitud_id=data.get('motivo_id', 2),
+                Observacion=(data.get('descripcion_solicitud') or '')[:255],
+                Estado_id=data.get('estado_id', 1),
+                Usuario=usuario,
+                motivoAdmin=data.get('motivo_admin', None),
+            )
+
+        if visita is None:
+            visita = Visitas.objects.create(
+                Solicitud=solicitud,
+                Funcionario=funcionario,
+                Administrador=administrador,
+                TipoVisita=tipo_visita,
+                FechaYHoraVisita=fhv,
+                estado=True,
+                FirmaProductor=data.get('firma_usuario') or '',
+                FirmaFuncionario=data.get('firma_funcionario') or '',
+            )
 
         calificacion = None
         if data.get('calificacion_id'):
@@ -162,17 +186,26 @@ class FormularioVisitaTecnicaView(APIView):
         if calificacion is None:
             return Response({'error': 'calificacion o calificacion_id requerido'}, status=400)
 
-        info_visita = InfoVisita.objects.create(
-            Visita=visita,
-            Calificacion=calificacion,
-            ObservacionVisita=data.get('observaciones', '') or '',
-            AccionSeguimiento=data.get('accion_tomada', '') or '',
-            Firmado=bool(
-                data.get('firmado', False)
-                or data.get('firma_usuario')
-                or data.get('firma_funcionario')
-            ),
+        firmado = bool(
+            data.get('firmado', False)
+            or data.get('firma_usuario')
+            or data.get('firma_funcionario')
         )
+
+        info_visita, _ = InfoVisita.objects.get_or_create(
+            Visita=visita,
+            defaults={
+                'Calificacion': calificacion,
+                'ObservacionVisita': data.get('observaciones', '') or '',
+                'AccionSeguimiento': data.get('accion_tomada', '') or '',
+                'Firmado': firmado,
+            },
+        )
+        info_visita.Calificacion = calificacion
+        info_visita.ObservacionVisita = data.get('observaciones', '') or ''
+        info_visita.AccionSeguimiento = data.get('accion_tomada', '') or ''
+        info_visita.Firmado = firmado
+        info_visita.save()
 
         return Response({
             'visita': visita.id,

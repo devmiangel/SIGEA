@@ -20,6 +20,7 @@ class VisitasSerializer(serializers.ModelSerializer):
             'id': obj.Solicitud.id,
             'motivo': obj.Solicitud.MotivoSolicitud.MotivoSolicitud,
             'observacion': obj.Solicitud.Observacion,
+            'direccion': obj.Solicitud.Direccion,
             'fecha_solicitud': obj.Solicitud.FechaSolicitud,
             'estado': getattr(obj.Solicitud.Estado, 'Estado', None),
             'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),

@@ -17,7 +17,7 @@ import { formatFecha } from '../../utils/dateHelpers'
 function Tile({ icono, etiqueta, valor, full = false }) {
     const Icono = icono
     return (
-        <div className={`${full ? 'md:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
+        <div className={`${full ? 'md:col-span-2 lg:col-span-3' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
             <div className="flex items-center gap-1.5">
                 <Icono sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{etiqueta}</span>
@@ -73,6 +73,7 @@ export default function VisitaResumen({ visita }) {
                 <Tile icono={BadgeOutlinedIcon} etiqueta="Estado" valor={solicitud.estado} />
                 <Tile icono={AgricultureOutlinedIcon} etiqueta="Predio / UP" valor={solicitud.up} />
                 <Tile icono={NotesOutlinedIcon} etiqueta="Observación" valor={solicitud.observacion} full />
+                <Tile icono={LocationOnIcon} etiqueta="Dirección" valor={solicitud.direccion} full />
             </Bloque>
 
             <Bloque

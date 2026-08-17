@@ -8,10 +8,20 @@ from Visitas.models import Visitas
 from .services.pdf_service import generar_documento_visita_bytes
 
 
+def es_visita_caracterizacion(visita):
+    tipo = (getattr(visita.TipoVisita, 'TipoVisita', '') or '').lower()
+    return tipo in ('caracterización', 'caracterizacion')
+
+
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
 def generar_documento_visita(request, visita_id):
     visita = get_object_or_404(Visitas, id=visita_id)
+    if es_visita_caracterizacion(visita):
+        return Response(
+            {'error': 'El informe de visita técnica solo se genera para visitas que no son de caracterización'},
+            status=400
+        )
     try:
         pdf_bytes = generar_documento_visita_bytes(visita_id)
     except Exception as e:

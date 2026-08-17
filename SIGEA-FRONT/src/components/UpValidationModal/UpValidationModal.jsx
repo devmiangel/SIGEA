@@ -3,15 +3,42 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS, ESTADO_VISITA } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
-import { validarUP } from '../../services/agroService'
-import api from '../../services/api'
+import { validarUP, generarInformeVisita } from '../../services/agroService'
 
-const construirURLArchivo = (ruta) => {
-    if (!ruta) return ''
-    if (/^https?:\/\//i.test(ruta)) return ruta
-    const base = api.defaults.baseURL.replace(/\/api\/?$/, '')
-    if (ruta.startsWith('/')) return `${base}${ruta}`
-    return `${base}/media/${ruta}`
+const esCaracterizacion = (visita) => {
+    const tipo = (visita?.tipo_visita_label ?? '').toLowerCase()
+    return tipo === 'caracterización' || tipo === 'caracterizacion'
+}
+
+const descargarInforme = async (visita) => {
+    if (esCaracterizacion(visita)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Informe no disponible',
+            text: 'El informe de visita técnica solo se genera para visitas que no son de caracterización.',
+            confirmButtonColor: AGRO_COLORS.primary
+        })
+        return
+    }
+
+    try {
+        const blob = await generarInformeVisita(visita.id)
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `visita_${visita.id}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+    } catch {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo generar el informe. Intenta de nuevo.',
+            confirmButtonColor: AGRO_COLORS.primary
+        })
+    }
 }
 
 const iconoUP = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`
@@ -148,19 +175,7 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 // El botón "cancel" se reutiliza para "Descargar informe" porque
                 // SweetAlert2 no soporta un cuarto botón nativo. No cierra el modal.
-                // RutaDocumento siempre es generado por el backend (ruta relativa), nunca
-                // por input directo del usuario.
-                const ruta = construirURLArchivo(visita?.RutaDocumento)
-                if (ruta && visita?.RutaDocumento !== 'Pendiente de generación del documento') {
-                    window.open(ruta, '_blank', 'noopener,noreferrer')
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Informe no disponible',
-                        text: 'Aún no se ha generado el informe para esta visita.',
-                        confirmButtonColor: AGRO_COLORS.primary
-                    })
-                }
+                await descargarInforme(visita)
             }
         })
     }, [visita, numero, onDecision, onClose])

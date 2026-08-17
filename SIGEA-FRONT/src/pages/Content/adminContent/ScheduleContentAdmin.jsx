@@ -120,6 +120,10 @@ export default function ScheduleContentAdmin(){
                     <ButtonLink buttonText={'Validacion de UPs'}
                         onClick={() => navigate('/administrador/validacion-ups')}/>
                 }
+                secondButton={
+                    <ButtonLink buttonText={'Visitas'}
+                        onClick={() => navigate('/administrador/visitas')}/>
+                }
             />
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
                 <div className="mb-6">

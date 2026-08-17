@@ -21,11 +21,13 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
     const estado = ESTADO_LABEL[solicitud.Estado] ?? 'Desconocido'
     const motivo = MOTIVO_LABEL[solicitud.MotivoSolicitud] ?? '—'
     const upInfo = solicitud.UP ? `UP #${solicitud.UP}` : 'No asignada'
+    const tipoUp = solicitud.UP ? (escapeHtml(solicitud.tipo_up) || '—') : null
     const solicitante = solicitud.solicitante ?? {}
     const nombre = escapeHtml(solicitante.primer_nombre ?? '—')
     const apellido = escapeHtml(solicitante.primer_apellido ?? '')
     const email = escapeHtml(solicitante.email ?? '—')
     const observacion = escapeHtml(solicitud.Observacion) || 'Sin descripción'
+    const direccion = escapeHtml(solicitud.Direccion) || 'Sin dirección'
 
     const result = await Swal.fire({
         title: `Atención de Solicitud #${numero}`,
@@ -36,7 +38,8 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                     <p style="margin:0;"><strong>Motivo:</strong> ${motivo} · <strong>Estado:</strong> ${estado}</p>
                     <p style="margin:0;"><strong>Solicitante:</strong> ${nombre} ${apellido} <span style="color:#6b7280;">(${email})</span></p>
                     <p style="margin:0;"><strong>Observación:</strong> ${observacion}</p>
-                    <p style="margin:0;"><strong>Unidad Productiva:</strong> ${upInfo}</p>
+                    <p style="margin:0;"><strong>Dirección:</strong> ${direccion}</p>
+                    <p style="margin:0;"><strong>Unidad Productiva:</strong> ${upInfo}${tipoUp ? ` · <strong>Tipo de UP:</strong> ${tipoUp}` : ''}</p>
                 </div>
 
                 <label style="${labelStyle}">Fecha y hora de la visita</label>

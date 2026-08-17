@@ -1,3 +1,5 @@
+import unicodedata
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -39,6 +41,17 @@ class TiposVisitasViewSet(viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()
     serializer_class = TiposVisitasSerializer
 
+def _normalizar_texto(texto):
+    """Normaliza un texto a minusculas y sin acentos para comparaciones."""
+    return unicodedata.normalize('NFD', texto or '').encode('ascii', 'ignore').decode('ascii').strip().lower()
+
+
+def _es_visita_caracterizacion(visita):
+    """Una visita es de caracterizacion cuando su TipoVisita lo indica."""
+    tipo = getattr(getattr(visita, 'TipoVisita', None), 'TipoVisita', None)
+    return _normalizar_texto(tipo) == 'caracterizacion'
+
+
 class VisitasViewSet(viewsets.ModelViewSet):
     queryset = Visitas.objects.all()
     serializer_class = VisitasSerializer
@@ -51,12 +64,15 @@ class VisitasViewSet(viewsets.ModelViewSet):
 
         if estado is not None:
             if bool(estado) and not visita.estado:
-                up = visita.Solicitud.UP if visita.Solicitud else None
-                if up is not None:
-                    estado_en_revision = EstadosUP.objects.filter(Estado='En revision').first()
-                    if estado_en_revision:
-                        up.idEstado = estado_en_revision
-                        up.save(update_fields=['idEstado'])
+                # La UP solo vuelve a validacion cuando la visita es de caracterizacion.
+                # Las visitas de seguimiento/tecnica no deben reabrir su validacion.
+                if _es_visita_caracterizacion(visita):
+                    up = visita.Solicitud.UP if visita.Solicitud else None
+                    if up is not None:
+                        estado_en_revision = EstadosUP.objects.filter(Estado='En revision').first()
+                        if estado_en_revision:
+                            up.idEstado = estado_en_revision
+                            up.save(update_fields=['idEstado'])
 
         serializer = self.get_serializer(visita, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

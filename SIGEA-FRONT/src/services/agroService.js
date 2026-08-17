@@ -85,6 +85,11 @@ export const rechazarSolicitud = async (solicitudId) => {
     return response.data;
 }
 
+export const generarInformeVisita = async (visitaId) => {
+    const response = await api.get(`/documentos/visita/${visitaId}/generar/`, { responseType: 'blob' });
+    return response.data;
+}
+
 export const getInsumos = async () => {
     const response = await api.get('/inventario/insumos/');
     return response.data;

@@ -105,6 +105,20 @@ class Command(BaseCommand):
                 },
             },
             {
+                'rol': 'Administradores',
+                'clase': Administradores,
+                'email': 'admin@admin.com',
+                'password': 'administrador',
+                'persona': {
+                    'primer_nombre': 'admin',
+                    'segundo_nombre': '',
+                    'primer_apellido': 'uno',
+                    'segundo_apellido': '',
+                    'numero_documento': '1000000004',
+                    'fecha_nacimiento': date(1990, 1, 1),
+                },
+            },
+            {
                 'rol': 'Funcionarios',
                 'clase': Funcionarios,
                 'email': 'funcionario@example.com',
@@ -163,14 +177,14 @@ class Command(BaseCommand):
                 defaults={'persona': persona, 'is_active': True},
             )
             if created:
-                usuario.set_password('admin123')
+                usuario.set_password(u.get('password', 'admin123'))
                 usuario.save()
 
             rol, _ = u['clase'].objects.get_or_create(usuario=usuario)
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"  - {u['rol']}: {u['email']} (password: admin123, id persona: {persona.id})"
+                    f"  - {u['rol']}: {u['email']} (password: {u.get('password', 'admin123')}, id persona: {persona.id})"
                 )
             )
 

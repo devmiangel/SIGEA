@@ -23,13 +23,33 @@ export default function UpValidationAdmin(){
 
     const realizadas = useMemo(() => (visitas || []).filter(v => !!v.estado), [visitas])
 
+    const unicasPorUP = useMemo(() => {
+        const porUP = new Map()
+        for (const v of realizadas) {
+            const upId = v?.solicitud_info?.up_id
+            if (upId == null) {
+                porUP.set(`visita-${v.id}`, v)
+                continue
+            }
+            const previa = porUP.get(upId)
+            if (!previa) {
+                porUP.set(upId, v)
+                continue
+            }
+            const fechaActual = new Date(v.FechaYHoraVisita ?? 0).getTime()
+            const fechaAnterior = new Date(previa.FechaYHoraVisita ?? 0).getTime()
+            if (fechaActual > fechaAnterior) porUP.set(upId, v)
+        }
+        return Array.from(porUP.values())
+    }, [realizadas])
+
     const pendientes = useMemo(
-        () => realizadas.filter(v => esPendiente(v.solicitud_info?.up_estado)),
-        [realizadas]
+        () => unicasPorUP.filter(v => esPendiente(v.solicitud_info?.up_estado)),
+        [unicasPorUP]
     )
     const validadas = useMemo(
-        () => realizadas.filter(v => !esPendiente(v.solicitud_info?.up_estado)),
-        [realizadas]
+        () => unicasPorUP.filter(v => !esPendiente(v.solicitud_info?.up_estado)),
+        [unicasPorUP]
     )
 
     const currentContent = activeTab === 'Pendientes' ? pendientes : validadas
@@ -61,7 +81,7 @@ export default function UpValidationAdmin(){
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Validación de unidades productivas</h3>
-                    <p className="text-xs text-gray-500">{realizadas.length} visita(s) realizada(s) · {validadas.length} validada(s)</p>
+                    <p className="text-xs text-gray-500">{unicasPorUP.length} unidad(es) productiva(s) · {validadas.length} validada(s)</p>
                 </div>
                 <TabList
                     categories={['Pendientes', 'Validadas']}

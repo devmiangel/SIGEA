@@ -142,6 +142,7 @@ export default function VisitaForm() {
             ...form,
             usuario_id: userId,
             up_id: upId,
+            visita_id: visita?.id,
             tipo_visita_id: visita?.TipoVisita,
             funcionario_id: visita?.Funcionario,
             administrador_id: visita?.Administrador,

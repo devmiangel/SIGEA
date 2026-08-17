@@ -4,10 +4,11 @@ from ..models import Solicitudes
 
 class SolicitudesSerializer(serializers.ModelSerializer):
     solicitante = serializers.SerializerMethodField()
+    tipo_up = serializers.CharField(source='UP.TipoUP.TipoUP', read_only=True, allow_null=True)
 
     class Meta:
         model = Solicitudes
-        fields = ['id', 'UP', 'FechaSolicitud', 'MotivoSolicitud', 'Observacion', 'Direccion', 'Estado', 'Usuario', 'solicitante']
+        fields = ['id', 'UP', 'tipo_up', 'FechaSolicitud', 'MotivoSolicitud', 'Observacion', 'Direccion', 'Estado', 'Usuario', 'solicitante']
 
     def get_solicitante(self, obj):
         persona = getattr(obj.Usuario, 'persona', None)

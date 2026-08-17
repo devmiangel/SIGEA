@@ -45,6 +45,7 @@ class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     motivo_id = serializers.IntegerField(required=False, allow_null=True)
     estado_id = serializers.IntegerField(required=False, allow_null=True)
     up_id = serializers.IntegerField(required=False, allow_null=True)
+    visita_id = serializers.IntegerField(required=False, allow_null=True)
     motivo_admin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validar_firma(self, value, nombre):
