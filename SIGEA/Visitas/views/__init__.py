@@ -7,6 +7,10 @@ from .catalogs import (
     InsumoVisitaViewSet,
     CalificacionesViewSet,
     InfoVisitaViewSet,
+    ServiciosPagosViewSet,
+    AperosViewSet,
+    PajillasViewSet,
+    VisitasServiciosPagosViewSet,
 )
 from .solicitudes import (
     crear_solicitud,

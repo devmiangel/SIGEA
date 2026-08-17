@@ -20,7 +20,7 @@ class Solicitudes(models.Model):
     UP = models.ForeignKey(UP, on_delete=models.PROTECT, blank=True, null=True)
     FechaSolicitud = models.DateField(auto_now_add=True)
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
-    Observacion = models.CharField(max_length=255)
+    Observacion = models.TextField()
     Direccion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
     Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
@@ -49,6 +49,38 @@ class Visitas(models.Model):
     def __str__(self):
         return str(self.TipoVisita.TipoVisita)
 
+class ServiciosPagos(models.Model):
+    ServicioPago = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.ServicioPago
+
+class Aperos(models.Model):
+    Apero = models.CharField(max_length=255)
+    ValorHora = models.IntegerField()
+
+    def __str__(self):
+        return self.Apero
+
+class Pajillas(models.Model):
+    Pajilla = models.CharField(max_length=255)
+    ValorPajilla = models.IntegerField()
+
+    def __str__(self):
+        return self.Pajilla
+
+class VisitasServiciosPagos(models.Model):
+    Visita = models.ForeignKey(Visitas, on_delete=models.CASCADE)
+    ServicioPago = models.ForeignKey(ServiciosPagos, on_delete=models.PROTECT)
+    Apero = models.ForeignKey(Aperos, on_delete=models.PROTECT, blank=True, null=True)
+    NumeroHoras = models.IntegerField(blank=True, null=True)
+    NumeroPajillas = models.IntegerField(blank=True, null=True)
+    Pajilla = models.ForeignKey(Pajillas, on_delete=models.PROTECT, blank=True, null=True)
+    Toro = models.BooleanField(blank=True, null=True)
+
+    def __str__(self):
+        return self.ServicioPago
+
 class InsumoVisita(models.Model):
     Visita = models.ForeignKey(Visitas, on_delete=models.CASCADE)
     InventarioFuncionario = models.ForeignKey(InventarioFuncionario, on_delete=models.PROTECT)
@@ -69,3 +101,8 @@ class InfoVisita(models.Model):
     ObservacionVisita = models.TextField()
     AccionSeguimiento = models.CharField(max_length=255)
     Firmado = models.BooleanField(default=False)
+    DiagnosticoPresuntivo = models.CharField(max_length=255)
+    Acciones = models.CharField(max_length=255)
+    HoraInicio = models.DateTimeField()
+    HoraSalida = models.DateTimeField()
+ 

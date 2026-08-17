@@ -7,6 +7,10 @@ from ..models import (
     InsumoVisita,
     Calificaciones,
     InfoVisita,
+    ServiciosPagos,
+    Aperos,
+    Pajillas,
+    VisitasServiciosPagos
 )
 
 class MotivosSolicitudesSerializer(serializers.ModelSerializer):
@@ -38,3 +42,28 @@ class InfoVisitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfoVisita
         fields = '__all__'
+
+class ServiciosPagosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiciosPagos
+        fields = '__all__'
+
+class AperosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Aperos
+        fields = '__all__'
+
+class PajillasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pajillas
+        fields = '__all__'
+
+class AperosSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Aperos
+		fields = '__all__'
+
+class VisitasServiciosPagosSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = VisitasServiciosPagos
+		fields = '__all__'

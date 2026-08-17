@@ -116,7 +116,10 @@ class InfoProduccionAnimalSerializer(PermitirVaciosMixin, serializers.ModelSeria
                             DetalleAves.objects.create(Raza=raza_obj, TipoAve=tipo_ave, Cantidad=detalles.get('Cantidad', 0))
                         elif grupo_nombre == 'Porcinos':
                             prop = get_o_crear(Propositos, Proposito=detalles.get('Proposito')) if detalles.get('Proposito') else None
-                            DetallePorcinos.objects.create(Raza=raza_obj, Proposito=prop, Chapeta=detalles.get('Chapeta', False))
+                            chapeta = detalles.get('Chapeta', False)
+                            if chapeta in (None, ''):
+                                chapeta = False
+                            DetallePorcinos.objects.create(Raza=raza_obj, Proposito=prop, Chapeta=bool(chapeta))
                         elif grupo_nombre in ['Equinos', 'Caprinos', 'Ovinos', 'Conejos', 'Curies']:
                             prop = get_o_crear(Propositos, Proposito=detalles.get('Proposito')) if detalles.get('Proposito') else None
                             model_map = {

@@ -33,7 +33,7 @@ class Command(BaseCommand):
         Estados.objects.get_or_create(id=3, defaults={'Estado': 'Rechazado'})
 
         self.seed_maestro(TiposVisitas, 'TipoVisita', [
-            'Caracterización', 'Pecuaria', 'Agrícola', 'Agropecuaria'
+            'Caracterización', 'Pecuaria', 'Agrícola', 'Agropecuaria', 'Servicios Pagos'
         ])
 
         self.seed_maestro(TiposNivelesEducativos, 'TipoNivelEducativo', [

@@ -30,7 +30,7 @@ def _datos_desde_visita(visita):
 
     vereda_sector = visita.Ubicacion or ''
     up = solicitud.UP
-    if up is not None and up.Predio is not None:
+    if not vereda_sector and up is not None and up.Predio is not None:
         sector = up.Predio.Sector
         if sector:
             vereda_sector = f"{sector.Vereda.NombreVereda} - {sector.NombreSector}" if sector.Vereda else sector.NombreSector
@@ -55,7 +55,7 @@ def _datos_desde_visita(visita):
         'telefono': telefono,
         'tipo_visita': visita.TipoVisita.TipoVisita,
         'descripcion_solicitud': solicitud.Observacion or '',
-        'diagnostico_presuntivo': '',
+        'diagnostico_presuntivo': info_visita.DiagnosticoPresuntivo if info_visita else '',
         'fecha_visita': str(visita.FechaYHoraVisita),
         'funcionario': (
             ' '.join(filter(None, [
@@ -64,11 +64,11 @@ def _datos_desde_visita(visita):
             ])) if funcionario_persona else ''
         ),
         'cc_funcionario': funcionario_persona.numero_documento if funcionario_persona else '',
-        'acciones': [],
-        'hora_inicio': '',
+        'acciones': list(info_visita.Acciones) if info_visita else [],
+        'hora_inicio': info_visita.HoraInicio if info_visita else '',
         'accion_tomada': info_visita.AccionSeguimiento if info_visita else '',
         'observaciones': info_visita.ObservacionVisita if info_visita else '',
-        'hora_salida': '',
+        'hora_salida': info_visita.HoraSalida if info_visita else '',
         'calificacion': info_visita.Calificacion.Calificacion if info_visita else '',
         'firma_usuario': visita.FirmaProductor or '',
         'firma_funcionario': visita.FirmaFuncionario or '',
@@ -512,14 +512,14 @@ def generar_visita_tecnica(salida, datos=None):
     checkbox(LEFT + 190, y_bot + 5, "REGULAR")
     checkbox(LEFT + 290, y_bot + 5, "BUENO")
     checkbox(LEFT + 380, y_bot + 5, "EXCELENTE")
-    cal = (datos.get("calificacion") or "").lower()
+    cal = (datos.get("calificacion") or "").lower().replace("á", "a").replace("é", "e")
     if cal in ("malo", "m"):
         marcar_checkbox(LEFT + 100, y_bot + 5)
     elif cal in ("regular", "r"):
         marcar_checkbox(LEFT + 190, y_bot + 5)
-    elif cal in ("bueno", "b"):
+    elif cal in ("bueno", "buen", "b"):
         marcar_checkbox(LEFT + 290, y_bot + 5)
-    elif cal in ("excelente", "e"):
+    elif cal in ("excelente", "excelent", "e"):
         marcar_checkbox(LEFT + 380, y_bot + 5)
     y = y_bot
 

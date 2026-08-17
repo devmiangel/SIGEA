@@ -12,6 +12,10 @@ from ..models import (
     InsumoVisita,
     Calificaciones,
     InfoVisita,
+    ServiciosPagos,
+    Aperos,
+    Pajillas,
+    VisitasServiciosPagos
 )
 
 from ..serializers import (
@@ -23,6 +27,11 @@ from ..serializers import (
     InsumoVisitaSerializer,
     CalificacionesSerializer,
     InfoVisitaSerializer,
+    ServiciosPagosSerializer,
+    AperosSerializer,
+    PajillasSerializer,
+    VisitasServiciosPagosSerializer
+
 )
 
 class MotivosSolicitudesViewSet(viewsets.ModelViewSet):
@@ -63,7 +72,14 @@ class VisitasViewSet(viewsets.ModelViewSet):
         estado = request.data.get('estado')
 
         if estado is not None:
-            if bool(estado) and not visita.estado:
+            if isinstance(estado, bool):
+                estado_valido = bool(estado)
+            elif isinstance(estado, str):
+                estado_valido = estado.strip().lower() in ('true', '1', 'si')
+            else:
+                estado_valido = bool(estado)
+
+            if estado_valido and not visita.estado:
                 # La UP solo vuelve a validacion cuando la visita es de caracterizacion.
                 # Las visitas de seguimiento/tecnica no deben reabrir su validacion.
                 if _es_visita_caracterizacion(visita):
@@ -90,3 +106,19 @@ class CalificacionesViewSet(viewsets.ModelViewSet):
 class InfoVisitaViewSet(viewsets.ModelViewSet):
     queryset = InfoVisita.objects.all()
     serializer_class = InfoVisitaSerializer
+
+class ServiciosPagosViewSet(viewsets.ModelViewSet):
+    queryset = ServiciosPagos.objects.all()
+    serializer_class = ServiciosPagosSerializer
+
+class AperosViewSet(viewsets.ModelViewSet):
+    queryset = Aperos.objects.all()
+    serializer_class = AperosSerializer
+
+class PajillasViewSet(viewsets.ModelViewSet):
+    queryset = Pajillas.objects.all()
+    serializer_class = PajillasSerializer
+
+class VisitasServiciosPagosViewSet(viewsets.ModelViewSet):
+    queryset = VisitasServiciosPagos.objects.all()
+    serializer_class = VisitasServiciosPagosSerializer

@@ -5,6 +5,10 @@ from .catalogs import (
     InsumoVisitaSerializer,
     CalificacionesSerializer,
     InfoVisitaSerializer,
+    ServiciosPagosSerializer,
+    AperosSerializer,
+    PajillasSerializer,
+    VisitasServiciosPagosSerializer,
 )
 from .solicitudes import SolicitudesSerializer
 from .visitas import VisitasSerializer
