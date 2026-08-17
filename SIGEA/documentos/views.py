@@ -9,6 +9,7 @@ import unicodedata
 from Visitas.models import Visitas
 from .services.pdf_service_visita import generar_documento_visita_bytes
 from .services.pdf_service_caracterizacion import generar_documento_caracterizacion_bytes
+from .services.pdf_service_recibo import generar_documento_recibo_bytes
 
 
 def normalizar_tipo(tipo):
@@ -20,12 +21,19 @@ def es_caracterizacion(visita):
     return normalizar_tipo(visita.TipoVisita.TipoVisita) == 'caracterizacion'
 
 
+def es_recibo(visita):
+    return normalizar_tipo(visita.TipoVisita.TipoVisita) == 'servicios pagos'
+
+
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
 def generar_documento_visita(request, visita_id):
     visita = get_object_or_404(Visitas, id=visita_id)
     try:
-        if es_caracterizacion(visita):
+        if es_recibo(visita):
+            pdf_bytes = generar_documento_recibo_bytes(visita_id)
+            nombre_archivo = f"recibo_{visita_id}.pdf"
+        elif es_caracterizacion(visita):
             pdf_bytes = generar_documento_caracterizacion_bytes(visita_id)
             nombre_archivo = f"caracterizacion_{visita_id}.pdf"
         else:

@@ -63,7 +63,7 @@ class Aperos(models.Model):
 
 class Pajillas(models.Model):
     Pajilla = models.CharField(max_length=255)
-    valorPajilla = models.IntegerField()
+    ValorPajilla = models.IntegerField()
 
     def __str__(self):
         return self.Pajilla
@@ -104,3 +104,4 @@ class InfoVisita(models.Model):
     Acciones = models.CharField(max_length=255)
     HoraInicio = models.DateTimeField()
     HoraSalida = models.DateTimeField()
+ 

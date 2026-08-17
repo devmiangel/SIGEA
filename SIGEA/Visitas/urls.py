@@ -11,6 +11,10 @@ router.register(r'visitas', VisitasViewSet)
 router.register(r'insumoVisita', InsumoVisitaViewSet)
 router.register(r'calificaciones', CalificacionesViewSet)
 router.register(r'infoVisita', InfoVisitaViewSet)
+router.register(r'serviciosPagos', ServiciosPagosViewSet)
+router.register(r'aperos', AperosViewSet)
+router.register(r'pajillas', PajillasViewSet)
+router.register(r'visitasServiciosPagos', VisitasServiciosPagosViewSet)
 
 urlpatterns = [
     path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
