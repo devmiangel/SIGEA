@@ -19,6 +19,7 @@ import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 import VisitasContentAdmin from "../pages/Content/adminContent/VisitasContentAdmin";
 
 import InvSourceContentAdmin from "../pages/Content/adminContent/InvSourceConetn";
+import SolicitudesInsumoContentAdmin from "../pages/Content/adminContent/SolicitudesInsumoContentAdmin";
 import InvToolsContentAdmin from "../pages/Content/adminContent/InvToolsContentAdmin";
 import InvVehicleContentAdmin from "../pages/Content/adminContent/InvVehicleContentAdmin";
 import InvVehicleFormContentAdmin from "../pages/Content/adminContent/InvVehicleFormContentAdmin";
@@ -58,6 +59,7 @@ export default function SigeaRoutes(){
                 <Route path="visitas" element={<VisitasContentAdmin/>}/> 
 
                 <Route path='inventario/insumos' element={<InvSourceContentAdmin/>}/>
+                <Route path='inventario/insumos/solicitudes' element={<SolicitudesInsumoContentAdmin/>}/>
                 <Route path='inventario/insumos/nuevo' element={<InsumoFormContentAdmin/>}/>
                 <Route path='inventario/insumos/actualizar/:insumoId' element={<InsumoFormContentAdmin/>}/>
                 <Route path='inventario/herramientas' element={<InvToolsContentAdmin/>}/>

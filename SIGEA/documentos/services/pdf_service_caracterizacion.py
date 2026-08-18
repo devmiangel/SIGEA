@@ -394,11 +394,28 @@ def generar_caracterizacion(salida, datos=None):
 
     det = lambda a: (a or {}).get('Detalles') or {}
 
+    def razas_nombres(a):
+        return ', '.join(r.get('Raza', '') for r in (a or {}).get('Razas') or [] if r.get('Raza'))
+
+    def total_de(a):
+        razas = (a or {}).get('Razas') or []
+        if razas:
+            return sum(r.get('Cantidad') or 0 for r in razas)
+        return (a or {}).get('CantidadTotal') or ''
+
+    def detalles_de(a):
+        if not a:
+            return {}
+        razas = a.get('Razas') or []
+        if razas:
+            return razas[0].get('Detalles') or {}
+        return a.get('Detalles') or {}
+
     # BOVINOS
     bovinos = _animal(datos, 'Bovinos')
-    bd = det(bovinos)
+    bd = detalles_de(bovinos)
     y = pecuario_pair(y, "BOVINOS", "Cantidad:", "Raza Predominante:",
-                      str(bovinos.get('CantidadTotal') if bovinos else ''), bd.get('Raza', ''))
+                      str(total_de(bovinos)), razas_nombres(bovinos))
     y = pecuario_pair(y, "", "# De Machos:", "# De Hembras:",
                       str(bd.get('Machos') or ''), str(bd.get('Hembras') or ''))
     prop = bd.get('Proposito', '')
@@ -409,19 +426,21 @@ def generar_caracterizacion(salida, datos=None):
 
     # AVES
     aves = _animal(datos, 'Aves')
-    ad = det(aves)
+    ad = aves.get('Detalles') or {}
     y = pecuario_pair(y, "AVES", "# Gallinas:", "Tipo:",
-                      str(aves.get('CantidadTotal') if aves else ''), ad.get('TipoAve', ''))
-    y = pecuario_pair(y, "", "# Pollos:", "Codornices:")
-    y = pecuario_pair(y, "", "# Patos:", "Otros:")
+                      str(ad.get('Gallinas') or ''), ad.get('TipoGallina', ''))
+    y = pecuario_pair(y, "", "# Pollos:", "Codornices:",
+                      str(ad.get('Pollos') or ''), str(ad.get('Codornices') or ''))
+    y = pecuario_pair(y, "", "# Patos:", "Otros:",
+                      str(ad.get('Patos') or ''), str(ad.get('Otros') or ''))
 
     # PORCINOS
     porcinos = _animal(datos, 'Porcinos')
-    pd = det(porcinos)
+    pd = detalles_de(porcinos)
     y = row(y, 15, [(0.13, "PORCINOS", True, "left"), (0.17, "Cantidad:", True, "left"),
-                    (0.20, str(porcinos.get('CantidadTotal') if porcinos else ''), False, "left"),
+                    (0.20, str(total_de(porcinos)), False, "left"),
                     (0.20, "Chapeta:", True, "left"), (0.30, _si_no(pd.get('Chapeta')), False, "left")])
-    y = pecuario_wide(y, "", "Raza:", pd.get('Raza', ''))
+    y = pecuario_wide(y, "", "Raza:", razas_nombres(porcinos))
     y = pecuario_wide(y, "", "Propósito:", pd.get('Proposito', ''))
 
     # EQUINOS, CONEJOS/CURIES, OVINOS, CAPRINOS
@@ -430,23 +449,23 @@ def generar_caracterizacion(salida, datos=None):
             a = _animal(datos, 'Conejos') or _animal(datos, 'Curies')
         else:
             a = _animal(datos, grupo)
-        d = det(a)
-        y = pecuario_wide(y, etiqueta, "Cantidad:", str(a.get('CantidadTotal') if a else ''))
-        y = pecuario_wide(y, "", "Raza:", d.get('Raza', ''))
+        d = detalles_de(a)
+        y = pecuario_wide(y, etiqueta, "Cantidad:", str(total_de(a)))
+        y = pecuario_wide(y, "", "Raza:", razas_nombres(a))
         y = pecuario_wide(y, "", "Propósito:", d.get('Proposito', ''))
 
     # APICOLAS
     apicolas = _animal(datos, 'Abejas')
-    ad2 = det(apicolas)
-    y = pecuario_wide(y, "APICOLAS", "# Colmenas:", str(apicolas.get('CantidadTotal') if apicolas else ''))
-    y = pecuario_wide(y, "", "Raza:", ad2.get('Raza', ''))
+    ad2 = detalles_de(apicolas)
+    y = pecuario_wide(y, "APICOLAS", "# Colmenas:", str(total_de(apicolas)))
+    y = pecuario_wide(y, "", "Raza:", razas_nombres(apicolas))
     y = pecuario_wide(y, "", "Productos:", ad2.get('ProductosApicolas', ''))
 
     # PECES
     peces = _animal(datos, 'Peces')
-    fd = det(peces)
-    y = pecuario_wide(y, "PECES", "Cantidad:", str(peces.get('CantidadTotal') if peces else ''))
-    y = pecuario_wide(y, "", "Raza:", fd.get('Raza', ''))
+    fd = detalles_de(peces)
+    y = pecuario_wide(y, "PECES", "Cantidad:", str(total_de(peces)))
+    y = pecuario_wide(y, "", "Raza:", razas_nombres(peces))
     y = pecuario_wide(y, "", "# Estanques:", str(fd.get('Estanques') or ''))
 
     y -= 8

@@ -186,12 +186,29 @@ export default function UPDetailView() {
                             <ListaBloque
                                 titulo="Producción animal"
                                 items={secciones?.animal?.Animales}
-                                render={(i) => (
-                                    <div className="flex justify-between text-xs text-gray-600">
-                                        <span className="font-medium">{i.GrupoAnimal}</span>
-                                        <span>Cantidad: {i.CantidadTotal ?? 0}</span>
-                                    </div>
-                                )}
+                                render={(i) => {
+                                    const total = i.Razas
+                                        ? i.Razas.reduce((acc, r) => acc + (Number(r.Cantidad) || 0), 0)
+                                        : (i.CantidadTotal ?? 0)
+                                    const razas = i.Razas ? i.Razas.map((r) => r.Raza).filter(Boolean).join(', ') : ''
+                                    const d = i.Detalles || {}
+                                    const avesDetalle = ['Gallinas', 'Pollos', 'Patos', 'Codornices', 'Otros']
+                                        .filter((k) => Number(d[k]))
+                                        .map((k) => `${k}: ${d[k]}`)
+                                        .join(', ')
+                                    return (
+                                        <div className="flex flex-col gap-0.5 text-xs text-gray-600">
+                                            <div className="flex justify-between">
+                                                <span className="font-medium">{i.GrupoAnimal}</span>
+                                                <span>Cantidad: {total}</span>
+                                            </div>
+                                            {razas && <span className="text-gray-500">Razas: {razas}</span>}
+                                            {i.GrupoAnimal === 'Aves' && avesDetalle && (
+                                                <span className="text-gray-500">{avesDetalle}</span>
+                                            )}
+                                        </div>
+                                    )
+                                }}
                             />
                             <Bloque titulo="Actualización">
                                 <Fila etiqueta="Fecha de actualización" valor={secciones?.adicional?.FechaActualizacion ?? up?.FechaActualizacion} />

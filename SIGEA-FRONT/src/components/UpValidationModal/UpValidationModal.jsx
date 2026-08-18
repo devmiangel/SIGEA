@@ -1,32 +1,17 @@
 import { useEffect, useRef } from 'react'
 import Swal from 'sweetalert2'
-import { AGRO_COLORS, ESTADO_VISITA } from '../../utils/agroConstants'
+import { AGRO_COLORS, ESTADO_VISITA, UP_ESTADO_RAW, esUPValidada, normalizarEstadoUP } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
 import { validarUP, generarInformeVisita } from '../../services/agroService'
 
-const esCaracterizacion = (visita) => {
-    const tipo = (visita?.tipo_visita_label ?? '').toLowerCase()
-    return tipo === 'caracterización' || tipo === 'caracterizacion'
-}
-
 const descargarInforme = async (visita) => {
-    if (esCaracterizacion(visita)) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Informe no disponible',
-            text: 'El informe de visita técnica solo se genera para visitas que no son de caracterización.',
-            confirmButtonColor: AGRO_COLORS.primary
-        })
-        return
-    }
-
     try {
-        const blob = await generarInformeVisita(visita.id)
+        const { blob, nombreArchivo } = await generarInformeVisita(visita.id)
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `visita_${visita.id}.pdf`
+        a.download = nombreArchivo
         document.body.appendChild(a)
         a.click()
         a.remove()
@@ -67,13 +52,13 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
         const predio = escapeHtml(solInfo.predio ?? solInfo.up ?? '—')
         const upId = solInfo.up_id
         const upEstado = solInfo.up_estado ?? 'En revision'
-        const validada = upEstado !== 'En revision'
+        const validada = esUPValidada(upEstado)
         const fecha = formatFecha(visita.FechaYHoraVisita)
         const funcionario = escapeHtml(visita.funcionario_info?.nombre ?? '—')
         const administrador = escapeHtml(visita.administrador_info?.nombre ?? '—')
 
         const badgeEstado = validada
-            ? (upEstado === 'Aceptada'
+            ? (normalizarEstadoUP(upEstado) === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
                 ? '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;background:#d1fae5;color:#047857;"><span style="width:6px;height:6px;border-radius:50%;background:#059669;"></span>Validada</span>'
                 : '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;background:#fee2e2;color:#b91c1c;"><span style="width:6px;height:6px;border-radius:50%;background:#dc2626;"></span>Rechazada</span>')
             : '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;background:#fef3c7;color:#92400e;"><span style="width:6px;height:6px;border-radius:50%;background:#d97706;"></span>En proceso</span>'

@@ -23,6 +23,16 @@ export const ESTADO_SOLICITUD_INFO = {
     [ESTADO_SOLICITUD.RECHAZADO]: { label: 'Rechazado', class: 'bg-red-100 text-red-800' }
 }
 
+export const ESTADO_SOLICITUD_INSUMO = {
+    PENDIENTE: 'Pendiente',
+    RESUELTA: 'Resuelta'
+}
+
+export const ESTADO_SOLICITUD_INSUMO_INFO = {
+    [ESTADO_SOLICITUD_INSUMO.PENDIENTE]: { label: 'Pendiente', class: 'bg-amber-100 text-amber-700' },
+    [ESTADO_SOLICITUD_INSUMO.RESUELTA]: { label: 'Resuelta', class: 'bg-green-100 text-green-700' }
+}
+
 export const ESTADO_LABEL = {
     [ESTADO_SOLICITUD.EN_PROCESO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.EN_PROCESO].label,
     [ESTADO_SOLICITUD.APROBADO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.APROBADO].label,
@@ -40,6 +50,20 @@ export const UP_ESTADO_RAW = {
     EN_REVISION: 'En revision',
     ACEPTADA: 'Aceptada',
     RECHAZADA: 'Rechazada'
+}
+
+export const normalizarEstadoUP = (estado) => {
+    return String(estado ?? '')
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+}
+
+export const esUPValidada = (estado) => {
+    const normalizado = normalizarEstadoUP(estado)
+    return normalizado === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
+        || normalizado === normalizarEstadoUP(UP_ESTADO_RAW.RECHAZADA)
 }
 
 export const UP_ESTADO_STYLE = {

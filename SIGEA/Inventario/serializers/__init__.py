@@ -17,4 +17,5 @@ from .insumos import (
     InsumosSerializer,
     InventarioFuncionarioSerializer,
     CardexInsumoFuncionarioSerializer,
+    SolicitudInsumoSerializer,
 )

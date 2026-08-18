@@ -151,6 +151,7 @@ class FormularioVisitaTecnicaView(APIView):
                     solicitud.motivoAdmin = data.get('motivo_admin', None)
                     solicitud.save()
                 visita.FechaYHoraVisita = fhv
+                visita.Ubicacion = data.get('vereda_sector') or None
                 visita.estado = True
                 visita.FirmaProductor = data.get('firma_usuario') or ''
                 visita.FirmaFuncionario = data.get('firma_funcionario') or ''
@@ -173,7 +174,7 @@ class FormularioVisitaTecnicaView(APIView):
                 Administrador=administrador,
                 TipoVisita=tipo_visita,
                 FechaYHoraVisita=fhv,
-            Ubicacion=data.get('vereda_sector') or None,
+                Ubicacion=data.get('vereda_sector') or None,
                 estado=True,
                 FirmaProductor=data.get('firma_usuario') or '',
                 FirmaFuncionario=data.get('firma_funcionario') or '',

@@ -11,6 +11,7 @@ from .catalogs import (
     TiposAvesViewSet,
     PropositosViewSet,
     AnimalesViewSet,
+    AnimalesUpsViewSet,
     RazasViewSet,
     ProductosApicolasViewSet,
     DetalleBovinosViewSet,

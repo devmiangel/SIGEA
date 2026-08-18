@@ -1,4 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from ..models import (
     TipoUP,
@@ -13,6 +15,7 @@ from ..models import (
     TiposAves,
     Propositos,
     Animales,
+    AnimalesUps,
     Razas,
     ProductosApicolas,
     DetalleBovinos,
@@ -40,6 +43,7 @@ from ..serializers import (
     TiposAvesSerializer,
     PropositosSerializer,
     AnimalesSerializer,
+    AnimalesUpsSerializer,
     RazasSerializer,
     ProductosApicolasSerializer,
     DetalleBovinosSerializer,
@@ -90,6 +94,13 @@ class GrupoAnimalViewSet(viewsets.ModelViewSet):
     queryset = GrupoAnimal.objects.all()
     serializer_class = GrupoAnimalSerializer
 
+    @action(detail=True, methods=['get'])
+    def razas(self, request, pk=None):
+        grupo = self.get_object()
+        razas = Animales.objects.filter(GrupoAnimal=grupo).exclude(Raza__isnull=True)\
+            .values_list('Raza__id', 'Raza__Raza').order_by('Raza__Raza')
+        return Response([{'id': rid, 'Raza': nombre} for rid, nombre in razas])
+
 class TiposAvesViewSet(viewsets.ModelViewSet):
     queryset = TiposAves.objects.all()
     serializer_class = TiposAvesSerializer
@@ -102,9 +113,27 @@ class AnimalesViewSet(viewsets.ModelViewSet):
     queryset = Animales.objects.all()
     serializer_class = AnimalesSerializer
 
+class AnimalesUpsViewSet(viewsets.ModelViewSet):
+    queryset = AnimalesUps.objects.all()
+    serializer_class = AnimalesUpsSerializer
+
 class RazasViewSet(viewsets.ModelViewSet):
     queryset = Razas.objects.all()
     serializer_class = RazasSerializer
+
+    def create(self, request, *args, **kwargs):
+        nombre = (request.data.get('Raza') or '').strip()
+        if not nombre:
+            return Response({'Raza': ['Este campo es requerido.']}, status=status.HTTP_400_BAD_REQUEST)
+        raza = Razas.objects.filter(Raza__iexact=nombre).first()
+        if raza is None:
+            raza = Razas.objects.create(Raza=nombre)
+        grupo_id = request.data.get('grupoId')
+        if grupo_id:
+            grupo = GrupoAnimal.objects.filter(pk=grupo_id).first()
+            if grupo is not None:
+                Animales.objects.get_or_create(GrupoAnimal=grupo, Raza=raza)
+        return Response(RazasSerializer(raza).data, status=status.HTTP_201_CREATED)
 
 class ProductosApicolasViewSet(viewsets.ModelViewSet):
     queryset = ProductosApicolas.objects.all()

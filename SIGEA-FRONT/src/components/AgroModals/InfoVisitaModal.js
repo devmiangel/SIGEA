@@ -15,11 +15,11 @@ const iconoUbicacion = `<svg width="16" height="16" viewBox="0 0 24 24" fill="no
 
 async function descargarInforme(visita) {
     try {
-        const blob = await generarInformeVisita(visita.id)
+        const { blob, nombreArchivo } = await generarInformeVisita(visita.id)
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `visita_${visita.id}.pdf`
+        a.download = nombreArchivo
         document.body.appendChild(a)
         a.click()
         a.remove()
@@ -28,7 +28,7 @@ async function descargarInforme(visita) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudo generar el informe. Verifica que la visita no sea de caracterización e intenta de nuevo.',
+            text: 'No se pudo generar el informe. Intenta de nuevo.',
             confirmButtonColor: AGRO_COLORS.primary
         })
     }

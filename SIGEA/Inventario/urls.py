@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import *
 
@@ -16,5 +17,9 @@ router.register(r'asignacionHerramientas', AsignacionHerramientasViewSet)
 router.register(r'insumos', InsumosViewSet)
 router.register(r'inventarioFuncionario', InventarioFuncionarioViewSet)
 router.register(r'cardexInsumoFuncionario', CardexInsumoFuncionarioViewSet)
+router.register(r'solicitudInsumo', SolicitudInsumoViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('solicitudInsumo/crear/', crear_solicitud_insumo, name='crear_solicitud_insumo'),
+    path('solicitudInsumo/<int:solicitud_id>/asignar/', asignar_solicitud_insumo, name='asignar_solicitud_insumo'),
+] + router.urls

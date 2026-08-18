@@ -6,16 +6,16 @@ import {
 import { useSeccion } from '../../../../hooks/useSeccion'
 
 const CAMPOS = [
-    { name: 'PrimerNombreProductor', label: 'Primer nombre', requerido: true },
-    { name: 'SegundoNombreProductor', label: 'Segundo nombre' },
-    { name: 'PrimerApellidoProductor', label: 'Primer apellido', requerido: true },
-    { name: 'SegundoApellidoProductor', label: 'Segundo apellido' },
-    { name: 'DocumentoProductor', label: 'Documento', requerido: true },
+    { name: 'PrimerNombreProductor', label: 'Primer nombre', requerido: true, noEditable: true },
+    { name: 'SegundoNombreProductor', label: 'Segundo nombre', noEditable: true },
+    { name: 'PrimerApellidoProductor', label: 'Primer apellido', requerido: true, noEditable: true },
+    { name: 'SegundoApellidoProductor', label: 'Segundo apellido', noEditable: true },
+    { name: 'DocumentoProductor', label: 'Documento', requerido: true, noEditable: true },
     { name: 'RazonSocialProductor', label: 'Razón social' },
     { name: 'NitProductor', label: 'NIT' },
-    { name: 'Celular', label: 'Celular', requerido: true },
-    { name: 'Correo', label: 'Correo', requerido: true },
-    { name: 'FechaNacimiento', label: 'Fecha de nacimiento', type: 'date', requerido: true },
+    { name: 'Celular', label: 'Celular', requerido: true, noEditable: true },
+    { name: 'Correo', label: 'Correo', requerido: true, noEditable: true },
+    { name: 'FechaNacimiento', label: 'Fecha de nacimiento', type: 'date', requerido: true, noEditable: true },
 ]
 
 const INICIAL = {
@@ -77,6 +77,7 @@ const SeccionProductor = forwardRef(({ userId, solicitudId }, ref) => {
                         value={form[c.name]}
                         onChange={onChange}
                         required={c.requerido}
+                        disabled={c.noEditable}
                     />
                 ))}
                 <CampoSelectDinamico name="NivelEducativo" label="Nivel educativo" value={form.NivelEducativo}

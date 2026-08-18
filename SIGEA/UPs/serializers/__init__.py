@@ -11,6 +11,7 @@ from .catalogs import (
     TiposAvesSerializer,
     PropositosSerializer,
     AnimalesSerializer,
+    AnimalesUpsSerializer,
     RazasSerializer,
     ProductosApicolasSerializer,
     DetalleBovinosSerializer,

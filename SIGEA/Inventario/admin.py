@@ -12,4 +12,4 @@ class VehiculosAdmin(admin.ModelAdmin):
 
 admin.site.register([TiposVehiculos, TiposCombustibles, MarcasVehiculos, LineasVehiculos, DetalleVehiculos])
 admin.site.register([Conductores, RegistroAsignacionVehiculos, TiposHerramientas, Herramientas, AsignacionHerramientas])
-admin.site.register([Insumos, InventarioFuncionario, CardexInsumoFuncionario])
+admin.site.register([Insumos, InventarioFuncionario, CardexInsumoFuncionario, SolicitudInsumo])

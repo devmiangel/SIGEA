@@ -75,6 +75,14 @@ export const marcarVisitaRealizada = async (visitaId) => {
     return response.data;
 }
 
+export const guardarFirmasVisita = async (visitaId, firmaProductor, firmaFuncionario) => {
+    const response = await api.patch(`/visitas/visitas/${visitaId}/`, {
+        FirmaProductor: firmaProductor,
+        FirmaFuncionario: firmaFuncionario,
+    });
+    return response.data;
+}
+
 export const atenderSolicitud = async (solicitudId, data) => {
     const response = await api.post(`/visitas/solicitudes/${solicitudId}/atender/`, data);
     return response.data;
@@ -87,7 +95,10 @@ export const rechazarSolicitud = async (solicitudId) => {
 
 export const generarInformeVisita = async (visitaId) => {
     const response = await api.get(`/documentos/visita/${visitaId}/generar/`, { responseType: 'blob' });
-    return response.data;
+    const disposition = response.headers?.['content-disposition'] ?? ''
+    const match = disposition.match(/filename="?([^";]+)"?/)
+    const nombreArchivo = match ? match[1] : `visita_${visitaId}.pdf`
+    return { blob: response.data, nombreArchivo }
 }
 
 export const getInsumos = async () => {
@@ -197,6 +208,26 @@ export const getVehiculo = async (vehiculoId) => {
 
 export const getInventarioFuncionario = async () => {
     const response = await api.get('/inventario/inventarioFuncionario/');
+    return response.data;
+}
+
+export const getCardexInsumoFuncionario = async () => {
+    const response = await api.get('/inventario/cardexInsumoFuncionario/');
+    return response.data;
+}
+
+export const crearSolicitudInsumo = async (data) => {
+    const response = await api.post('/inventario/solicitudInsumo/crear/', data);
+    return response.data;
+}
+
+export const getSolicitudesInsumo = async () => {
+    const response = await api.get('/inventario/solicitudInsumo/');
+    return response.data;
+}
+
+export const asignarSolicitudInsumo = async (solicitudId, data) => {
+    const response = await api.post(`/inventario/solicitudInsumo/${solicitudId}/asignar/`, data);
     return response.data;
 }
 

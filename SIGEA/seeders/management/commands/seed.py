@@ -49,7 +49,7 @@ class Command(BaseCommand):
 
         # --- UPs ---
         self.seed_maestro(TipoUP, 'TipoUP', [
-            'Agrícola', 'Pecuaria', 'Agroindustrial', 'Forestal', 'Turismo Rural'
+            'Agrícola', 'Pecuaria', 'Agroindustrial', 'Agropecuaria'
         ])
 
         self.seed_maestro(ActividadUP, 'Actividad', [

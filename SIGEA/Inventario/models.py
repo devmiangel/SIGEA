@@ -121,7 +121,18 @@ class CardexInsumoFuncionario(models.Model):
     Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE)
     Cantidad = models.IntegerField()
     FechaAsignacion = models.DateField()
+    Observacion = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Funcionario: {self.Funcionario} | Insumo: {self.Insumo} | Cantidad: {self.Cantidad}"
+
+class SolicitudInsumo(models.Model):
+    Insumo = models.ForeignKey(Insumos, on_delete=models.CASCADE)
+    Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
+    Cantidad = models.IntegerField()
+    FechaSolicitud = models.DateField(auto_now_add=True)
+    Estado = models.CharField(max_length=50, default='Pendiente')
+
+    def __str__(self):
+        return f"Solicitud {self.id} | Funcionario: {self.Funcionario} | Insumo: {self.Insumo} | Cantidad: {self.Cantidad}"
 #FIN TABLAS DE INSUMOS

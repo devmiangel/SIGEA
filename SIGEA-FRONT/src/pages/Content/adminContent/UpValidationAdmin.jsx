@@ -5,15 +5,23 @@ import TabList from "../../../components/TabList/TabList"
 import UpValidationCard from "../../../components/UpValidationCard/UpValidationCard"
 import UpValidationModal from "../../../components/UpValidationModal/UpValidationModal"
 import { useVisitas } from "../../../hooks/useVisitas"
-import { ESTADO_VISITA, UP_ESTADO_RAW } from "../../../utils/agroConstants"
+import { ESTADO_VISITA, UP_ESTADO_RAW, esUPValidada, normalizarEstadoUP } from "../../../utils/agroConstants"
 
 const mapEstado = (upEstado) => {
-    if (upEstado === UP_ESTADO_RAW.ACEPTADA) return ESTADO_VISITA.ACEPTADA
-    if (upEstado === UP_ESTADO_RAW.RECHAZADA) return ESTADO_VISITA.RECHAZADA
+    if (esUPValidada(upEstado)) {
+        return normalizarEstadoUP(upEstado) === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
+            ? ESTADO_VISITA.ACEPTADA
+            : ESTADO_VISITA.RECHAZADA
+    }
     return ESTADO_VISITA.PENDIENTE
 }
 
-const esPendiente = (upEstado) => upEstado === UP_ESTADO_RAW.EN_REVISION
+const esPendiente = (upEstado) => !esUPValidada(upEstado)
+
+const esCaracterizacion = (tipo) => {
+    const normalizado = (tipo ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return normalizado === 'caracterizacion'
+}
 
 export default function UpValidationAdmin(){
     const { visitas, loading, refresh } = useVisitas()
@@ -21,7 +29,10 @@ export default function UpValidationAdmin(){
     const [selectedId, setSelectedId] = useState(null)
     const [modalKey, setModalKey] = useState(0)
 
-    const realizadas = useMemo(() => (visitas || []).filter(v => !!v.estado), [visitas])
+    const realizadas = useMemo(
+        () => (visitas || []).filter(v => !!v.estado && esCaracterizacion(v.tipo_visita_label)),
+        [visitas]
+    )
 
     const unicasPorUP = useMemo(() => {
         const porUP = new Map()

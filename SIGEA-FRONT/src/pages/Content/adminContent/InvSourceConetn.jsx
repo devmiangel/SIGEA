@@ -15,6 +15,10 @@ export default function InvSourceContentAdmin() {
         navigate('/administrador/inventario/insumos/nuevo')
     }
 
+    const handleSolicitudes = () => {
+        navigate('/administrador/inventario/insumos/solicitudes')
+    }
+
     const handleEditar = (insumo) => {
         navigate(`/administrador/inventario/insumos/actualizar/${insumo.id}`)
     }
@@ -63,6 +67,12 @@ export default function InvSourceContentAdmin() {
                 message={'Lista y administra los insumos registrados en el sistema'}
                 colorLogo={AGRO_COLORS.primaryLight}
                 firstButton={
+                    <ButtonLink
+                        buttonText={'Solicitudes'}
+                        onClick={handleSolicitudes}
+                    />
+                }
+                secondButton={
                     <ButtonLink
                         buttonText={'Añadir insumo'}
                         onClick={handleAnadir}

@@ -13,6 +13,7 @@ from ..models import (
     TiposAves,
     Propositos,
     Animales,
+    AnimalesUps,
     Razas,
     ProductosApicolas,
     DetalleBovinos,
@@ -85,6 +86,11 @@ class PropositosSerializer(serializers.ModelSerializer):
 class AnimalesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Animales
+        fields = '__all__'
+
+class AnimalesUpsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnimalesUps
         fields = '__all__'
 
 class RazasSerializer(serializers.ModelSerializer):

@@ -107,20 +107,32 @@ class Propositos(models.Model):
     def __str__(self):
         return self.Proposito
 
-class Animales(models.Model):
-    GrupoAnimal = models.ForeignKey(GrupoAnimal, on_delete=models.PROTECT)
-    Cantidad = models.IntegerField(null=True, blank=True)
-    UP = models.ForeignKey(UP, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.GrupoAnimal} - {self.Cantidad}"
-
 class Razas(models.Model):
-    Raza = models.CharField(max_length=255)
-    Animal = models.ForeignKey(Animales, on_delete=models.CASCADE)
+    Raza = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.Raza
+
+class Animales(models.Model):
+    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    GrupoAnimal = models.ForeignKey(GrupoAnimal, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = [['GrupoAnimal', 'Raza']]
+
+    def __str__(self):
+        return f"{self.GrupoAnimal} - {self.Raza}"
+
+class AnimalesUps(models.Model):
+    Animal = models.ForeignKey(Animales, on_delete=models.CASCADE)
+    Cantidad = models.IntegerField(null=True, blank=True)
+    UP = models.ForeignKey(UP, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [['UP', 'Animal']]
+
+    def __str__(self):
+        return f"{self.Animal} - {self.Cantidad}"
 
 class ProductosApicolas(models.Model):
     ProductoApicolas = models.CharField(max_length=255)
@@ -129,46 +141,46 @@ class ProductosApicolas(models.Model):
         return self.ProductoApicolas
 
 class DetalleBovinos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
     NumeroMachos = models.IntegerField(null=True, blank=True)
     NumeroHembras = models.IntegerField(null=True, blank=True)
     RUV = models.CharField(max_length=255, null=True, blank=True)
 
 class DetalleAves(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     TipoAve = models.ForeignKey(TiposAves, on_delete=models.PROTECT, null=True, blank=True)
     Cantidad = models.IntegerField(null=True, blank=True)
 
 class DetallePorcinos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
     Chapeta = models.BooleanField(default=False)
 
 class DetalleEquinos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
 
 class DetalleCaprinos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
 
 class DetalleOvinos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
 
 class DetalleConejos(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
 
 class DetalleCuries(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     Proposito = models.ForeignKey(Propositos, on_delete=models.PROTECT, null=True, blank=True)
 
 class DetallePeces(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     NumeroEstanques = models.IntegerField(null=True, blank=True)
 
 class DetalleApicolas(models.Model):
-    Raza = models.ForeignKey(Razas, on_delete=models.PROTECT, null=True, blank=True)
+    AnimalesUps = models.ForeignKey(AnimalesUps, on_delete=models.CASCADE)
     ProductosApicolas = models.ForeignKey(ProductosApicolas, on_delete=models.PROTECT, null=True, blank=True)

@@ -1,19 +1,28 @@
 import { useState, useEffect, useCallback } from "react"
 import { Header } from "../../../components/Tettles-Buttons/Title"
+import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import TabList from "../../../components/TabList/TabList"
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 import BuildIcon from '@mui/icons-material/Build'
+import Swal from 'sweetalert2'
 import { useCurrentDataUser } from "../../../hooks/currentUserHook"
+import { AGRO_COLORS } from "../../../utils/agroConstants"
+import { abrirModalSolicitarInsumo } from "../../../components/AgroModals/SolicitarInsumoModal"
+import InsumoAsignadoCard from "../../../components/InsumoAsignadoCard/InsumoAsignadoCard"
+import { mostrarInfoInsumoAsignado } from "../../../components/AgroModals/InsumoAsignadoInfoModal"
+import { getUnidades } from "../../../services/caracterizacionService"
 import {
     getFuncionarios,
     getInventarioFuncionario,
+    getCardexInsumoFuncionario,
     getRegistroAsignacionVehiculos,
     getAsignacionHerramientas,
     getConductores,
     getInsumos,
     getHerramientas,
     getVehiculos,
+    crearSolicitudInsumo,
 } from "../../../services/agroService"
 
 export default function InventaryContentEmployee(){
@@ -25,6 +34,7 @@ export default function InventaryContentEmployee(){
     const [insumos, setInsumos] = useState([])
     const [vehiculos, setVehiculos] = useState([])
     const [herramientas, setHerramientas] = useState([])
+    const [catalogoInsumos, setCatalogoInsumos] = useState([])
 
     const cargarRecursos = useCallback(async () => {
         if (!user) return
@@ -33,7 +43,7 @@ export default function InventaryContentEmployee(){
         setError(null)
 
         try {
-            const [funcionarios, inventario, registros, asignaciones, conductores, insumosData, herramientasData, vehiculosData] = await Promise.all([
+            const [funcionarios, inventario, registros, asignaciones, conductores, insumosData, herramientasData, vehiculosData, cardexData, unidadesData] = await Promise.all([
                 getFuncionarios(),
                 getInventarioFuncionario(),
                 getRegistroAsignacionVehiculos(),
@@ -42,10 +52,13 @@ export default function InventaryContentEmployee(){
                 getInsumos(),
                 getHerramientas(),
                 getVehiculos(),
+                getCardexInsumoFuncionario(),
+                getUnidades(),
             ])
 
             const funcionarioActual = funcionarios.find((f) => f.usuario === user.id || f.email === user.email)
             setFuncionario(funcionarioActual ?? null)
+            setCatalogoInsumos(insumosData ?? [])
 
             if (!funcionarioActual) {
                 setInsumos([])
@@ -73,12 +86,27 @@ export default function InventaryContentEmployee(){
                 return acc
             }, {})
 
+            const unidadesMap = (unidadesData ?? []).reduce((acc, item) => {
+                acc[item.id] = item.Unidad
+                return acc
+            }, {})
+
+            const cardexMap = (cardexData ?? [])
+                .filter((item) => item.Funcionario === funcionarioActual.id)
+                .reduce((acc, item) => {
+                    if (!acc[item.Insumo] || item.id > acc[item.Insumo].id) acc[item.Insumo] = item
+                    return acc
+                }, {})
+
             setInsumos(
                 inventario
                     .filter((item) => item.Funcionario === funcionarioActual.id)
                     .map((item) => ({
                         ...item,
                         insumo: insumosMap[item.Insumo] ?? null,
+                        unidad_nombre: unidadesMap[(insumosMap[item.Insumo] ?? {}).Unidades] ?? null,
+                        observacion: cardexMap[item.Insumo]?.Observacion ?? null,
+                        fechaAsignacion: cardexMap[item.Insumo]?.FechaAsignacion ?? null,
                     }))
             )
 
@@ -127,6 +155,31 @@ export default function InventaryContentEmployee(){
         Herramientas: herramientas,
     }
 
+    const handleSolicitarInsumo = async () => {
+        try {
+            const result = await abrirModalSolicitarInsumo(catalogoInsumos)
+            if (!result.isConfirmed) return
+
+            await crearSolicitudInsumo(result.value)
+            Swal.fire({
+                icon: 'success',
+                title: 'Solicitud enviada',
+                text: 'Tu solicitud de insumo fue enviada correctamente.',
+                confirmButtonColor: AGRO_COLORS.primary,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            cargarRecursos()
+        } catch {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo enviar la solicitud. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
+    }
+
     return (
         <>
             <Header
@@ -134,6 +187,12 @@ export default function InventaryContentEmployee(){
                 headerText={'Recursos del funcionario'}
                 message={'Consulta los insumos, vehículos y herramientas asignados a tu usuario'}
                 colorLogo={'#3e9a8a'}
+                firstButton={
+                    <ButtonLink
+                        buttonText={'Solicitar insumo'}
+                        onClick={handleSolicitarInsumo}
+                    />
+                }
             />
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
                 <div className="mb-6 p-4 rounded-xl bg-[#f7fafc] border border-gray-200">
@@ -164,26 +223,15 @@ export default function InventaryContentEmployee(){
                                 : 'No hay herramientas asignadas.'}
                         </p>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <div className="space-y-3">
                             {activeTab === 'Insumos' && (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Insumo</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unidad</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {insumos.map((item) => (
-                                            <tr key={item.id}>
-                                                <td className="px-4 py-3 text-sm text-gray-900">{item.insumo?.Nombre ?? `ID ${item.Insumo}`}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-900">{item.Cantidad}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-500">{item.insumo?.Unidades ?? '—'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                insumos.map((item) => (
+                                    <InsumoAsignadoCard
+                                        key={item.id}
+                                        item={item}
+                                        onCardClick={mostrarInfoInsumoAsignado}
+                                    />
+                                ))
                             )}
 
                             {activeTab === 'Vehículos' && (

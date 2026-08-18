@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     TipoUP, ActividadUP, Unidades, UP, ArchivosUP, DetalleUP, ProductosUPs, 
     ProduccionUPAgricola, ProduccionUPAgroindustrial, GrupoAnimal, TiposAves, 
-    Propositos, Animales, Razas, ProductosApicolas, DetalleBovinos, DetalleAves
+    Propositos, Animales, AnimalesUps, Razas, ProductosApicolas, DetalleBovinos, DetalleAves
 )
 
 class DetalleUPInline(admin.StackedInline):
@@ -16,5 +16,5 @@ class UPAdmin(admin.ModelAdmin):
     inlines = [DetalleUPInline]
 
 admin.site.register([TipoUP, ActividadUP, Unidades, ArchivosUP, ProductosUPs])
-admin.site.register([ProduccionUPAgricola, ProduccionUPAgroindustrial, GrupoAnimal, TiposAves, Propositos, Animales, Razas])
+admin.site.register([ProduccionUPAgricola, ProduccionUPAgroindustrial, GrupoAnimal, TiposAves, Propositos, Animales, AnimalesUps, Razas])
 admin.site.register([ProductosApicolas, DetalleBovinos, DetalleAves])

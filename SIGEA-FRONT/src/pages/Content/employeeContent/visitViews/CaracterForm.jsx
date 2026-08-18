@@ -10,6 +10,7 @@ import SeccionAgricola from './SeccionAgricola'
 import SeccionPecuaria from './SeccionPecuaria'
 import SeccionAgroindustrial from './SeccionAgroindustrial'
 import SeccionAdicional from './SeccionAdicional'
+import SeccionCierre from './SeccionCierre'
 import VisitaResumen from "../../../../components/VisitaResumen/VisitaResumen"
 import EstadoVisita from "../../../../components/EstadoVisita/EstadoVisita"
 import { marcarVisitaRealizada } from "../../../../services/agroService"
@@ -25,6 +26,7 @@ const SECCIONES = [
     { nombre: 'Pecuaria', componente: SeccionPecuaria },
     { nombre: 'Agroindustrial', componente: SeccionAgroindustrial },
     { nombre: 'Adicional', componente: SeccionAdicional },
+    { nombre: 'Cierre', componente: SeccionCierre },
 ]
 
 export default function CaracterForm() {
@@ -35,7 +37,13 @@ export default function CaracterForm() {
     const solicitudId = visita?.solicitud_info?.id
     const [active, setActive] = useState(SECCIONES[0].nombre)
     const [finalizando, setFinalizando] = useState(false)
+    const [montadas, setMontadas] = useState(() => ({ [SECCIONES[0].nombre]: true }))
     const seccionesRef = useRef({})
+
+    const activar = (nombre) => {
+        setMontadas((m) => (m[nombre] ? m : { ...m, [nombre]: true }))
+        setActive(nombre)
+    }
 
     const finalizar = async () => {
         setFinalizando(true)
@@ -100,7 +108,7 @@ export default function CaracterForm() {
                 colorLogo={'#55bd85'}
             />
 
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full">
+            <div className="bg-white min-h-screen rounded-xl mt-3  p-4 w-full max-w-full">
                 {!visita ? (
                     <div className="text-center py-16">
                         <p className="text-gray-500 text-sm mb-4">
@@ -138,20 +146,23 @@ export default function CaracterForm() {
                                 <TabList
                                     categories={SECCIONES.map((s) => s.nombre)}
                                     active={active}
-                                    onChange={setActive}
+                                    onChange={activar}
                                 />
                             </div>
                         </div>
 
                         <div className="mt-6">
                             {SECCIONES.map((s) => {
+                                const visible = s.nombre === active
+                                if (!visible && !montadas[s.nombre]) return null
                                 const Seccion = s.componente
                                 return (
-                                    <div key={s.nombre} className={s.nombre === active ? 'block' : 'hidden'}>
+                                    <div key={s.nombre} className={visible ? 'block' : 'hidden'}>
                                         <Seccion
                                             ref={(el) => { seccionesRef.current[s.nombre] = el }}
                                             userId={userId}
                                             solicitudId={solicitudId}
+                                            visita={visita}
                                         />
                                     </div>
                                 )
@@ -183,7 +194,7 @@ export default function CaracterForm() {
                                     <button
                                         onClick={() => {
                                             const idx = SECCIONES.findIndex((s) => s.nombre === active)
-                                            setActive(SECCIONES[idx + 1].nombre)
+                                            activar(SECCIONES[idx + 1].nombre)
                                         }}
                                         className="px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors"
                                     >

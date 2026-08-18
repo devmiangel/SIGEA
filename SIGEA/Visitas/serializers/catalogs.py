@@ -58,11 +58,6 @@ class PajillasSerializer(serializers.ModelSerializer):
         model = Pajillas
         fields = '__all__'
 
-class AperosSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Aperos
-		fields = '__all__'
-
 class VisitasServiciosPagosSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = VisitasServiciosPagos
