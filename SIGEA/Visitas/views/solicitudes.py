@@ -59,6 +59,7 @@ def atender_solicitud(request, solicitud_id):
     ubicacion = data.get('ubicacion')
     funcionario_id = data.get('funcionario_id')
     tipo_visita_id = data.get('tipo_visita_id')
+    novedad = data.get('novedad')
 
     errores = {}
     if not fecha_visita:
@@ -87,7 +88,8 @@ def atender_solicitud(request, solicitud_id):
     )
 
     solicitud.Estado_id = 2
-    solicitud.save(update_fields=['Estado'])
+    solicitud.novedad = novedad if novedad and str(novedad).strip() else None
+    solicitud.save(update_fields=['Estado', 'novedad'])
 
     serializer = VisitasSerializer(visita)
     return Response(serializer.data, status=201)
@@ -101,8 +103,11 @@ def rechazar_solicitud(request, solicitud_id):
     if solicitud.Estado_id != 1:
         return Response({'error': 'La solicitud no está en estado En Proceso'}, status=400)
 
+    novedad = request.data.get('novedad')
+
     solicitud.Estado_id = 3
-    solicitud.save(update_fields=['Estado'])
+    solicitud.novedad = novedad if novedad and str(novedad).strip() else None
+    solicitud.save(update_fields=['Estado', 'novedad'])
 
     serializer = SolicitudesSerializer(solicitud)
     return Response(serializer.data, status=200)

@@ -1,7 +1,7 @@
 import { Campo } from '../fields'
 
 const CAMPOS = [
-    { name: 'fecha_recepcion', label: 'Fecha de recepción', type: 'date', requerido: false },
+    { name: 'fecha_recepcion', label: 'Fecha de recepción', type: 'date', requerido: false, editable: true },
     { name: 'nruea', label: 'Nº RUEA', requerido: false },
     { name: 'nombres_apellidos', label: 'Nombres y apellidos', requerido: true },
     { name: 'sisben', label: 'Sisbén', requerido: false },
@@ -26,7 +26,7 @@ export default function SeccionDatosProductor({ form, onChange }) {
                         value={form[c.name]}
                         onChange={onChange}
                         required={c.requerido}
-                        disabled
+                        disabled={!c.editable}
                     />
                 ))}
             </div>

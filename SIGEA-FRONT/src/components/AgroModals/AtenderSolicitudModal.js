@@ -60,6 +60,10 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                     <option value="">Selecciona un tipo de visita</option>
                     ${tiposVisitas.map(t => `<option value="${t.id}">${escapeHtml(t.TipoVisita)}</option>`).join('')}
                 </select>
+
+                <label style="${labelStyle} margin:16px 0 6px;">Novedad</label>
+                <textarea id="swal-novedad" placeholder="Describe la novedad de la solicitud..." maxlength="255"
+                    style="width:100%; min-height:90px; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
             </div>
         `,
         focusConfirm: false,
@@ -125,6 +129,7 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
             const ubicacion = document.getElementById('swal-ubicacion').value.trim()
             const funcionarioId = document.getElementById('swal-funcionario-id').value
             const tipoVisitaId = document.getElementById('swal-tipo-visita').value
+            const novedad = document.getElementById('swal-novedad').value.trim()
 
             if (!fecha) {
                 Swal.showValidationMessage('Debes establecer la fecha y hora de la visita')
@@ -147,7 +152,8 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
                 fecha_visita: fecha,
                 ubicacion,
                 funcionario_id: Number(funcionarioId),
-                tipo_visita_id: Number(tipoVisitaId)
+                tipo_visita_id: Number(tipoVisitaId),
+                novedad
             }
         }
     })

@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
 
@@ -74,6 +74,10 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return Response(usuario_serializer.errors, status=400)
         usuario = usuario_serializer.save()
 
+        # Mantener is_active sincronizado con Estado
+        usuario.is_active = usuario.Estado
+        usuario.save(update_fields=['is_active'])
+
         # 3. Reasignar rol si cambió
         rol = data.get('rol')
         if rol:
@@ -101,6 +105,13 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         return self._actualizar_usuario(instance, request.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.Estado = False
+        instance.is_active = False
+        instance.save(update_fields=['Estado', 'is_active'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class FuncionariosViewSet(viewsets.ModelViewSet):
     queryset = Funcionarios.objects.all()

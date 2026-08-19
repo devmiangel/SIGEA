@@ -66,17 +66,26 @@ export default function ScheduleContentAdmin(){
         const confirmacion = await Swal.fire({
             icon: 'warning',
             title: '¿Rechazar solicitud?',
-            text: 'La solicitud pasará a la lista de atendidas como rechazada.',
+            text: 'La solicitud pasará a la lista de atendidas como rechazada. Indica el motivo del rechazo.',
+            input: 'textarea',
+            inputLabel: 'Motivo de rechazo',
+            inputPlaceholder: 'Escribe el motivo del rechazo...',
+            inputAttributes: { maxlength: 255 },
             showCancelButton: true,
             confirmButtonText: 'Sí, rechazar',
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: AGRO_COLORS.danger
+            confirmButtonColor: AGRO_COLORS.danger,
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'Debes indicar el motivo del rechazo'
+                }
+            }
         })
 
         if (!confirmacion.isConfirmed) return
 
         try {
-            await rechazarSolicitud(s.id)
+            await rechazarSolicitud(s.id, { novedad: confirmacion.value.trim() })
             await refresh()
             Swal.fire({
                 icon: 'success',

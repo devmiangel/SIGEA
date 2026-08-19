@@ -36,10 +36,10 @@ export default function UsersContentAdmin(){
     const handleEliminar = async (user) => {
         const confirmacion = await Swal.fire({
             icon: 'warning',
-            title: '¿Eliminar usuario?',
-            text: `Se eliminará a ${user?.email}. Esta acción no se puede deshacer.`,
+            title: '¿Desactivar usuario?',
+            text: `Se desactivará a ${user?.email}. El registro no se elimina y podrás reactivarlo desde la edición.`,
             showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: 'Sí, desactivar',
             cancelButtonText: 'Cancelar',
             confirmButtonColor: AGRO_COLORS.danger
         })
@@ -50,7 +50,7 @@ export default function UsersContentAdmin(){
         if (res.ok) {
             Swal.fire({
                 icon: 'success',
-                title: 'Usuario eliminado',
+                title: 'Usuario desactivado',
                 timer: 2000,
                 timerProgressBar: true,
                 showConfirmButton: false
@@ -59,7 +59,7 @@ export default function UsersContentAdmin(){
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo eliminar el usuario.',
+                text: 'No se pudo desactivar el usuario.',
                 confirmButtonColor: AGRO_COLORS.primary
             })
         }

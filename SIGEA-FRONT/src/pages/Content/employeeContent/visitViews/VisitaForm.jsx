@@ -9,6 +9,8 @@ import ResumenDescriptivo from './visitas/ResumenDescriptivo'
 import SeccionDatosProductor from './visitas/SeccionDatosProductor'
 import SeccionDescripcion from './visitas/SeccionDescripcion'
 import SeccionAccion from './visitas/SeccionAccion'
+import SeccionInsumos from './visitas/SeccionInsumos'
+import SeccionVisita from './visitas/SeccionVisita'
 import SeccionFirmas from './visitas/SeccionFirmas'
 import { enviarFormularioVisita, getInfoProductor, getInfoUP, getInfoPredio } from './visitas/visitaService'
 import { marcarVisitaRealizada } from "../../../../services/agroService"
@@ -18,8 +20,10 @@ import { AGRO_COLORS } from "../../../../utils/agroConstants"
 
 const SECCIONES = [
     { nombre: 'Datos del productor', componente: SeccionDatosProductor },
-    { nombre: 'Descripción', componente: SeccionDescripcion },
+    { nombre: 'Diagnóstico', componente: SeccionDescripcion },
     { nombre: 'Acción tomada', componente: SeccionAccion },
+    { nombre: 'Insumos', componente: SeccionInsumos, habilitado: (f) => (f.acciones ?? []).includes('insumos') },
+    { nombre: 'Visita', componente: SeccionVisita, habilitado: (f) => (f.acciones ?? []).includes('visita') },
     { nombre: 'Cierre', componente: SeccionFirmas },
 ]
 
@@ -75,6 +79,17 @@ export default function VisitaForm() {
     const { loading: cargandoDatos, cargarSeccion } = useSeccion()
     const prefillRef = useRef(false)
 
+    const seccionesVisibles = useMemo(
+        () => SECCIONES.filter((s) => !s.habilitado || s.habilitado(form)),
+        [form]
+    )
+
+    useEffect(() => {
+        if (!seccionesVisibles.some((s) => s.nombre === active)) {
+            setActive(seccionesVisibles[0]?.nombre ?? SECCIONES[0].nombre)
+        }
+    }, [seccionesVisibles, active])
+
     useEffect(() => {
         if (!visita || prefillRef.current) return
         prefillRef.current = true
@@ -123,7 +138,6 @@ export default function VisitaForm() {
     const finalizar = async () => {
         const faltantes = []
         if (!String(form.documento_identidad ?? '').trim()) faltantes.push('Documento de identidad')
-        if (!String(form.fecha_visita ?? '').trim()) faltantes.push('Fecha de visita')
         if (!String(form.tipo_visita ?? '').trim()) faltantes.push('Tipo de visita')
         if (!String(form.calificacion ?? '').trim()) faltantes.push('Calificación')
 
@@ -233,7 +247,7 @@ export default function VisitaForm() {
                         <div className="mb-6 mt-6 w-full overflow-x-auto">
                             <div className="inline-flex">
                                 <TabList
-                                    categories={SECCIONES.map((s) => s.nombre)}
+                                    categories={seccionesVisibles.map((s) => s.nombre)}
                                     active={active}
                                     onChange={setActive}
                                 />
@@ -241,7 +255,7 @@ export default function VisitaForm() {
                         </div>
 
                         <div className="mt-6">
-                            {SECCIONES.map((s) => {
+                            {seccionesVisibles.map((s) => {
                                 if (s.nombre !== active) return null
                                 const Seccion = s.componente
                                 return (
@@ -273,11 +287,11 @@ export default function VisitaForm() {
                                         {finalizando ? 'Guardando...' : 'Guardar y finalizar visita'}
                                     </button>
                                 )}
-                                {active !== SECCIONES[SECCIONES.length - 1].nombre && (
+                                {active !== seccionesVisibles[seccionesVisibles.length - 1]?.nombre && (
                                     <button
                                         onClick={() => {
-                                            const idx = SECCIONES.findIndex((s) => s.nombre === active)
-                                            setActive(SECCIONES[idx + 1].nombre)
+                                            const idx = seccionesVisibles.findIndex((s) => s.nombre === active)
+                                            setActive(seccionesVisibles[idx + 1].nombre)
                                         }}
                                         className="px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors"
                                     >

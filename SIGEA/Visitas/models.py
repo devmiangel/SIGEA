@@ -25,6 +25,7 @@ class Solicitudes(models.Model):
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
     Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
     motivoAdmin = models.CharField(max_length=255, blank=True, null=True)
+    novedad = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return str(self.MotivoSolicitud.MotivoSolicitud)

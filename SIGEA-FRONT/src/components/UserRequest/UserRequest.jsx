@@ -25,6 +25,11 @@ export default function UserRequest({ solicitud, numero, onClick }) {
         <p className="text-xs text-gray-400 mt-0.5">
           {formatFecha(solicitud?.FechaSolicitud)}
         </p>
+        {solicitud?.novedad && (
+          <p className="text-xs text-[#015d3b] mt-0.5 truncate">
+            Novedad: {solicitud.novedad}
+          </p>
+        )}
       </div>
 
       <span className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${badgeClass}`}>

@@ -426,7 +426,7 @@ def generar_caracterizacion(salida, datos=None):
 
     # AVES
     aves = _animal(datos, 'Aves')
-    ad = aves.get('Detalles') or {}
+    ad = detalles_de(aves)
     y = pecuario_pair(y, "AVES", "# Gallinas:", "Tipo:",
                       str(ad.get('Gallinas') or ''), ad.get('TipoGallina', ''))
     y = pecuario_pair(y, "", "# Pollos:", "Codornices:",

@@ -15,6 +15,7 @@ export function mostrarInfoSolicitud(solicitud, numero, user) {
     const email = escapeHtml(solicitante.email ?? user?.email ?? '—')
     const observacion = escapeHtml(solicitud.Observacion) || 'Sin descripción'
     const direccion = escapeHtml(solicitud.Direccion) || 'Sin dirección'
+    const novedad = escapeHtml(solicitud.novedad) || 'Sin novedad'
     const fecha = escapeHtml(solicitud.FechaSolicitud) || '—'
 
     return Swal.fire({
@@ -37,6 +38,13 @@ export function mostrarInfoSolicitud(solicitud, numero, user) {
                 <p><strong>Dirección:</strong></p>
                 <p style="background: #f9fafb; padding: 10px; border-radius: 8px; color: #374151;">
                     ${direccion}
+                </p>
+
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
+
+                <p><strong>Novedad:</strong></p>
+                <p style="background: #f9fafb; padding: 10px; border-radius: 8px; color: #374151;">
+                    ${novedad}
                 </p>
 
                 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />

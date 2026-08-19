@@ -88,8 +88,8 @@ export const atenderSolicitud = async (solicitudId, data) => {
     return response.data;
 }
 
-export const rechazarSolicitud = async (solicitudId) => {
-    const response = await api.post(`/visitas/solicitudes/${solicitudId}/rechazar/`);
+export const rechazarSolicitud = async (solicitudId, data = {}) => {
+    const response = await api.post(`/visitas/solicitudes/${solicitudId}/rechazar/`, data);
     return response.data;
 }
 
