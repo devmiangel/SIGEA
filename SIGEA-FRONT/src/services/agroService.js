@@ -231,6 +231,11 @@ export const asignarSolicitudInsumo = async (solicitudId, data) => {
     return response.data;
 }
 
+export const rechazarSolicitudInsumo = async (solicitudId, data) => {
+    const response = await api.post(`/inventario/solicitudInsumo/${solicitudId}/rechazar/`, data);
+    return response.data;
+}
+
 export const getRegistroAsignacionVehiculos = async () => {
     const response = await api.get('/inventario/registroAsignacionVehiculos/');
     return response.data;

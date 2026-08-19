@@ -9,7 +9,8 @@ import SolicitudInsumoCard from "../../../components/SolicitudInsumoCard/Solicit
 import { useSolicitudesInsumo } from "../../../hooks/useSolicitudesInsumo"
 import { mostrarInfoSolicitudInsumo } from "../../../components/AgroModals/SolicitudInsumoInfoModal"
 import { abrirModalAsignarInsumo } from "../../../components/AgroModals/AsignarInsumoModal"
-import { asignarSolicitudInsumo } from "../../../services/agroService"
+import { abrirModalRechazarInsumo } from "../../../components/AgroModals/RechazarInsumoModal"
+import { asignarSolicitudInsumo, rechazarSolicitudInsumo } from "../../../services/agroService"
 import { AGRO_COLORS, ESTADO_SOLICITUD_INSUMO } from "../../../utils/agroConstants"
 
 const normalizarTexto = (valor) =>
@@ -64,11 +65,36 @@ export default function SolicitudesInsumoContentAdmin() {
                 timerProgressBar: true,
             })
             refresh()
-        } catch {
+        } catch (err) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo realizar la asignación. Intenta de nuevo.',
+                text: err?.response?.data?.error || 'No se pudo realizar la asignación. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
+    }
+
+    const handleRechazar = async (solicitud) => {
+        try {
+            const result = await abrirModalRechazarInsumo(solicitud)
+            if (!result.isConfirmed) return
+
+            await rechazarSolicitudInsumo(solicitud.id, result.value)
+            Swal.fire({
+                icon: 'success',
+                title: 'Solicitud rechazada',
+                text: 'La solicitud fue rechazada correctamente.',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            refresh()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo rechazar la solicitud. Intenta de nuevo.',
                 confirmButtonColor: AGRO_COLORS.primary,
             })
         }
@@ -119,6 +145,7 @@ export default function SolicitudesInsumoContentAdmin() {
                             <option value="">Todos los estados</option>
                             <option value={ESTADO_SOLICITUD_INSUMO.PENDIENTE}>Pendiente</option>
                             <option value={ESTADO_SOLICITUD_INSUMO.RESUELTA}>Resuelta</option>
+                            <option value={ESTADO_SOLICITUD_INSUMO.RECHAZADA}>Rechazada</option>
                         </select>
                     </div>
                 )}
@@ -140,6 +167,7 @@ export default function SolicitudesInsumoContentAdmin() {
                                 numero={i + 1}
                                 onCardClick={() => handleClick(s, i + 1)}
                                 onAsignar={handleAsignar}
+                                onRechazar={handleRechazar}
                             />
                         ))}
                     </div>

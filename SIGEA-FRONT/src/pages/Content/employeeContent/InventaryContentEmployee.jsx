@@ -9,6 +9,7 @@ import Swal from 'sweetalert2'
 import { useCurrentDataUser } from "../../../hooks/currentUserHook"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import { abrirModalSolicitarInsumo } from "../../../components/AgroModals/SolicitarInsumoModal"
+import { abrirModalMisSolicitudes } from "../../../components/AgroModals/MisSolicitudesModal"
 import InsumoAsignadoCard from "../../../components/InsumoAsignadoCard/InsumoAsignadoCard"
 import { mostrarInfoInsumoAsignado } from "../../../components/AgroModals/InsumoAsignadoInfoModal"
 import { getUnidades } from "../../../services/caracterizacionService"
@@ -127,7 +128,7 @@ export default function InventaryContentEmployee(){
                         detalleVehiculo: vehiculosMap[item.DetalleVehiculo] ?? null,
                     }))
             )
-        } catch (err) {
+        } catch {
             setError('No se pudieron cargar los recursos. Intenta de nuevo.')
             setInsumos([])
             setVehiculos([])
@@ -170,11 +171,24 @@ export default function InventaryContentEmployee(){
                 timerProgressBar: true,
             })
             cargarRecursos()
-        } catch {
+        } catch (err) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo enviar la solicitud. Intenta de nuevo.',
+                text: err?.response?.data?.error || 'No se pudo enviar la solicitud. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
+    }
+
+    const handleMisSolicitudes = async () => {
+        try {
+            await abrirModalMisSolicitudes()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudieron cargar tus solicitudes. Intenta de nuevo.',
                 confirmButtonColor: AGRO_COLORS.primary,
             })
         }
@@ -191,6 +205,12 @@ export default function InventaryContentEmployee(){
                     <ButtonLink
                         buttonText={'Solicitar insumo'}
                         onClick={handleSolicitarInsumo}
+                    />
+                }
+                secondButton={
+                    <ButtonLink
+                        buttonText={'Mis solicitudes'}
+                        onClick={handleMisSolicitudes}
                     />
                 }
             />

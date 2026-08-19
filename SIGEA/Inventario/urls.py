@@ -17,9 +17,10 @@ router.register(r'asignacionHerramientas', AsignacionHerramientasViewSet)
 router.register(r'insumos', InsumosViewSet)
 router.register(r'inventarioFuncionario', InventarioFuncionarioViewSet)
 router.register(r'cardexInsumoFuncionario', CardexInsumoFuncionarioViewSet)
-router.register(r'solicitudInsumo', SolicitudInsumoViewSet)
 
 urlpatterns = [
+    path('solicitudInsumo/', listar_solicitudes_insumo, name='listar_solicitudes_insumo'),
     path('solicitudInsumo/crear/', crear_solicitud_insumo, name='crear_solicitud_insumo'),
     path('solicitudInsumo/<int:solicitud_id>/asignar/', asignar_solicitud_insumo, name='asignar_solicitud_insumo'),
+    path('solicitudInsumo/<int:solicitud_id>/rechazar/', rechazar_solicitud_insumo, name='rechazar_solicitud_insumo'),
 ] + router.urls

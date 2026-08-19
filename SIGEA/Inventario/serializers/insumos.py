@@ -25,7 +25,7 @@ class SolicitudInsumoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitudInsumo
-        fields = ['id', 'Insumo', 'Funcionario', 'Cantidad', 'FechaSolicitud', 'Estado', 'insumo_nombre', 'insumo_unidades', 'funcionario_nombre', 'funcionario_email']
+        fields = ['id', 'Insumo', 'Funcionario', 'Cantidad', 'FechaSolicitud', 'Estado', 'Observacion', 'insumo_nombre', 'insumo_unidades', 'funcionario_nombre', 'funcionario_email']
 
     def get_insumo_nombre(self, obj):
         return getattr(obj.Insumo, 'Nombre', None)

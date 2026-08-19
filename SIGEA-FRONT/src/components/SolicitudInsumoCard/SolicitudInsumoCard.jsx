@@ -8,11 +8,11 @@ function getIniciales(solicitud) {
     return iniciales || (solicitud?.funcionario_email?.charAt(0)?.toUpperCase() ?? '?')
 }
 
-export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, onAsignar }) {
+export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, onAsignar, onRechazar }) {
   const cantidad = Number(solicitud?.Cantidad ?? 0)
   const unidades = solicitud?.insumo_unidades || '—'
   const estado = solicitud?.Estado ?? ESTADO_SOLICITUD_INSUMO.PENDIENTE
-  const resuelta = estado === ESTADO_SOLICITUD_INSUMO.RESUELTA
+  const pendiente = estado === ESTADO_SOLICITUD_INSUMO.PENDIENTE
   const { label: estadoLabel, class: estadoClass } = ESTADO_SOLICITUD_INSUMO_INFO[estado] ?? { label: estado, class: 'bg-gray-100 text-gray-600' }
 
   const handleActivate = () => onCardClick?.(solicitud)
@@ -20,6 +20,11 @@ export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, on
   const handleAsignar = (e) => {
     e.stopPropagation()
     onAsignar?.(solicitud)
+  }
+
+  const handleRechazar = (e) => {
+    e.stopPropagation()
+    onRechazar?.(solicitud)
   }
 
   return (
@@ -61,7 +66,7 @@ export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, on
         </span>
       </div>
 
-      {!resuelta && (
+      {pendiente && (
         <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
           <button
             onClick={handleAsignar}
@@ -69,6 +74,13 @@ export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, on
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
           >
             Realizar asignación
+          </button>
+          <button
+            onClick={handleRechazar}
+            title="Rechazar solicitud"
+            className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#d9534f] text-white hover:bg-[#c9302c] transition-colors"
+          >
+            Rechazar
           </button>
         </div>
       )}

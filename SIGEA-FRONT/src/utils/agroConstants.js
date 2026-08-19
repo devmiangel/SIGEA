@@ -25,12 +25,14 @@ export const ESTADO_SOLICITUD_INFO = {
 
 export const ESTADO_SOLICITUD_INSUMO = {
     PENDIENTE: 'Pendiente',
-    RESUELTA: 'Resuelta'
+    RESUELTA: 'Resuelta',
+    RECHAZADA: 'Rechazada'
 }
 
 export const ESTADO_SOLICITUD_INSUMO_INFO = {
     [ESTADO_SOLICITUD_INSUMO.PENDIENTE]: { label: 'Pendiente', class: 'bg-amber-100 text-amber-700' },
-    [ESTADO_SOLICITUD_INSUMO.RESUELTA]: { label: 'Resuelta', class: 'bg-green-100 text-green-700' }
+    [ESTADO_SOLICITUD_INSUMO.RESUELTA]: { label: 'Resuelta', class: 'bg-green-100 text-green-700' },
+    [ESTADO_SOLICITUD_INSUMO.RECHAZADA]: { label: 'Rechazada', class: 'bg-red-100 text-red-700' }
 }
 
 export const ESTADO_LABEL = {

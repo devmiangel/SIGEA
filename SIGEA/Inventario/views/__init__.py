@@ -17,7 +17,8 @@ from .insumos import (
     InsumosViewSet,
     InventarioFuncionarioViewSet,
     CardexInsumoFuncionarioViewSet,
-    SolicitudInsumoViewSet,
+    listar_solicitudes_insumo,
     crear_solicitud_insumo,
     asignar_solicitud_insumo,
+    rechazar_solicitud_insumo,
 )

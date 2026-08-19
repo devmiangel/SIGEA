@@ -13,8 +13,11 @@ export function mostrarInfoSolicitudInsumo(solicitud, numero) {
     const email = escapeHtml(solicitud.funcionario_email) || '—'
     const estado = solicitud.Estado ?? ESTADO_SOLICITUD_INSUMO.PENDIENTE
     const nombreEstado = ESTADO_SOLICITUD_INSUMO_INFO[estado]?.label ?? estado
+    const observacion = escapeHtml(solicitud.Observacion) || 'Sin observaciones registradas'
     const estadoStyle = estado === ESTADO_SOLICITUD_INSUMO.RESUELTA
         ? 'background:#dcfce7; color:#166534;'
+        : estado === ESTADO_SOLICITUD_INSUMO.RECHAZADA
+        ? 'background:#fee2e2; color:#b91c1c;'
         : 'background:#fef3c7; color:#92400e;'
 
     return Swal.fire({
@@ -41,6 +44,13 @@ export function mostrarInfoSolicitudInsumo(solicitud, numero) {
                 <p><strong>Funcionario solicitante:</strong></p>
                 <p style="margin-left: 8px;">${funcionario}</p>
                 <p style="margin-left: 8px; color: #6b7280; font-size: 13px;">${email}</p>
+
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
+
+                <p><strong>Observación:</strong></p>
+                <p style="background: #fef3c7; padding: 10px; border-radius: 8px; color: #92400e;">
+                    ${observacion}
+                </p>
             </div>
         `,
         icon: 'info',
