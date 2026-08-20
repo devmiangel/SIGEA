@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import UserPreviewCard from "../../../components/UserPreviewCard/UserPreviewCard"
+import { mostrarInfoUsuario } from "../../../components/AgroModals/UsuarioInfoModal"
 import { useUsuarios } from "../../../hooks/useUsuarios"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import { getNombreCompleto, getCorreo } from "../../../utils/userDisplay"
@@ -135,6 +136,7 @@ export default function UsersContentAdmin(){
                             <UserPreviewCard
                                 key={user.id}
                                 user={user}
+                                onCardClick={mostrarInfoUsuario}
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
                             />

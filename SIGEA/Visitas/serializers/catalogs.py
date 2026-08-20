@@ -29,9 +29,16 @@ class TiposVisitasSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class InsumoVisitaSerializer(serializers.ModelSerializer):
+    insumo_nombre = serializers.CharField(source='InventarioFuncionario.Insumo.Nombre', read_only=True)
+    insumo_unidades = serializers.CharField(source='InventarioFuncionario.Insumo.Unidades.Unidad', read_only=True, allow_null=True)
+    stock_disponible = serializers.SerializerMethodField()
+
     class Meta:
         model = InsumoVisita
         fields = '__all__'
+
+    def get_stock_disponible(self, obj):
+        return obj.InventarioFuncionario.Cantidad
 
 class CalificacionesSerializer(serializers.ModelSerializer):
     class Meta:

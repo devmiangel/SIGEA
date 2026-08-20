@@ -31,6 +31,7 @@ class Command(BaseCommand):
         Estados.objects.get_or_create(id=1, defaults={'Estado': 'En Proceso'})
         Estados.objects.get_or_create(id=2, defaults={'Estado': 'Aprobado'})
         Estados.objects.get_or_create(id=3, defaults={'Estado': 'Rechazado'})
+        Estados.objects.get_or_create(id=4, defaults={'Estado': 'Reagendado'})
 
         self.seed_maestro(TiposVisitas, 'TipoVisita', [
             'Caracterización', 'Pecuaria', 'Agrícola', 'Agropecuaria', 'Servicios Pagos'

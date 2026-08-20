@@ -1,22 +1,41 @@
+from datetime import datetime, time
 from pathlib import Path
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 
-from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
+from Inventario.models import InventarioFuncionario
 
 from ..models import (
     Solicitudes,
     TiposVisitas,
     Visitas,
+    InsumoVisita,
     Calificaciones,
     InfoVisita,
 )
+
+from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 from ..serializers import FormularioVisitaTecnicaSerializer
+
+def _hora_datetime(fecha, hora):
+    """Combina la fecha de la visita con una hora 'HH:MM' (o devuelve la fecha)."""
+    if not hora:
+        return fecha
+    try:
+        horas, minutos = str(hora).strip().split(':')[:2]
+        combinado = datetime.combine(fecha.date(), time(int(horas), int(minutos)))
+        if timezone.is_naive(combinado):
+            return timezone.make_aware(combinado)
+        return combinado
+    except (ValueError, TypeError):
+        return fecha
 
 class FormularioVisitaTecnicaView(APIView):
     permission_classes = [AllowAny]
@@ -74,6 +93,7 @@ class FormularioVisitaTecnicaView(APIView):
             if nivel:
                 data['sisben'] = nivel.NivelSisben
 
+    @transaction.atomic
     def post(self, request):
         serializer = FormularioVisitaTecnicaSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -162,6 +182,7 @@ class FormularioVisitaTecnicaView(APIView):
                 UP_id=up_id if up_id else None,
                 MotivoSolicitud_id=data.get('motivo_id', 2),
                 Observacion=data.get('descripcion_solicitud') or '',
+                Direccion=data.get('direccion', '') or '',
                 Estado_id=data.get('estado_id', 1),
                 Usuario=usuario,
                 motivoAdmin=data.get('motivo_admin', None),
@@ -194,6 +215,13 @@ class FormularioVisitaTecnicaView(APIView):
             or data.get('firma_funcionario')
         )
 
+        acciones = data.get('acciones') or []
+        insumos = data.get('insumos') or []
+        acciones_str = ', '.join(acciones)
+        diagnostico = data.get('diagnostico_presuntivo', '') or ''
+        hora_inicio = _hora_datetime(fhv, data.get('hora_inicio'))
+        hora_salida = _hora_datetime(fhv, data.get('hora_salida'))
+
         info_visita, _ = InfoVisita.objects.get_or_create(
             Visita=visita,
             defaults={
@@ -201,16 +229,69 @@ class FormularioVisitaTecnicaView(APIView):
                 'ObservacionVisita': data.get('observaciones', '') or '',
                 'AccionSeguimiento': data.get('accion_tomada', '') or '',
                 'Firmado': firmado,
+                'DiagnosticoPresuntivo': diagnostico,
+                'Acciones': acciones_str,
+                'HoraInicio': hora_inicio,
+                'HoraSalida': hora_salida,
             },
         )
         info_visita.Calificacion = calificacion
         info_visita.ObservacionVisita = data.get('observaciones', '') or ''
         info_visita.AccionSeguimiento = data.get('accion_tomada', '') or ''
         info_visita.Firmado = firmado
+        info_visita.DiagnosticoPresuntivo = diagnostico
+        info_visita.Acciones = acciones_str
+        info_visita.HoraInicio = hora_inicio
+        info_visita.HoraSalida = hora_salida
         info_visita.save()
+
+        # ---------- Consumo de insumos del inventario del funcionario ----------
+        # Solo aplica cuando la accion "Insumos" fue marcada en el formulario.
+        if 'insumos' in acciones and insumos:
+            self._registrar_consumo_insumos(visita, funcionario, insumos)
 
         return Response({
             'visita': visita.id,
             'info_visita': info_visita.id,
             'solicitud': solicitud.id,
         }, status=201)
+
+    def _registrar_consumo_insumos(self, visita, funcionario, insumos):
+        """Registra los insumos consumidos en la visita y descuenta el
+        inventario del funcionario. Es idempotente: si la visita ya tiene
+        insumos asociados, no vuelve a descontar."""
+        if InsumoVisita.objects.filter(Visita=visita).exists():
+            return
+
+        inventario_ids = [item['inventario_funcionario_id'] for item in insumos]
+        inventarios = InventarioFuncionario.objects.select_for_update().filter(id__in=inventario_ids)
+        inventario_map = {inv.id: inv for inv in inventarios}
+
+        errores = []
+        registros = []
+        for item in insumos:
+            inv = inventario_map.get(item['inventario_funcionario_id'])
+            if inv is None or inv.Funcionario_id != funcionario.id:
+                errores.append(
+                    f"El inventario {item['inventario_funcionario_id']} no pertenece al funcionario asignado."
+                )
+                continue
+            if item['cantidad'] > inv.Cantidad:
+                errores.append(
+                    f"El insumo \"{inv.Insumo.Nombre}\" no tiene stock suficiente "
+                    f"(disponible: {inv.Cantidad})."
+                )
+                continue
+            registros.append((inv, item['cantidad']))
+
+        if errores:
+            raise ValidationError({'insumos': errores})
+
+        for inv, cantidad in registros:
+            InsumoVisita.objects.create(
+                Visita=visita,
+                InventarioFuncionario=inv,
+                Cantidad=cantidad,
+            )
+            inv.Cantidad -= cantidad
+            inv.save(update_fields=['Cantidad'])

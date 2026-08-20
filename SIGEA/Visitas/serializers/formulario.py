@@ -13,6 +13,10 @@ ACCIONES_VISITA = [
     ('cirugia', 'Cirugía'),
 ]
 
+class InsumoConsumoSerializer(serializers.Serializer):
+    inventario_funcionario_id = serializers.IntegerField()
+    cantidad = serializers.IntegerField(min_value=1)
+
 class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     fecha_recepcion = serializers.CharField(required=False, allow_blank=True)
     nruea = serializers.CharField(required=False, allow_blank=True)
@@ -47,6 +51,16 @@ class FormularioVisitaTecnicaSerializer(serializers.Serializer):
     up_id = serializers.IntegerField(required=False, allow_null=True)
     visita_id = serializers.IntegerField(required=False, allow_null=True)
     motivo_admin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    insumos = InsumoConsumoSerializer(many=True, required=False, default=list)
+
+    def validate(self, attrs):
+        acciones = attrs.get('acciones') or []
+        insumos = attrs.get('insumos') or []
+        if 'insumos' in acciones and not insumos:
+            raise serializers.ValidationError({
+                'insumos': 'Debe registrar al menos un insumo consumido cuando la acción "Insumos" está marcada.'
+            })
+        return attrs
 
     def validar_firma(self, value, nombre):
         value = (value or '').strip()

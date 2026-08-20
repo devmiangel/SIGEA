@@ -14,13 +14,15 @@ export const MOTIVO_SOLICITUD = {
 export const ESTADO_SOLICITUD = {
     EN_PROCESO: 1,
     APROBADO: 2,
-    RECHAZADO: 3
+    RECHAZADO: 3,
+    REAGENDADO: 4
 }
 
 export const ESTADO_SOLICITUD_INFO = {
     [ESTADO_SOLICITUD.EN_PROCESO]: { label: 'En Proceso', class: 'bg-yellow-100 text-yellow-800' },
     [ESTADO_SOLICITUD.APROBADO]: { label: 'Aprobado', class: 'bg-green-100 text-green-800' },
-    [ESTADO_SOLICITUD.RECHAZADO]: { label: 'Rechazado', class: 'bg-red-100 text-red-800' }
+    [ESTADO_SOLICITUD.RECHAZADO]: { label: 'Rechazado', class: 'bg-red-100 text-red-800' },
+    [ESTADO_SOLICITUD.REAGENDADO]: { label: 'Reagendado', class: 'bg-purple-100 text-purple-800' }
 }
 
 export const ESTADO_SOLICITUD_INSUMO = {
@@ -38,7 +40,8 @@ export const ESTADO_SOLICITUD_INSUMO_INFO = {
 export const ESTADO_LABEL = {
     [ESTADO_SOLICITUD.EN_PROCESO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.EN_PROCESO].label,
     [ESTADO_SOLICITUD.APROBADO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.APROBADO].label,
-    [ESTADO_SOLICITUD.RECHAZADO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.RECHAZADO].label
+    [ESTADO_SOLICITUD.RECHAZADO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.RECHAZADO].label,
+    [ESTADO_SOLICITUD.REAGENDADO]: ESTADO_SOLICITUD_INFO[ESTADO_SOLICITUD.REAGENDADO].label
 }
 
 export const MOTIVO_LABEL = {

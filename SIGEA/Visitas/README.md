@@ -34,7 +34,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django.
 | `Solicitudes` | `FechaSolicitud` (DateField, `auto_now_add`); `Observacion` (CharField 255); `motivoAdmin` (CharField, nullable) | FK `UP` (PROTECT, nullable) — app UPs; FK `MotivosSolicitudes` (PROTECT); FK `Estados` (PROTECT); FK `Usuario` (CASCADE, `related_name="solicitudes"`) — app Usuarios |
 | `TiposVisitas` | `TipoVisita` (CharField) | Sin FK |
 | `Visitas` | `FechaYHoraVisita` (DateTimeField); `Ubicacion` (CharField, nullable); `estado` (BooleanField, default False); `FirmaProductor`, `FirmaFuncionario` (TextField, nullable) | FK `Solicitudes` (CASCADE); FK `Funcionarios` (CASCADE, `related_name="visitas_funcionario"`); FK `Administradores` (CASCADE, `related_name="visitas_administrador"`); FK `TiposVisitas` (PROTECT) — apps Usuarios/UPs |
-| `InsumoVisita` | `Cantidad` (IntegerField) | FK `Visitas` (CASCADE); FK `InventarioFuncionario` (PROTECT) — app Inventario |
+| `InsumoVisita` | `Cantidad` (IntegerField) | FK `Visitas` (CASCADE); FK `InventarioFuncionario` (PROTECT) — app Inventario. Registra el consumo de un insumo del inventario del funcionario durante la visita técnica; al crearse se descuenta `InventarioFuncionario.Cantidad`. |
 | `Calificaciones` | `Calificacion` (CharField) | Sin FK |
 | `InfoVisita` | `ObservacionVisita` (TextField); `AccionSeguimiento` (CharField); `Firmado` (BooleanField) | FK `Visitas` (CASCADE); FK `Calificaciones` (PROTECT) |
 
@@ -66,7 +66,7 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Serializer | Descripción |
 |---|---|
-| `FormularioVisitaTecnicaSerializer` | Serializer (no ligado a un modelo) con los campos del formulario de visita técnica: datos del productor, diagnóstico, acciones tomadas, calificación, firmas e IDs de referencia (`funcionario_id`, `administrador_id`, `usuario_id`, `tipo_visita_id`, `calificacion_id`, `motivo_id`, `estado_id`, `up_id`). Define la constante `ACCIONES_VISITA` con las acciones posibles (seg. y control, trat. médico, visita, insumos, recomendación, manejo, cirugía). |
+| `FormularioVisitaTecnicaSerializer` | Serializer (no ligado a un modelo) con los campos del formulario de visita técnica: datos del productor, diagnóstico, acciones tomadas, calificación, firmas e IDs de referencia (`funcionario_id`, `administrador_id`, `usuario_id`, `tipo_visita_id`, `calificacion_id`, `motivo_id`, `estado_id`, `up_id`). Define la constante `ACCIONES_VISITA` con las acciones posibles (seg. y control, trat. médico, visita, insumos, recomendación, manejo, cirugía). Acepta además `insumos` (lista de `{inventario_funcionario_id, cantidad}`) que se valida de forma cruzada: si la acción `insumos` está marcada, la lista debe contener al menos un ítem. |
 
 ---
 
@@ -93,7 +93,7 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Vista | Tipo | Descripción |
 |---|---|---|
-| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs de `media/formularios/visitas/`. `POST`: autollenado de datos del usuario y registra en BD la solicitud, visita, calificación e `InfoVisita`. El PDF se genera al vuelo en la app `documentos` (`GET /api/documentos/visita/<id>/generar/`). |
+| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs de `media/formularios/visitas/`. `POST`: autollenado de datos del usuario y registra en BD la solicitud, visita, calificación e `InfoVisita`. Además, si la acción `insumos` fue marcada, registra los `InsumoVisita` y descuenta el inventario del funcionario (`InventarioFuncionario.Cantidad`) de forma atómica e idempotente (si la visita ya tiene insumos asociados no vuelve a descontar). El PDF se genera al vuelo en la app `documentos` (`GET /api/documentos/visita/<id>/generar/`). |
 
 ---
 

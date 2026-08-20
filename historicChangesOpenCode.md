@@ -324,3 +324,61 @@ Se exploró la estructura del backend (Django REST Framework) y frontend (React 
 
 ### Alerta de vulnerabilidad 
 - al realizar npm audit fix, aparece un mensaje  `React Router: RSC Mode CSRF Bypass Allows Action Execution Before 400 Response`, como se ve la alerta refleja unproblema en la fincionalidad RSC la cual no esta siendo utilizada en el proyecto.
+
+### Reagendamiento de visitas (funcionario) — Nueva funcionalidad
+Funcionalidad que permite al funcionario reagendar una visita desde el popup de información ("Reagendar" junto a "Iniciar Visita"). La solicitud vuelve al panel de horarios del administrador en estado "Reagendado" y el motivo se concatena a la novedad.
+
+**Backend:**
+- **Archivo:** `SIGEA/seeders/management/commands/seed.py`
+  - Nuevo estado `Estados id=4 'Reagendado'`.
+- **Archivo:** `SIGEA/Visitas/views/solicitudes.py`
+  - Nueva vista `reagendar_solicitud` (POST): valida estado (1 o 2), motivo obligatorio, concatena `"{novedad} - {motivo}"` (máx 255) y setea `Estado_id=4`.
+  - `atender_solicitud`: ahora acepta estados 1 y 4; en reagendamiento (4) actualiza la visita existente en vez de duplicarla, y vuelve la solicitud a Aprobado (2).
+  - `rechazar_solicitud`: acepta estados 1 y 4 (permite rechazar una reagendada).
+  - `mis_visitas`: excluye visitas de solicitudes en estado Reagendado.
+- **Archivo:** `SIGEA/Visitas/urls.py`
+  - Nuevo endpoint `solicitudes/<int:solicitud_id>/reagendar/`.
+- **Archivo:** `SIGEA/Visitas/views/__init__.py`
+  - Export de `reagendar_solicitud`.
+- **Archivo:** `SIGEA/Visitas/serializers/visitas.py`
+  - `solicitud_info` ahora incluye `estado_id` para filtrar en el frontend.
+
+**Frontend:**
+- **Archivo:** `SIGEA-FRONT/src/utils/agroConstants.js`
+  - `ESTADO_SOLICITUD.REAGENDADO = 4`, badge "Reagendado" (morado) y `ESTADO_LABEL`.
+- **Archivo:** `SIGEA-FRONT/src/services/agroService.js`
+  - Nueva función `reagendarSolicitud()`.
+- **Archivo:** `SIGEA-FRONT/src/components/AgroModals/ReagendarVisitaModal.js` (nuevo)
+  - Modal con textarea de motivo obligatorio (`maxlength=255`, contexto sanitizado con `escapeHtml`).
+- **Archivo:** `SIGEA-FRONT/src/components/VisitaInfo/VisitaInfo.jsx`
+  - Botón "Reagendar" (deny, ámbar) junto a "Iniciar Visita" en visitas no realizadas; flujo de reagendamiento con éxito/error y `onReagendada`.
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/employeeContent/AgendaContentEmployee.jsx`
+  - Pasa `refresh` como `onReagendada` para refrescar la agenda tras reagendar.
+- **Archivo:** `SIGEA-FRONT/src/components/AgroModals/AtenderSolicitudModal.js`
+  - Acepta tercer parámetro `datosPrevios` y precarga fecha/ubicación/funcionario/tipo/novedad por DOM (sin inyección HTML → sin XSS).
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/adminContent/ScheduleContentAdmin.jsx`
+  - Pendientes incluye EN_PROCESO + REAGENDADO; se ocultan las visitas reagendadas del calendario; al atender una reagendada el modal se abre precargado con los datos previos.
+- **Archivo:** `SIGEA-FRONT/src/utils/dateHelpers.js`
+  - Nuevo helper `toDatetimeLocal()` (ISO → valor `datetime-local`).
+
+### Asignación de recursos (insumos) en visita técnica
+
+Consumo de insumos del inventario del funcionario dentro de una visita técnica. El flujo solo se activa cuando la acción "Insumos" del formulario está marcada; si está marcada, debe registrarse al menos un insumo.
+
+**Backend:**
+- **Archivo:** `SIGEA/Visitas/serializers/formulario.py`
+  - Nuevo `InsumoConsumoSerializer` (`inventario_funcionario_id`, `cantidad` min 1).
+  - Campo `insumos` (lista) en `FormularioVisitaTecnicaSerializer`.
+  - `validate`: regla cruzada — si la acción `insumos` está marcada la lista no puede estar vacía (error 400).
+- **Archivo:** `SIGEA/Visitas/views/formulario.py`
+  - `post` decorado con `@transaction.atomic`.
+  - Nuevo `_registrar_consumo_insumos`: idempotente (si la visita ya tiene `InsumoVisita` no vuelve a descontar); valida que el inventario pertenezca al funcionario de la visita y que la cantidad no supere el stock; solo se ejecuta si la acción `insumos` está marcada. Crea los `InsumoVisita` y descuenta `InventarioFuncionario.Cantidad` con `select_for_update`.
+- **Archivo:** `SIGEA/Visitas/serializers/catalogs.py`
+  - `InsumoVisitaSerializer` expone `insumo_nombre`, `insumo_unidades` y `stock_disponible` (lectura).
+
+**Frontend:**
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/employeeContent/visitViews/visitas/SeccionInsumos.jsx`
+  - Implementada la sección "Insumos" (antes placeholder): carga el inventario del funcionario asignado, permite agregar/quitar múltiples insumos con cantidad (1..stock restante), recalcula stock por insumo y evita exceder el disponible.
+- **Archivo:** `SIGEA-FRONT/src/pages/Content/employeeContent/visitViews/VisitaForm.jsx`
+  - Estado inicial `insumos: []` y `funcionario_id` (prefill desde la visita).
+  - `finalizar`: si la acción "Insumos" está marcada y no hay ningún insumo con cantidad > 0, bloquea con Swal; el payload envía `insumos` al backend.

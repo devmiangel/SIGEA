@@ -15,6 +15,7 @@ from .catalogs import (
 from .solicitudes import (
     crear_solicitud,
     atender_solicitud,
+    reagendar_solicitud,
     rechazar_solicitud,
     mis_visitas,
 )

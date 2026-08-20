@@ -45,6 +45,11 @@ export const getUsuario = async (usuarioId) => {
     return response.data;
 }
 
+export const getDetalleUsuario = async (usuarioId) => {
+    const response = await api.get(`/usuarios/usuarios/${usuarioId}/detalle/`);
+    return response.data;
+}
+
 export const actualizarUsuario = async (usuarioId, data) => {
     const response = await api.patch(`/usuarios/usuarios/${usuarioId}/`, data);
     return response.data;
@@ -85,6 +90,11 @@ export const guardarFirmasVisita = async (visitaId, firmaProductor, firmaFuncion
 
 export const atenderSolicitud = async (solicitudId, data) => {
     const response = await api.post(`/visitas/solicitudes/${solicitudId}/atender/`, data);
+    return response.data;
+}
+
+export const reagendarSolicitud = async (solicitudId, data) => {
+    const response = await api.post(`/visitas/solicitudes/${solicitudId}/reagendar/`, data);
     return response.data;
 }
 

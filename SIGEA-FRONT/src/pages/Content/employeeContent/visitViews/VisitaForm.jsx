@@ -50,6 +50,9 @@ const INICIAL = {
     firmado: false,
     firma_usuario: '',
     firma_funcionario: '',
+    funcionario_id: '',
+    especificacion_nueva_solicitud: '',
+    insumos: [],
 }
 
 function aDatetimeLocal(iso) {
@@ -101,6 +104,7 @@ export default function VisitaForm() {
             nombres_apellidos: f.nombres_apellidos || nombre,
             funcionario: f.funcionario || visita?.funcionario_info?.nombre || '',
             cc_funcionario: f.cc_funcionario || visita?.funcionario_info?.documento || '',
+            funcionario_id: f.funcionario_id || visita?.Funcionario || '',
             tipo_visita: f.tipo_visita || visita?.tipo_visita_label || '',
             descripcion_solicitud: f.descripcion_solicitud || solicitud.observacion || '',
             fecha_visita: f.fecha_visita || aDatetimeLocal(visita?.FechaYHoraVisita),
@@ -151,9 +155,22 @@ export default function VisitaForm() {
             return
         }
 
+        const acciones = form.acciones ?? []
+        const insumos = (form.insumos ?? []).filter((i) => Number(i.cantidad) > 0)
+        if (acciones.includes('insumos') && insumos.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Insumos requeridos',
+                text: 'La acción "Insumos" está marcada; registra al menos un insumo consumido.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+            return
+        }
+
         setFinalizando(true)
         const payload = {
             ...form,
+            insumos,
             usuario_id: userId,
             up_id: upId,
             visita_id: visita?.id,
@@ -260,7 +277,7 @@ export default function VisitaForm() {
                                 const Seccion = s.componente
                                 return (
                                     <div key={s.nombre}>
-                                        <Seccion form={form} onChange={onChange} />
+                                        <Seccion form={form} onChange={onChange} visita={visita} solicitud={solicitud} userId={userId} upId={upId} />
                                     </div>
                                 )
                             })}

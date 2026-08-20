@@ -4,6 +4,8 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
+import { reagendarSolicitud } from '../../services/agroService'
+import { abrirModalReagendar } from '../AgroModals/ReagendarVisitaModal'
 
 const iconoUsuario = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
 const iconoReloj = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${AGRO_COLORS.primaryLight}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
@@ -16,7 +18,7 @@ const esCaracterizacion = (tipo) => {
     return normalizado === 'caracterizacion'
 }
 
-export default function VisitaInfo({ visita, numero, onClose }) {
+export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
     const navigate = useNavigate()
     const openedRef = useRef(false)
 
@@ -96,20 +98,52 @@ export default function VisitaInfo({ visita, numero, onClose }) {
             showCancelButton: true,
             confirmButtonText: realizada ? 'Cerrar' : 'Iniciar Visita',
             cancelButtonText: realizada ? 'Volver' : 'Cerrar',
+            showDenyButton: !realizada,
+            denyButtonText: 'Reagendar',
             confirmButtonColor: AGRO_COLORS.success,
             cancelButtonColor: '#64748b',
+            denyButtonColor: '#d97706',
             focusConfirm: false,
             didClose: () => onClose?.()
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed && !realizada) {
                 const destino = esCaracterizacion(visita.tipo_visita_label)
                     ? '/funcionario/visitas/caracterizacion'
                     : '/funcionario/visitas/visita'
                 navigate(destino, { state: { visita } })
+                return
+            }
+
+            if (result.dismiss === Swal.DismissReason.deny && !realizada) {
+                const solicitudId = visita.solicitud_info?.id
+                if (!solicitudId) return
+
+                const confirmacion = await abrirModalReagendar(visita)
+                if (!confirmacion.isConfirmed) return
+
+                try {
+                    await reagendarSolicitud(solicitudId, confirmacion.value)
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Visita reagendada',
+                        text: 'La solicitud volvió al panel de horarios del administrador.',
+                        confirmButtonColor: AGRO_COLORS.success,
+                        timer: 2000,
+                        timerProgressBar: true
+                    })
+                    onReagendada?.()
+                } catch {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo reagendar la visita. Intenta de nuevo.',
+                        confirmButtonColor: AGRO_COLORS.primary
+                    })
+                }
             }
         })
 
-    }, [visita, numero, onClose, navigate])
+    }, [visita, numero, onClose, onReagendada, navigate])
 
     return null
 }

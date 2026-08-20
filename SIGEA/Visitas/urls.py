@@ -19,6 +19,7 @@ router.register(r'visitasServiciosPagos', VisitasServiciosPagosViewSet)
 urlpatterns = [
     path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
     path('solicitudes/<int:solicitud_id>/atender/', atender_solicitud, name='atender_solicitud'),
+    path('solicitudes/<int:solicitud_id>/reagendar/', reagendar_solicitud, name='reagendar_solicitud'),
     path('solicitudes/<int:solicitud_id>/rechazar/', rechazar_solicitud, name='rechazar_solicitud'),
     path('mis-visitas/', mis_visitas, name='mis_visitas'),
     path('formulario-visita/', FormularioVisitaTecnicaView.as_view(), name='llenar_formulario_visita_tecnica'),

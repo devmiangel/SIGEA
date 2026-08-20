@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
 
@@ -112,6 +113,74 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         instance.is_active = False
         instance.save(update_fields=['Estado', 'is_active'])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'])
+    def detalle(self, request, pk=None):
+        from UPs.models import UP
+        from UPs.serializers import UPSerializer
+        from Inventario.models import InventarioFuncionario, CardexInsumoFuncionario, AsignacionHerramientas, RegistroAsignacionVehiculos
+
+        instance = self.get_object()
+        rol = UsuarioSerializer().get_rol(instance)
+        data = {
+            'usuario': UsuarioSerializer(instance).data,
+            'rol': rol,
+        }
+
+        if rol == 'Productores':
+            productor = getattr(instance, 'productores', None)
+            ups = UP.objects.filter(Productor=productor) if productor else UP.objects.none()
+            data['ups'] = UPSerializer(ups, many=True).data
+        elif rol == 'Funcionarios':
+            funcionario = getattr(instance, 'funcionarios', None)
+            insumos = []
+            herramientas = []
+            vehiculos = []
+            if funcionario:
+                inventario = InventarioFuncionario.objects.filter(Funcionario=funcionario)
+                cardex = {
+                    item.Insumo_id: item
+                    for item in CardexInsumoFuncionario.objects.filter(Funcionario=funcionario).order_by('Insumo_id', '-id')
+                }
+                for item in inventario:
+                    cardex_item = cardex.get(item.Insumo_id)
+                    insumos.append({
+                        'id': item.id,
+                        'Insumo': item.Insumo_id,
+                        'insumo_nombre': item.Insumo.Nombre if item.Insumo_id else None,
+                        'unidad': item.Insumo.Unidades.Unidad if item.Insumo_id else None,
+                        'cantidad': item.Cantidad,
+                        'fecha_asignacion': cardex_item.FechaAsignacion if cardex_item else None,
+                    })
+                herramientas = [
+                    {
+                        'id': item.id,
+                        'Herramienta': item.Herramienta_id,
+                        'herramienta_nombre': item.Herramienta.Herramienta if item.Herramienta_id else None,
+                        'FechaAsignacion': item.FechaAsignacion,
+                        'FechaDevolucion': item.FechaDevolucion,
+                        'Entregado': item.Entregado,
+                    }
+                    for item in AsignacionHerramientas.objects.filter(Funcionario=funcionario)
+                ]
+                vehiculos = [
+                    {
+                        'id': item.id,
+                        'placa': item.DetalleVehiculo.Placa if item.DetalleVehiculo_id else None,
+                        'modelo': item.DetalleVehiculo.Modelo if item.DetalleVehiculo_id else None,
+                        'FechaAsignacion': item.FechaAsignacion,
+                        'FechaDevolucion': item.FechaDevolucion,
+                        'Entregado': item.Entregado,
+                    }
+                    for item in RegistroAsignacionVehiculos.objects.filter(Conductor__Funcionario=funcionario)
+                ]
+            data['asignaciones'] = {
+                'insumos': insumos,
+                'herramientas': herramientas,
+                'vehiculos': vehiculos,
+            }
+
+        return Response(data)
 
 class FuncionariosViewSet(viewsets.ModelViewSet):
     queryset = Funcionarios.objects.all()

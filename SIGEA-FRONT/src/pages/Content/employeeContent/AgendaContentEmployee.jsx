@@ -8,7 +8,7 @@ import VisitaInfo from "../../../components/VisitaInfo/VisitaInfo"
 import { useMisVisitas } from "../../../hooks/useMisVisitas"
 
 export default function AgendaContentEmployee(){
-    const { visitas, loading } = useMisVisitas()
+    const { visitas, loading, refresh } = useMisVisitas()
     const [activeTab, setActiveTab] = useState('Visitas Pendientes')
     const [selectedVisita, setSelectedVisita] = useState(null)
 
@@ -67,6 +67,7 @@ export default function AgendaContentEmployee(){
                     visita={selectedVisita}
                     numero={currentContent.findIndex(x => x.id === selectedVisita.id) + 1}
                     onClose={() => setSelectedVisita(null)}
+                    onReagendada={refresh}
                 />
             )}
         </>

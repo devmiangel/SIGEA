@@ -6,7 +6,7 @@ import { escapeHtml } from '../../utils/sanitize'
 const inputStyle = 'width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; background:#fff; color:#374151;'
 const labelStyle = 'display:block; margin-bottom:6px; font-weight:600; font-size:13px;'
 
-export async function abrirModalAtenderSolicitud(solicitud, numero) {
+export async function abrirModalAtenderSolicitud(solicitud, numero, datosPrevios = null) {
     const [funcionarios, tiposVisitas] = await Promise.all([
         getFuncionarios(),
         getTiposVisitas()
@@ -76,6 +76,22 @@ export async function abrirModalAtenderSolicitud(solicitud, numero) {
             const input = document.getElementById('swal-funcionario-input')
             const lista = document.getElementById('swal-funcionario-lista')
             const hidden = document.getElementById('swal-funcionario-id')
+
+            if (datosPrevios) {
+                const fecha = document.getElementById('swal-fecha')
+                const ubicacion = document.getElementById('swal-ubicacion')
+                const tipoVisita = document.getElementById('swal-tipo-visita')
+                const novedad = document.getElementById('swal-novedad')
+
+                if (datosPrevios.fecha_visita) fecha.value = datosPrevios.fecha_visita
+                if (datosPrevios.ubicacion) ubicacion.value = datosPrevios.ubicacion
+                if (datosPrevios.funcionario_id) {
+                    hidden.value = datosPrevios.funcionario_id
+                    input.value = datosPrevios.funcionario_nombre ?? ''
+                }
+                if (datosPrevios.tipo_visita_id) tipoVisita.value = String(datosPrevios.tipo_visita_id)
+                if (datosPrevios.novedad) novedad.value = datosPrevios.novedad
+            }
 
             const mostrar = () => {
                 const rect = input.getBoundingClientRect()

@@ -13,6 +13,7 @@ import { atenderSolicitud, rechazarSolicitud } from "../../../services/agroServi
 import { abrirModalAtenderSolicitud } from "../../../components/AgroModals/AtenderSolicitudModal"
 import { mostrarInfoSolicitud } from "../../../components/AgroModals/AlertRequestInfoModal"
 import { AGRO_COLORS, ESTADO_SOLICITUD } from "../../../utils/agroConstants"
+import { toDatetimeLocal } from "../../../utils/dateHelpers"
 import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
@@ -22,8 +23,15 @@ export default function ScheduleContentAdmin(){
     const { visitas, refresh: refreshVisitas } = useVisitas()
     const [activeTab, setActiveTab] = useState('Pendientes')
 
-    const pendientes = useMemo(() => solicitudes.filter(s => s.Estado === ESTADO_SOLICITUD.EN_PROCESO), [solicitudes])
-    const atendidas = useMemo(() => solicitudes.filter(s => s.Estado !== ESTADO_SOLICITUD.EN_PROCESO), [solicitudes])
+    const esPendiente = (s) =>
+        s.Estado === ESTADO_SOLICITUD.EN_PROCESO || s.Estado === ESTADO_SOLICITUD.REAGENDADO
+
+    const pendientes = useMemo(() => solicitudes.filter(esPendiente), [solicitudes])
+    const atendidas = useMemo(() => solicitudes.filter(s => !esPendiente(s)), [solicitudes])
+    const visitasCalendario = useMemo(
+        () => visitas.filter(v => v.solicitud_info?.estado_id !== ESTADO_SOLICITUD.REAGENDADO),
+        [visitas]
+    )
 
     const currentContent = activeTab === 'Pendientes' ? pendientes : atendidas
 
@@ -33,7 +41,19 @@ export default function ScheduleContentAdmin(){
 
     const handleAtenderSolicitud = async (s, numero) => {
         try {
-            const result = await abrirModalAtenderSolicitud(s, numero)
+            const visitaPrevia = visitas.find(v => v.Solicitud === s.id)
+            const datosPrevios = s.Estado === ESTADO_SOLICITUD.REAGENDADO && visitaPrevia
+                ? {
+                    fecha_visita: toDatetimeLocal(visitaPrevia.FechaYHoraVisita),
+                    ubicacion: visitaPrevia.Ubicacion,
+                    funcionario_id: visitaPrevia.Funcionario,
+                    funcionario_nombre: visitaPrevia.funcionario_info?.nombre,
+                    tipo_visita_id: visitaPrevia.TipoVisita,
+                    novedad: s.novedad,
+                }
+                : null
+
+            const result = await abrirModalAtenderSolicitud(s, numero, datosPrevios)
 
             if (result.isConfirmed) {
                 await atenderSolicitud(s.id, result.value)
@@ -136,7 +156,7 @@ export default function ScheduleContentAdmin(){
             />
             <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
                 <div className="mb-6">
-                    <CalendarioVisitas visitas={visitas} />
+                    <CalendarioVisitas visitas={visitasCalendario} />
                 </div>
                 <TabList
                     categories={['Pendientes', 'Atendidas']}
