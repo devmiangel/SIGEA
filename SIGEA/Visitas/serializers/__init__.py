@@ -15,4 +15,5 @@ from .visitas import VisitasSerializer
 from .formulario import (
     ACCIONES_VISITA,
     FormularioVisitaTecnicaSerializer,
+    FormularioReciboPagoSerializer,
 )

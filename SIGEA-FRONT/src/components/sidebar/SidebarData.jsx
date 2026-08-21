@@ -54,7 +54,7 @@ export const SidebarData = [
         title: 'Reportes',
         icon: <AssessmentIcon/>, 
         link: '/administrador/reportes', 
-        roles: ['Administradores']
+        roles: [] //'Administradores'
     }, 
      {
         title: 'Agenda',
@@ -72,7 +72,7 @@ export const SidebarData = [
         title: 'Pro Animal',
         icon: <PetsIcon/>, 
         link: '/usuario/Proteccion_Animal', 
-        roles: ['Usuarios', 'Productores']
+        roles: [] //'Usuarios', 'Productores'
     }
     
 ]

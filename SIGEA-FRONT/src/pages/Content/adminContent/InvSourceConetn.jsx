@@ -4,11 +4,13 @@ import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import InsumoPreviewCard from "../../../components/InsumoPreviewCard/InsumoPreviewCard"
 import { useInsumos } from "../../../hooks/useInsumos"
+import { getFuncionarios, asignarInsumoDirecto } from "../../../services/agroService"
+import { abrirModalAsignarInsumoDirecto } from "../../../components/AgroModals/AsignarInsumoDirectoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function InvSourceContentAdmin() {
-    const { insumos, loading, error, eliminar } = useInsumos()
+    const { insumos, loading, error, eliminar, refresh } = useInsumos()
     const navigate = useNavigate()
 
     const handleAnadir = () => {
@@ -17,6 +19,32 @@ export default function InvSourceContentAdmin() {
 
     const handleSolicitudes = () => {
         navigate('/administrador/inventario/insumos/solicitudes')
+    }
+
+    const handleAsignar = async (insumo) => {
+        try {
+            const funcionarios = (await getFuncionarios()) ?? []
+            const result = await abrirModalAsignarInsumoDirecto(insumo, funcionarios)
+            if (!result.isConfirmed) return
+
+            await asignarInsumoDirecto(insumo.id, result.value)
+            Swal.fire({
+                icon: 'success',
+                title: 'Asignación realizada',
+                text: 'El insumo fue asignado correctamente al funcionario.',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            refresh()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo realizar la asignación. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
     }
 
     const handleEditar = (insumo) => {
@@ -99,6 +127,7 @@ export default function InvSourceContentAdmin() {
                                 insumo={insumo}
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
+                                onAsignar={handleAsignar}
                             />
                         ))}
                     </div>

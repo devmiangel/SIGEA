@@ -4,15 +4,53 @@ import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import VehiculoPreviewCard from "../../../components/VehiculoPreviewCard/VehiculoPreviewCard"
 import { useVehiculos } from "../../../hooks/useVehiculos"
+import { getFuncionarios, getConductores, asignarVehiculoDirecto } from "../../../services/agroService"
+import { abrirModalAsignarVehiculo } from "../../../components/AgroModals/AsignarVehiculoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function InvVehicleContentAdmin() {
-    const { vehiculos, loading, error, eliminar } = useVehiculos()
+    const { vehiculos, loading, error, eliminar, refresh } = useVehiculos()
     const navigate = useNavigate()
 
     const handleAnadir = () => {
         navigate('/administrador/inventario/vehiculos/nuevo')
+    }
+
+    const handleAsignar = async (vehiculo) => {
+        try {
+            const [funcionariosData, conductoresData] = await Promise.all([
+                getFuncionarios(),
+                getConductores(),
+            ])
+            const conductorIds = new Set(
+                (conductoresData ?? [])
+                    .filter((c) => c.Estado !== false)
+                    .map((c) => c.Funcionario)
+            )
+            const funcionarios = (funcionariosData ?? []).filter((f) => conductorIds.has(f.id))
+
+            const result = await abrirModalAsignarVehiculo(vehiculo, funcionarios)
+            if (!result.isConfirmed) return
+
+            await asignarVehiculoDirecto(vehiculo.id, result.value)
+            Swal.fire({
+                icon: 'success',
+                title: 'Asignación realizada',
+                text: 'El vehículo fue asignado correctamente al funcionario.',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            refresh()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo realizar la asignación. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
     }
 
     const handleEditar = (vehiculo) => {
@@ -94,6 +132,7 @@ export default function InvVehicleContentAdmin() {
                                 vehiculo={vehiculo}
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
+                                onAsignar={handleAsignar}
                             />
                         ))}
                     </div>

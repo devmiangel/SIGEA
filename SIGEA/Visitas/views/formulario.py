@@ -19,10 +19,14 @@ from ..models import (
     InsumoVisita,
     Calificaciones,
     InfoVisita,
+    ServiciosPagos,
+    Aperos,
+    Pajillas,
+    VisitasServiciosPagos,
 )
 
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
-from ..serializers import FormularioVisitaTecnicaSerializer
+from ..serializers import FormularioVisitaTecnicaSerializer, FormularioReciboPagoSerializer
 
 def _hora_datetime(fecha, hora):
     """Combina la fecha de la visita con una hora 'HH:MM' (o devuelve la fecha)."""
@@ -295,3 +299,79 @@ class FormularioVisitaTecnicaView(APIView):
             )
             inv.Cantidad -= cantidad
             inv.save(update_fields=['Cantidad'])
+
+
+class FormularioReciboPagoView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = FormularioReciboPagoSerializer
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = FormularioReciboPagoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        visita_id = data.get('visita_id')
+        if not visita_id:
+            return Response({'error': 'visita_id es requerido'}, status=400)
+
+        visita = Visitas.objects.filter(id=visita_id).first()
+        if visita is None:
+            return Response({'error': 'No se encontró la visita'}, status=404)
+
+        servicio = None
+        if data.get('servicio_pago_id'):
+            servicio = ServiciosPagos.objects.filter(id=data['servicio_pago_id']).first()
+        if servicio is None and data.get('servicio_pago'):
+            servicio, _ = ServiciosPagos.objects.get_or_create(ServicioPago=data['servicio_pago'])
+        if servicio is None:
+            return Response({'error': 'servicio_pago o servicio_pago_id requerido'}, status=400)
+
+        nombre_servicio = servicio.ServicioPago.lower()
+        es_maquinaria = 'maquinaria' in nombre_servicio
+        es_inseminacion = 'inseminacion' in nombre_servicio
+
+        if not es_maquinaria and not es_inseminacion:
+            return Response({'error': 'Servicio de pago no reconocido'}, status=400)
+
+        apero = None
+        pajilla = None
+        numero_horas = None
+        numero_pajillas = None
+        toro = None
+        valor_total = None
+
+        if es_maquinaria:
+            apero = Aperos.objects.filter(id=data.get('apero_id')).first()
+            if apero is None:
+                return Response({'error': 'Apero o implemento no válido'}, status=400)
+            numero_horas = data.get('numero_horas')
+            valor_total = numero_horas * apero.ValorHora
+        else:
+            pajilla = Pajillas.objects.filter(id=data.get('pajilla_id')).first()
+            if pajilla is None:
+                return Response({'error': 'Pajilla no válida'}, status=400)
+            numero_pajillas = data.get('numero_pajillas')
+            toro = data.get('toro')
+            valor_total = data.get('valor_total')
+
+        registro = VisitasServiciosPagos.objects.create(
+            Visita=visita,
+            ServicioPago=servicio,
+            Apero=apero,
+            NumeroHoras=numero_horas,
+            NumeroPajillas=numero_pajillas,
+            Pajilla=pajilla,
+            Toro=toro,
+            ValorTotal=valor_total,
+        )
+
+        visita.FirmaProductor = data.get('firma_usuario') or ''
+        visita.FirmaFuncionario = data.get('firma_funcionario') or ''
+        visita.estado = True
+        visita.save()
+
+        return Response({
+            'registro': registro.id,
+            'visita': visita.id,
+        }, status=201)

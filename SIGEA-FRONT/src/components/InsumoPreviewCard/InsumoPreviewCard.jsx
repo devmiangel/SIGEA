@@ -3,7 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { esInsumoActivo } from '../../utils/insumoHelpers'
 
-export default function InsumoPreviewCard({ insumo, onEdit, onDelete }) {
+export default function InsumoPreviewCard({ insumo, onEdit, onDelete, onAsignar }) {
   const activo = esInsumoActivo(insumo)
   const cantidad = Number(insumo?.Cantidad ?? 0)
 
@@ -15,6 +15,11 @@ export default function InsumoPreviewCard({ insumo, onEdit, onDelete }) {
   const handleDelete = (e) => {
     e.stopPropagation()
     onDelete?.(insumo)
+  }
+
+  const handleAsignar = (e) => {
+    e.stopPropagation()
+    onAsignar?.(insumo)
   }
 
   return (
@@ -33,6 +38,14 @@ export default function InsumoPreviewCard({ insumo, onEdit, onDelete }) {
       </div>
 
       <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+        <button
+          onClick={handleAsignar}
+          aria-label="Asignar insumo"
+          title="Asignar insumo"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
+        >
+          Asignar
+        </button>
         <button
           onClick={handleEdit}
           aria-label="Editar insumo"

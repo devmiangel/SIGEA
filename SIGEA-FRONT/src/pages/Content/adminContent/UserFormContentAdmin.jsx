@@ -77,6 +77,10 @@ export default function UserFormContentAdmin() {
 
     const [tiposDocumento, setTiposDocumento] = useState([])
 
+    const rol = watch('rol')
+    const esConductor = Boolean(watch('es_conductor'))
+    const esFuncionario = rol === 'Funcionarios'
+
     useEffect(() => {
         let activo = true
         fetch(`${API_BASE_URL}/usuarios/tiposDocumentos/`)
@@ -222,6 +226,40 @@ export default function UserFormContentAdmin() {
                                             ))}
                                         </select>
                                     </CampoRegistro>
+
+                                    <div className={`flex flex-col gap-1 ${esFuncionario ? '' : 'hidden'}`}>
+                                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            ¿Es conductor?
+                                        </label>
+                                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                {...register('es_conductor')}
+                                                className="w-4 h-4 accent-[#015d3b]"
+                                            />
+                                            Marcar como conductor
+                                        </label>
+                                    </div>
+
+                                    <div className={`flex flex-col gap-1 ${esFuncionario ? '' : 'hidden'}`}>
+                                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            Licencia de conducir {esConductor && <span className="text-red-500">*</span>}
+                                        </label>
+                                        <input
+                                            {...register(
+                                                'licencia',
+                                                esFuncionario && esConductor
+                                                    ? { required: 'La licencia es requerida para el rol de conductor' }
+                                                    : {}
+                                            )}
+                                            disabled={!esConductor}
+                                            className={`${INPUT_CLASE} disabled:bg-gray-100 disabled:text-gray-500`}
+                                            placeholder={esConductor ? 'Ej. C1' : 'Marca "es conductor" para habilitar'}
+                                        />
+                                        {errors.licencia && (
+                                            <span className="text-xs text-red-500">{errors.licencia.message}</span>
+                                        )}
+                                    </div>
                                 </>
                             )}
 

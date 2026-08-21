@@ -4,7 +4,7 @@ import HandymanIcon from '@mui/icons-material/Handyman'
 import { esRegistroActivo } from '../../utils/insumoHelpers'
 import { ACTIVO_STYLE } from '../../utils/agroConstants'
 
-export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete }) {
+export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, onAsignar }) {
   const activo = esRegistroActivo(herramienta)
   const statusClass = activo ? ACTIVO_STYLE.activo : ACTIVO_STYLE.inactivo
   const estadoLabel = activo ? 'Activo' : 'Inactivo'
@@ -17,6 +17,11 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete }
   const handleDelete = (e) => {
     e.stopPropagation()
     onDelete?.(herramienta)
+  }
+
+  const handleAsignar = (e) => {
+    e.stopPropagation()
+    onAsignar?.(herramienta)
   }
 
   return (
@@ -35,6 +40,14 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete }
       </div>
 
       <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+        <button
+          onClick={handleAsignar}
+          aria-label="Asignar herramienta"
+          title="Asignar herramienta"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
+        >
+          Asignar
+        </button>
         <button
           onClick={handleEdit}
           aria-label="Editar herramienta"

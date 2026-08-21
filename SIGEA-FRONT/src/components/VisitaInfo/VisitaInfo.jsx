@@ -18,6 +18,11 @@ const esCaracterizacion = (tipo) => {
     return normalizado === 'caracterizacion'
 }
 
+const esServiciosPagos = (tipo) => {
+    const normalizado = (tipo ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return normalizado === 'servicios pagos'
+}
+
 export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
     const navigate = useNavigate()
     const openedRef = useRef(false)
@@ -109,7 +114,9 @@ export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
             if (result.isConfirmed && !realizada) {
                 const destino = esCaracterizacion(visita.tipo_visita_label)
                     ? '/funcionario/visitas/caracterizacion'
-                    : '/funcionario/visitas/visita'
+                    : esServiciosPagos(visita.tipo_visita_label)
+                        ? '/funcionario/visitas/recibo'
+                        : '/funcionario/visitas/visita'
                 navigate(destino, { state: { visita } })
                 return
             }

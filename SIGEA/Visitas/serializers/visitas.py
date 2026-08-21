@@ -10,7 +10,7 @@ class VisitasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Visitas
-        fields = ['id', 'Solicitud', 'Funcionario', 'Administrador', 'TipoVisita', 'FechaYHoraVisita', 'Ubicacion', 'estado', 'FirmaProductor', 'FirmaFuncionario',
+        fields = ['id', 'Solicitud', 'Funcionario', 'Administrador', 'TipoVisita', 'FechaYHoraVisita', 'Ubicacion', 'estado', 'Autorizacion', 'FirmaProductor', 'FirmaFuncionario',
                   'solicitud_info', 'funcionario_info', 'administrador_info', 'tipo_visita_label']
 
     def get_solicitud_info(self, obj):

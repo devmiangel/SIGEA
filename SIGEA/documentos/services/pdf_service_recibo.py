@@ -54,6 +54,7 @@ def _datos_desde_visita(visita):
             'ValorPajilla': sp.Pajilla.ValorPajilla if sp.Pajilla else 0,
             'Pajilla': sp.Pajilla.Pajilla if sp.Pajilla else '',
             'Toro': sp.Toro,
+            'ValorTotal': sp.ValorTotal,
         })
     return datos
 
@@ -229,7 +230,7 @@ def generar_recibo(salida, datos=None):
         a = maq[i] if i < len(maq) else None
         hora = a['NumeroHoras'] if a else ''
         unit = a['ValorHora'] if a else ''
-        total = (a['NumeroHoras'] or 0) * (a['ValorHora'] or 0) if a else ''
+        total = a['ValorTotal'] if a else ''
         apero = a['Apero'] if a else ''
         y = row(y, 18, [(fr1[0], str(hora), False, "center"), (fr1[1], str(unit), False, "center"),
                         (fr1[2], str(total), False, "center"), (fr1[3], str(apero), False, "left")])
@@ -247,7 +248,7 @@ def generar_recibo(salida, datos=None):
         paj = a['NumeroPajillas'] if a else ''
         toro = 'SI' if (a and a['Toro']) else ('NO' if a else '')
         unit = a['ValorPajilla'] if a else ''
-        total = (a['NumeroPajillas'] or 0) * (a['ValorPajilla'] or 0) if a else ''
+        total = a['ValorTotal'] if a else ''
         y = row(y, 18, [(0.22, str(paj), False, "center"), (0.28, str(toro), False, "center"),
                         (0.25, str(unit), False, "center"), (0.25, str(total), False, "center")],
                 x0=t2_x0, total_w=t2_w)

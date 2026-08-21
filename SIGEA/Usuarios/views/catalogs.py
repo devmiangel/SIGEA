@@ -97,6 +97,30 @@ class UsuarioViewSet(viewsets.ModelViewSet):
                     grupo, _ = Group.objects.get_or_create(name='Usuarios')
                     instance.groups.add(grupo)
 
+        # 4. Gestionar el rol de conductor (complemento de Funcionarios)
+        if rol == 'Funcionarios':
+            from Inventario.models import Conductores
+            funcionario = getattr(instance, 'funcionarios', None)
+            if funcionario is None:
+                funcionario = Funcionarios.objects.create(usuario=instance)
+
+            es_conductor = data.get('es_conductor')
+            licencia = data.get('licencia')
+
+            if es_conductor:
+                licencia = str(licencia or '').strip()
+                if not licencia:
+                    return Response({'error': 'La licencia es requerida para el rol de conductor'}, status=400)
+                conductor, _ = Conductores.objects.get_or_create(
+                    Funcionario=funcionario,
+                    defaults={'Licencia': licencia, 'Estado': True},
+                )
+                conductor.Licencia = licencia
+                conductor.Estado = True
+                conductor.save()
+            else:
+                Conductores.objects.filter(Funcionario=funcionario).update(Estado=False)
+
         return Response(UsuarioSerializer(usuario).data)
 
     def update(self, request, *args, **kwargs):

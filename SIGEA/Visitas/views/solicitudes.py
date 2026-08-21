@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
-from ..models import Solicitudes, Visitas, TiposVisitas
+from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
 from ..serializers import SolicitudesSerializer, VisitasSerializer
 
 @api_view(['POST'])
@@ -159,6 +159,40 @@ def rechazar_solicitud(request, solicitud_id):
 
     serializer = SolicitudesSerializer(solicitud)
     return Response(serializer.data, status=200)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def info_visita_observaciones(request, visita_id):
+    visita = get_object_or_404(Visitas, id=visita_id)
+    info = InfoVisita.objects.filter(Visita=visita).first()
+
+    if request.method == 'GET':
+        return Response({'ObservacionVisita': info.ObservacionVisita if info else ''})
+
+    observacion = str(
+        request.data.get('ObservacionVisita')
+        or request.data.get('observaciones')
+        or ''
+    )
+
+    if info is None:
+        calificacion, _ = Calificaciones.objects.get_or_create(Calificacion='Sin calificación')
+        info = InfoVisita.objects.create(
+            Visita=visita,
+            Calificacion=calificacion,
+            ObservacionVisita=observacion,
+            AccionSeguimiento='',
+            DiagnosticoPresuntivo='',
+            Acciones='',
+            HoraInicio=visita.FechaYHoraVisita,
+            HoraSalida=visita.FechaYHoraVisita,
+        )
+    else:
+        info.ObservacionVisita = observacion
+        info.save(update_fields=['ObservacionVisita'])
+
+    return Response({'ObservacionVisita': info.ObservacionVisita})
 
 
 @api_view(['GET'])

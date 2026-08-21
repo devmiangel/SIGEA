@@ -17,7 +17,7 @@ export default function HomePageContentUser(){
                     colorLogo={'#3e9a8a'}
                 />
 
-                <MenuCard
+                {/* <MenuCard
                     componentLogo={
                         <PetsIcon sx={{fontSize: 40}}/>
                     } 
@@ -25,7 +25,7 @@ export default function HomePageContentUser(){
                     message={'Accede a beneficios de proteccion animal'} 
                     path={'/usuario/Proteccion_Animal'} 
                     colorLogo={'#55bd85'}
-                />
+                /> */}
             </div>
            
         </>

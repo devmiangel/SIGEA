@@ -65,6 +65,26 @@ export const getTiposVisitas = async () => {
     return response.data;
 }
 
+export const getServiciosPagos = async () => {
+    const response = await api.get('/visitas/serviciosPagos/');
+    return response.data;
+}
+
+export const getAperos = async () => {
+    const response = await api.get('/visitas/aperos/');
+    return response.data;
+}
+
+export const getPajillas = async () => {
+    const response = await api.get('/visitas/pajillas/');
+    return response.data;
+}
+
+export const enviarFormularioRecibo = async (data) => {
+    const response = await api.post('/visitas/formulario-recibo/', data);
+    return response.data;
+}
+
 export const getVisitas = async () => {
     const response = await api.get('/visitas/visitas/');
     return response.data;
@@ -80,11 +100,13 @@ export const marcarVisitaRealizada = async (visitaId) => {
     return response.data;
 }
 
-export const guardarFirmasVisita = async (visitaId, firmaProductor, firmaFuncionario) => {
-    const response = await api.patch(`/visitas/visitas/${visitaId}/`, {
+export const guardarFirmasVisita = async (visitaId, firmaProductor, firmaFuncionario, autorizacion = null) => {
+    const payload = {
         FirmaProductor: firmaProductor,
         FirmaFuncionario: firmaFuncionario,
-    });
+    }
+    if (autorizacion !== null) payload.Autorizacion = autorizacion
+    const response = await api.patch(`/visitas/visitas/${visitaId}/`, payload);
     return response.data;
 }
 
@@ -243,6 +265,21 @@ export const asignarSolicitudInsumo = async (solicitudId, data) => {
 
 export const rechazarSolicitudInsumo = async (solicitudId, data) => {
     const response = await api.post(`/inventario/solicitudInsumo/${solicitudId}/rechazar/`, data);
+    return response.data;
+}
+
+export const asignarInsumoDirecto = async (insumoId, data) => {
+    const response = await api.post(`/inventario/insumos/${insumoId}/asignar/`, data);
+    return response.data;
+}
+
+export const asignarHerramientaDirecto = async (herramientaId, data) => {
+    const response = await api.post(`/inventario/herramientas/${herramientaId}/asignar/`, data);
+    return response.data;
+}
+
+export const asignarVehiculoDirecto = async (vehiculoId, data) => {
+    const response = await api.post(`/inventario/detalleVehiculos/${vehiculoId}/asignar/`, data);
     return response.data;
 }
 

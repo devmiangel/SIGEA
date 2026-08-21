@@ -4,15 +4,43 @@ import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import HerramientaPreviewCard from "../../../components/HerramientaPreviewCard/HerramientaPreviewCard"
 import { useHerramientas } from "../../../hooks/useHerramientas"
+import { getFuncionarios, asignarHerramientaDirecto } from "../../../services/agroService"
+import { abrirModalAsignarHerramienta } from "../../../components/AgroModals/AsignarHerramientaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function InvToolsContentAdmin() {
     const navigate = useNavigate()
-    const { herramientas, loading, error, eliminar } = useHerramientas()
+    const { herramientas, loading, error, eliminar, refresh } = useHerramientas()
 
     const handleAnadir = () => {
         navigate('/administrador/inventario/herramientas/nuevo')
+    }
+
+    const handleAsignar = async (herramienta) => {
+        try {
+            const funcionarios = (await getFuncionarios()) ?? []
+            const result = await abrirModalAsignarHerramienta(herramienta, funcionarios)
+            if (!result.isConfirmed) return
+
+            await asignarHerramientaDirecto(herramienta.id, result.value)
+            Swal.fire({
+                icon: 'success',
+                title: 'Asignación realizada',
+                text: 'La herramienta fue asignada correctamente al funcionario.',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            refresh()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo realizar la asignación. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
     }
 
     const handleEditar = (herramienta) => {
@@ -94,6 +122,7 @@ export default function InvToolsContentAdmin() {
                                 herramienta={herramienta}
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
+                                onAsignar={handleAsignar}
                             />
                         ))}
                     </div>

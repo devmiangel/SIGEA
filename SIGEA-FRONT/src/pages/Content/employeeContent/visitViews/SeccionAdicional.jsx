@@ -1,14 +1,15 @@
 import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
-import { getInfoAdicional, saveInfoAdicional, subirArchivoUP } from '../../../../services/caracterizacionService'
+import { getInfoAdicional, saveInfoAdicional, subirArchivoUP, getObservacionVisita, saveObservacionVisita } from '../../../../services/caracterizacionService'
 import { useSeccion } from '../../../../hooks/useSeccion'
 import { AGRO_COLORS } from '../../../../utils/agroConstants'
 import Swal from 'sweetalert2'
 
 const EXT_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf']
 
-const SeccionAdicional = forwardRef(({ userId, solicitudId }, ref) => {
+const SeccionAdicional = forwardRef(({ userId, solicitudId, visita }, ref) => {
     const [archivos, setArchivos] = useState([])
     const [fechaActualizacion, setFechaActualizacion] = useState(null)
+    const [observaciones, setObservaciones] = useState('')
     const { loading, cargarSeccion, guardarSeccion } = useSeccion()
 
     useEffect(() => {
@@ -16,14 +17,16 @@ const SeccionAdicional = forwardRef(({ userId, solicitudId }, ref) => {
         let activo = true
         cargarSeccion(async () => {
             const data = await getInfoAdicional(userId, solicitudId)
+            const obs = visita?.id ? await getObservacionVisita(visita.id) : null
             if (!activo) return
             setArchivos((data?.Archivos || []).map((a) => ({
                 RutaArchivo: a.RutaArchivo || '', NombreArchivo: a.NombreArchivo || '', Descripcion: a.Descripcion || '',
             })))
             setFechaActualizacion(data?.FechaActualizacion || null)
+            setObservaciones(obs?.ObservacionVisita || '')
         })
         return () => { activo = false }
-    }, [userId, solicitudId, cargarSeccion])
+    }, [userId, solicitudId, visita, cargarSeccion])
 
     const updateItem = (idx, campo, value) => {
         setArchivos((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
@@ -68,10 +71,15 @@ const SeccionAdicional = forwardRef(({ userId, solicitudId }, ref) => {
         if (archivos.some((a) => a.subiendo)) {
             return { ok: false, motivo: 'Hay archivos que aún se están subiendo. Espera a que terminen.' }
         }
-        return guardarSeccion(() => saveInfoAdicional(userId, solicitudId, {
-            Archivos: archivos.filter((a) => a.RutaArchivo),
-        }))
-    }, [archivos, userId, solicitudId, guardarSeccion])
+        return guardarSeccion(async () => {
+            await saveInfoAdicional(userId, solicitudId, {
+                Archivos: archivos.filter((a) => a.RutaArchivo),
+            })
+            if (visita?.id) {
+                await saveObservacionVisita(visita.id, observaciones)
+            }
+        })
+    }, [archivos, observaciones, userId, solicitudId, visita, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
 
@@ -86,6 +94,17 @@ const SeccionAdicional = forwardRef(({ userId, solicitudId }, ref) => {
             <p className="text-sm text-gray-500">
                 Adjunta el formulario de caracterización (fotos o PDF). Se guardará en el servidor.
             </p>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</label>
+                <textarea
+                    value={observaciones}
+                    onChange={(e) => setObservaciones(e.target.value)}
+                    rows={4}
+                    placeholder="Observaciones de la visita de caracterización"
+                    className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white resize-y"
+                />
+            </div>
 
             <div className="flex flex-col gap-2">
                 {archivos.length === 0 && (

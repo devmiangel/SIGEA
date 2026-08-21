@@ -1,7 +1,6 @@
 import PersonIcon from '@mui/icons-material/Person'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import CakeOutlinedIcon from '@mui/icons-material/CakeOutlined'
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
 import AgricultureOutlinedIcon from '@mui/icons-material/AgricultureOutlined'
@@ -11,7 +10,7 @@ import StraightenOutlinedIcon from '@mui/icons-material/StraightenOutlined'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { AGRO_COLORS } from '../../../../../utils/agroConstants'
 
-function Tile({ icono, etiqueta, valor, full = false }) {
+function Tile({ icono, etiqueta, valor, detalle, full = false }) {
     const Icono = icono
     return (
         <div className={`${full ? 'md:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
@@ -19,7 +18,10 @@ function Tile({ icono, etiqueta, valor, full = false }) {
                 <Icono sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{etiqueta}</span>
             </div>
-            <p className="text-xs font-medium text-gray-800 mt-1">{valor ?? '—'}</p>
+            <p className="text-xs font-medium text-gray-800 mt-1">
+                {valor ?? '—'}
+                {detalle && <span className="text-gray-500 font-normal"> · {detalle}</span>}
+            </p>
         </div>
     )
 }
@@ -62,10 +64,9 @@ export default function ResumenDescriptivo({ productor, up }) {
                 subtitulo={`Información del productor · UP ${u.Rudea ?? u.RUEA ?? p.Rudea ?? ''}`.trim()}
                 icono={PersonIcon}
             >
-                <Tile icono={PersonIcon} etiqueta="Nombres y apellidos" valor={nombre} full />
+                <Tile icono={PersonIcon} etiqueta="Nombres y apellidos" valor={nombre} detalle={p.Correo} full />
                 <Tile icono={BadgeOutlinedIcon} etiqueta="Documento" valor={`${tipoDocumento} ${p.DocumentoProductor ?? ''}`.trim()} />
                 <Tile icono={PhoneOutlinedIcon} etiqueta="Celular" valor={p.Celular} />
-                <Tile icono={EmailOutlinedIcon} etiqueta="Correo" valor={p.Correo} />
                 <Tile icono={CakeOutlinedIcon} etiqueta="Edad" valor={p.Edad ? `${p.Edad} años` : null} />
                 <Tile icono={SchoolOutlinedIcon} etiqueta="Nivel educativo" valor={p.NivelEducativo} />
                 <p className="md:col-span-2 text-[10px] text-gray-400">

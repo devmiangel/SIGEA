@@ -98,3 +98,13 @@ export const subirArchivoUP = async (userId, archivo) => {
     })
     return response.data
 }
+
+export const getObservacionVisita = async (visitaId) => {
+    const response = await api.get(`/visitas/infoVisita/${visitaId}/observaciones/`)
+    return response.data
+}
+
+export const saveObservacionVisita = async (visitaId, observacion) => {
+    const response = await api.post(`/visitas/infoVisita/${visitaId}/observaciones/`, { ObservacionVisita: observacion })
+    return response.data
+}

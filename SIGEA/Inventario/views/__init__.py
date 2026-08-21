@@ -7,11 +7,13 @@ from .vehiculos import (
     DetalleVehiculosViewSet,
     ConductoresViewSet,
     RegistroAsignacionVehiculosViewSet,
+    asignar_vehiculo_directo,
 )
 from .herramientas import (
     TiposHerramientasViewSet,
     HerramientasViewSet,
     AsignacionHerramientasViewSet,
+    asignar_herramienta_directo,
 )
 from .insumos import (
     InsumosViewSet,
@@ -21,4 +23,5 @@ from .insumos import (
     crear_solicitud_insumo,
     asignar_solicitud_insumo,
     rechazar_solicitud_insumo,
+    asignar_insumo_directo,
 )

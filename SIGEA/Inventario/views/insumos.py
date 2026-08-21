@@ -151,6 +151,69 @@ def asignar_solicitud_insumo(request, solicitud_id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def asignar_insumo_directo(request, insumo_id):
+    from Usuarios.models import Funcionarios
+
+    administrador = getattr(request.user, 'administradores', None)
+    if not administrador:
+        return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
+
+    try:
+        insumo = Insumos.objects.select_related('Unidades').get(pk=insumo_id)
+    except Insumos.DoesNotExist:
+        return Response({'error': 'El insumo no existe'}, status=404)
+
+    if not insumo.Estado:
+        return Response({'error': 'El insumo no está disponible'}, status=400)
+
+    data = request.data
+    funcionario_id = data.get('funcionario_id')
+    cantidad = data.get('cantidad')
+
+    if not funcionario_id:
+        return Response({'error': 'Debes seleccionar un funcionario'}, status=400)
+
+    try:
+        funcionario = Funcionarios.objects.get(pk=funcionario_id)
+    except Funcionarios.DoesNotExist:
+        return Response({'error': 'El funcionario seleccionado no existe'}, status=400)
+
+    try:
+        cantidad_int = int(cantidad)
+    except (TypeError, ValueError):
+        return Response({'error': 'La cantidad debe ser un número entero'}, status=400)
+
+    if cantidad_int <= 0:
+        return Response({'error': 'La cantidad debe ser mayor a cero'}, status=400)
+
+    if cantidad_int > insumo.Cantidad:
+        return Response({'error': f'Stock insuficiente. Disponible: {insumo.Cantidad}'}, status=400)
+
+    with transaction.atomic():
+        cardex = CardexInsumoFuncionario.objects.create(
+            Funcionario=funcionario,
+            Insumo=insumo,
+            Administrador=administrador,
+            Cantidad=cantidad_int,
+            FechaAsignacion=date.today(),
+        )
+
+        inventario, _ = InventarioFuncionario.objects.get_or_create(
+            Insumo=insumo,
+            Funcionario=funcionario,
+            defaults={'Cantidad': 0},
+        )
+        inventario.Cantidad += cantidad_int
+        inventario.save(update_fields=['Cantidad'])
+
+        insumo.Cantidad -= cantidad_int
+        insumo.save(update_fields=['Cantidad'])
+
+    serializer = CardexInsumoFuncionarioSerializer(cardex)
+    return Response(serializer.data, status=201)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def rechazar_solicitud_insumo(request, solicitud_id):
     administrador = getattr(request.user, 'administradores', None)
     if not administrador:

@@ -6,10 +6,12 @@ from .personas import PersonaBasicaSerializer
 class UsuarioSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
     persona_info = PersonaBasicaSerializer(source='persona', read_only=True)
+    es_conductor = serializers.SerializerMethodField()
+    licencia = serializers.SerializerMethodField()
     
     class Meta:
         model = Usuario
-        fields = ['id', 'email', 'password', 'persona', 'persona_info', 'Estado', 'rol']
+        fields = ['id', 'email', 'password', 'persona', 'persona_info', 'Estado', 'rol', 'es_conductor', 'licencia']
         extra_kwargs = {
             'password': {'write_only': True, 'style': {'input_type': 'password'}}
         }
@@ -24,6 +26,20 @@ class UsuarioSerializer(serializers.ModelSerializer):
         elif obj.groups.filter(name='Usuarios').exists():
             return 'Usuarios'
         return None
+
+    def _conductor(self, obj):
+        funcionario = getattr(obj, 'funcionarios', None)
+        if funcionario is None:
+            return None
+        from Inventario.models import Conductores
+        return Conductores.objects.filter(Funcionario=funcionario, Estado=True).first()
+
+    def get_es_conductor(self, obj):
+        return self._conductor(obj) is not None
+
+    def get_licencia(self, obj):
+        conductor = self._conductor(obj)
+        return conductor.Licencia if conductor else None
 
     def create(self, validated_data):
         return Usuario.objects.create_user(**validated_data)

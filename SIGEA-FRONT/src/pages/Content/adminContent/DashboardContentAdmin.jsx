@@ -38,7 +38,7 @@ export default function DashboardContentAdmin(){
                 path={'/administrador/usuarios'} 
                 colorLogo={'#9ebd57'}/>
 
-            <MenuCard 
+            {/* <MenuCard 
                 componentLogo={
                     <AssessmentIcon sx={{fontSize: 40}}/>
                 } 
@@ -46,7 +46,7 @@ export default function DashboardContentAdmin(){
                 message={'Consulta los reportes aquí'} 
                 path={'/administrador/reportes'} 
                 colorLogo={'#7ebcab'}
-            />
+            /> */}
         </>
     )
 }

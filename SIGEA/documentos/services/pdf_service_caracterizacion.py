@@ -26,6 +26,16 @@ def _si_no(b):
     return 'Sí' if b else 'No'
 
 
+def _raiz(t):
+    """Quita terminaciones de genero/numero para comparar (propia/propio, arrendada/arrendado)."""
+    t = (t or '').strip()
+    if t.endswith(('as', 'os')):
+        t = t[:-1]
+    if t.endswith(('a', 'o')):
+        t = t[:-1]
+    return t
+
+
 def marcar_opciones(linea, valor):
     """Marca con X el guion (___) de la opcion que coincida con el valor."""
     v = _norm(valor or '').strip()
@@ -38,7 +48,8 @@ def marcar_opciones(linea, valor):
         if not t:
             return m.group(0)
         prefijo = (len(t) >= 6 and len(v) >= 6 and t[:6] == v[:6])
-        if t == v or t in v or v in t or prefijo:
+        mismo_genero = bool(t and v and _raiz(t) == _raiz(v) and len(_raiz(t)) >= 4)
+        if t == v or t in v or v in t or prefijo or mismo_genero:
             return token.rstrip() + ' X'
         return m.group(0)
 
@@ -78,9 +89,12 @@ def _datos_desde_caracterizacion(visita):
     datos['Agroindustrial'] = InfoProduccionAgroindustrialSerializer(up).data.get('ProduccionAgroindustrial', [])
     datos['Adicional'] = InfoAdicionalCaracterizacionSerializer(up).data
     datos['fecha'] = str(up.FechaCaracterizacion or solicitud.FechaSolicitud or '')
-    datos['observaciones'] = solicitud.Observacion or ''
+    from Visitas.models import InfoVisita
+    info_visita = InfoVisita.objects.filter(Visita=visita).first()
+    datos['observaciones'] = info_visita.ObservacionVisita if info_visita else ''
     datos['firma_usuario'] = visita.FirmaProductor or ''
     datos['firma_extensionista'] = visita.FirmaFuncionario or ''
+    datos['autorizacion'] = bool(visita.Autorizacion)
     return datos
 
 
@@ -276,6 +290,17 @@ def generar_caracterizacion(salida, datos=None):
             res = opciones
         return res if is_list else res[0]
 
+    def con_cual(valor, opciones):
+        """Marca con X si el valor es Agrícola/Pecuario; si es otro, lo escribe en 'Cual:'."""
+        v = _norm(valor or '').strip()
+        if not v:
+            return opciones
+        if _raiz(v) == 'agricol':
+            return marcar_opciones(opciones, 'Agrícola')
+        if _raiz(v) == 'pecuari':
+            return marcar_opciones(opciones, 'Pecuario')
+        return f"{opciones} {valor}"
+
     # ============================================================
     # PAGE 1
     # ============================================================
@@ -334,7 +359,7 @@ def generar_caracterizacion(salida, datos=None):
     y = row(y, 14, [(0.24, "SISTEMA:", True, "left"),
                     (0.76, con_opciones(up.get('TipoUP_Nombre') or '', 'Agrícola ___   Pecuario ___   Agropecuario ___   Agroindustrial___'), False, "left")])
     y = row(y, 14, [(0.24, "ACTIVIDAD PRINCIPAL:", True, "left"),
-                    (0.76, con_opciones(up.get('ActividadUP') or '', 'Agrícola ________   Pecuario ________   Cual:'), False, "left")])
+                    (0.76, con_cual(up.get('ActividadUP') or '', 'Agrícola ________   Pecuario ________   Cual:'), False, "left")])
     y = row(y, 14, [(0.24, "# EMPLEADOS", True, "left"), (0.76, str(up.get('NumeroEmpleados') or ''), False, "left")])
     y = row(y, 14, [(0.24, "CERTIFICACIONES:", True, "left"), (0.76, '', False, "left")])
     y = row(y, 14, [(0.24, "ASOCIATIVIDAD:", True, "left"), (0.76, _si_no(up.get('Asociatividad')), False, "left")])
@@ -517,7 +542,7 @@ def generar_caracterizacion(salida, datos=None):
     for ln in lines:
         text(LEFT + 15, y, ln, size=9.5)
         y -= 13
-    text(LEFT + 15, y, "SI___  NO___", size=9.5, bold=True)
+    text(LEFT + 15, y, marcar_opciones("SI___  NO___", 'Si' if datos.get('autorizacion') else 'No'), size=9.5, bold=True)
     y -= 55
 
     # ---------- Signatures ----------

@@ -37,6 +37,8 @@ export function useUserForm(usuarioId) {
                 fecha_nacimiento: p.fecha_nacimiento ? dayjs(p.fecha_nacimiento) : null,
                 Estado: user?.Estado ? 'true' : 'false',
                 rol: user?.rol ?? 'Usuarios',
+                es_conductor: Boolean(user?.es_conductor),
+                licencia: user?.licencia ?? '',
             })
         } catch {
             setError('No se pudo cargar la información del usuario.')
@@ -60,11 +62,13 @@ export function useUserForm(usuarioId) {
             }
 
             if (esEdicion) {
-                const { email, password, Estado, rol } = base
+                const { email, password, Estado, rol, es_conductor, licencia } = base
                 const payload = {
                     email,
                     Estado: Estado === 'true',
                     rol,
+                    es_conductor: Boolean(es_conductor),
+                    licencia: licencia || '',
                     persona: {
                         primer_nombre: base.primer_nombre,
                         segundo_nombre: base.segundo_nombre,

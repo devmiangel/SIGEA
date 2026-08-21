@@ -23,4 +23,7 @@ urlpatterns = [
     path('solicitudInsumo/crear/', crear_solicitud_insumo, name='crear_solicitud_insumo'),
     path('solicitudInsumo/<int:solicitud_id>/asignar/', asignar_solicitud_insumo, name='asignar_solicitud_insumo'),
     path('solicitudInsumo/<int:solicitud_id>/rechazar/', rechazar_solicitud_insumo, name='rechazar_solicitud_insumo'),
+    path('insumos/<int:insumo_id>/asignar/', asignar_insumo_directo, name='asignar_insumo_directo'),
+    path('herramientas/<int:herramienta_id>/asignar/', asignar_herramienta_directo, name='asignar_herramienta_directo'),
+    path('detalleVehiculos/<int:detalle_vehiculo_id>/asignar/', asignar_vehiculo_directo, name='asignar_vehiculo_directo'),
 ] + router.urls

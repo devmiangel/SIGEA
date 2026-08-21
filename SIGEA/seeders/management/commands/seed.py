@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
 from Usuarios.models import Usuario, Personas, Contactos, Administradores, Funcionarios, Productores
-from Visitas.models import MotivosSolicitudes, Estados, TiposVisitas
+from Visitas.models import MotivosSolicitudes, Estados, TiposVisitas, ServiciosPagos, Aperos, Pajillas
 from UPs.models import TipoUP, ActividadUP, Unidades, GrupoAnimal, TiposAves, Propositos, ProductosApicolas
 from Predios.models import TiposTenencias, Veredas, Sectores
 from datetime import date
@@ -36,6 +36,15 @@ class Command(BaseCommand):
         self.seed_maestro(TiposVisitas, 'TipoVisita', [
             'Caracterización', 'Pecuaria', 'Agrícola', 'Agropecuaria', 'Servicios Pagos'
         ])
+
+        ServiciosPagos.objects.get_or_create(id=1, defaults={'ServicioPago': 'Maquinaria Agrícola'})
+        ServiciosPagos.objects.get_or_create(id=2, defaults={'ServicioPago': 'Inseminación Artificial'})
+
+        Aperos.objects.get_or_create(Apero='Arado de discos', defaults={'ValorHora': 80000})
+        Aperos.objects.get_or_create(Apero='Rastra agrícola', defaults={'ValorHora': 70000})
+
+        Pajillas.objects.get_or_create(Pajilla='Pajilla de semen bovino Holstein', defaults={'ValorPajilla': 35000})
+        Pajillas.objects.get_or_create(Pajilla='Pajilla de semen bovino Angus', defaults={'ValorPajilla': 40000})
 
         self.seed_maestro(TiposNivelesEducativos, 'TipoNivelEducativo', [
             'Ninguno', 'Primaria', 'Secundaria', 'Técnico', 'Tecnológico', 'Universitario', 'Postgrado'

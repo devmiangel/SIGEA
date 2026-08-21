@@ -1,5 +1,4 @@
 import PersonIcon from '@mui/icons-material/Person'
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 import CategoryIcon from '@mui/icons-material/Category'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
@@ -14,15 +13,18 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { AGRO_COLORS } from '../../utils/agroConstants'
 import { formatFecha } from '../../utils/dateHelpers'
 
-function Tile({ icono, etiqueta, valor, full = false }) {
+function Tile({ icono, etiqueta, valor, detalle, full = false, doble = false }) {
     const Icono = icono
     return (
-        <div className={`${full ? 'md:col-span-2 lg:col-span-3' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
+        <div className={`${full ? 'md:col-span-2 lg:col-span-3' : ''} ${doble ? 'sm:col-span-2 lg:col-span-2' : ''} bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 min-w-30`}>
             <div className="flex items-center gap-1.5">
                 <Icono sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{etiqueta}</span>
             </div>
-            <p className="text-xs font-medium text-gray-800 mt-1">{valor ?? '—'}</p>
+            <p className="text-xs font-medium text-gray-800 mt-1">
+                {valor ?? '—'}
+                {detalle && <span className="text-gray-500 font-normal"> · {detalle}</span>}
+            </p>
         </div>
     )
 }
@@ -66,8 +68,7 @@ export default function VisitaResumen({ visita }) {
                 subtitulo="Información de la solicitud asociada a la visita"
                 icono={AssignmentOutlinedIcon}
             >
-                <Tile icono={PersonIcon} etiqueta="Solicitante" valor={nombreSolicitante} />
-                <Tile icono={EmailOutlinedIcon} etiqueta="Correo" valor={solicitante.email} />
+                <Tile icono={PersonIcon} etiqueta="Solicitante" valor={nombreSolicitante} detalle={solicitante.email} doble />
                 <Tile icono={CategoryIcon} etiqueta="Motivo" valor={solicitud.motivo} />
                 <Tile icono={AccessTimeFilledIcon} etiqueta="Fecha de solicitud" valor={formatFecha(solicitud.fecha_solicitud)} />
                 <Tile icono={BadgeOutlinedIcon} etiqueta="Estado" valor={solicitud.estado} />
@@ -84,11 +85,9 @@ export default function VisitaResumen({ visita }) {
                 <Tile icono={CategoryIcon} etiqueta="Tipo de visita" valor={visita?.tipo_visita_label} />
                 <Tile icono={ScheduleIcon} etiqueta="Fecha y hora" valor={formatFecha(visita?.FechaYHoraVisita)} />
                 <Tile icono={LocationOnIcon} etiqueta="Ubicación" valor={visita?.Ubicacion} />
-                <Tile icono={PersonIcon} etiqueta="Funcionario" valor={funcionario.nombre} />
-                <Tile icono={EmailOutlinedIcon} etiqueta="Correo funcionario" valor={funcionario.email} />
-                <Tile icono={AdminPanelSettingsOutlinedIcon} etiqueta="Administrador" valor={administrador.nombre} />
-                <Tile icono={EmailOutlinedIcon} etiqueta="Correo administrador" valor={administrador.email} />
+                <Tile icono={PersonIcon} etiqueta="Funcionario" valor={funcionario.nombre} detalle={funcionario.email} doble />
                 <Tile icono={VerifiedUserOutlinedIcon} etiqueta="Estado" valor={visita?.estado ? 'Realizada' : 'No realizada'} />
+                <Tile icono={AdminPanelSettingsOutlinedIcon} etiqueta="Administrador" valor={administrador.nombre} detalle={administrador.email} doble />
             </Bloque>
         </div>
     )

@@ -22,5 +22,7 @@ urlpatterns = [
     path('solicitudes/<int:solicitud_id>/reagendar/', reagendar_solicitud, name='reagendar_solicitud'),
     path('solicitudes/<int:solicitud_id>/rechazar/', rechazar_solicitud, name='rechazar_solicitud'),
     path('mis-visitas/', mis_visitas, name='mis_visitas'),
+    path('infoVisita/<int:visita_id>/observaciones/', info_visita_observaciones, name='info_visita_observaciones'),
     path('formulario-visita/', FormularioVisitaTecnicaView.as_view(), name='llenar_formulario_visita_tecnica'),
+    path('formulario-recibo/', FormularioReciboPagoView.as_view(), name='llenar_formulario_recibo_pago'),
 ] + router.urls
