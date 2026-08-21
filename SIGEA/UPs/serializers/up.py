@@ -6,6 +6,7 @@ class UPSerializer(serializers.ModelSerializer):
     estado_label = serializers.CharField(source='idEstado.Estado', read_only=True, default=None)
     tipo_up_label = serializers.CharField(source='TipoUP.TipoUP', read_only=True)
     nombre_predio = serializers.CharField(source='Predio.NombrePredio', read_only=True)
+    direccion = serializers.CharField(source='Predio.Direccion', read_only=True, default='')
     productor_nombre = serializers.SerializerMethodField()
 
     class Meta:

@@ -2,8 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import HandymanIcon from '@mui/icons-material/Handyman'
-import { Campo, CampoSelect, CampoCheck } from "../employeeContent/visitViews/fields"
-import { crearHerramienta, getTiposHerramientas } from "../../../services/agroService"
+import { Campo, CampoSelectDinamico, CampoCheck } from "../employeeContent/visitViews/fields"
+import { crearHerramienta, getTiposHerramientas, crearTipoHerramienta } from "../../../services/agroService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
@@ -43,6 +43,11 @@ export default function HerramientaFormContentAdmin() {
     }, [])
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
+
+    const handleCrearTipoHerramienta = async (valor) => {
+        const registro = await crearTipoHerramienta(valor)
+        setTipos((prev) => [...prev, registro])
+    }
 
     const guardar = async () => {
         const faltantes = REQUERIDOS
@@ -126,12 +131,14 @@ export default function HerramientaFormContentAdmin() {
                                 onChange={onChange}
                                 placeholder="Ej. Martillo"
                             />
-                            <CampoSelect
+                            <CampoSelectDinamico
                                 name="TipoHerramienta"
                                 label="Tipo de herramienta *"
                                 value={form.TipoHerramienta}
                                 options={tipos.map((t) => t.TipoHerramienta)}
+                                onCrear={handleCrearTipoHerramienta}
                                 onChange={onChange}
+                                placeholder="Escriba o seleccione..."
                             />
                         </div>
 

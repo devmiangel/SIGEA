@@ -5,6 +5,7 @@ from Usuarios.models import Usuario, Personas, Contactos, Administradores, Funci
 from Visitas.models import MotivosSolicitudes, Estados, TiposVisitas, ServiciosPagos, Aperos, Pajillas
 from UPs.models import TipoUP, ActividadUP, Unidades, GrupoAnimal, TiposAves, Propositos, ProductosApicolas
 from Predios.models import TiposTenencias, Veredas, Sectores
+from Inventario.models import TiposHerramientas
 from datetime import date
 #ingerto de seeder
 class Command(BaseCommand):
@@ -85,6 +86,11 @@ class Command(BaseCommand):
 
         self.seed_maestro(ProductosApicolas, 'ProductoApicolas', [
             'Miel', 'Polen', 'Cera', 'Propóleo', 'Jalea Real', 'Veneno de abeja'
+        ])
+
+        # --- Inventario ---
+        self.seed_maestro(TiposHerramientas, 'TipoHerramienta', [
+            'Arado', 'Rastra', 'Rotavador'
         ])
 
         # --- Predios ---

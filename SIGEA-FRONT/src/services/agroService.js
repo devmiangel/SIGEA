@@ -163,6 +163,11 @@ export const getTiposHerramientas = async () => {
     return response.data;
 }
 
+export const crearTipoHerramienta = async (nombre) => {
+    const response = await api.post('/inventario/tiposHerramientas/', { TipoHerramienta: nombre });
+    return response.data;
+}
+
 export const getHerramientas = async () => {
     const response = await api.get('/inventario/herramientas/');
     return response.data;

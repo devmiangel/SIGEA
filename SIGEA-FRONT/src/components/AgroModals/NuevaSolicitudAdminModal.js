@@ -57,6 +57,14 @@ export async function abrirModalNuevaSolicitudAdmin(detail) {
         confirmButtonText: 'Crear solicitud',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: AGRO_COLORS.primary,
+        didOpen: () => {
+            const select = document.getElementById('swal-up')
+            const direccionInput = document.getElementById('swal-direccion')
+            select.addEventListener('change', () => {
+                const up = ups.find((u) => String(u.id) === select.value)
+                direccionInput.value = up?.direccion ?? ''
+            })
+        },
         preConfirm: () => {
             const upId = document.getElementById('swal-up').value
             const direccion = document.getElementById('swal-direccion').value
