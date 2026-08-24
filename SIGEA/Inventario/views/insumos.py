@@ -2,6 +2,7 @@ from datetime import date
 
 from django.db import transaction
 from rest_framework import viewsets
+from SIGEAsite.permissions import SigeaModelPermissionMixin
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,15 +16,15 @@ from ..serializers import (
     SolicitudInsumoSerializer,
 )
 
-class InsumosViewSet(viewsets.ModelViewSet):
+class InsumosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Insumos.objects.all()
     serializer_class = InsumosSerializer
 
-class InventarioFuncionarioViewSet(viewsets.ModelViewSet):
+class InventarioFuncionarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = InventarioFuncionario.objects.all()
     serializer_class = InventarioFuncionarioSerializer
 
-class CardexInsumoFuncionarioViewSet(viewsets.ModelViewSet):
+class CardexInsumoFuncionarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = CardexInsumoFuncionario.objects.all()
     serializer_class = CardexInsumoFuncionarioSerializer
 

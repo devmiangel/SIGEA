@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from SIGEAsite.permissions import SigeaModelPermissionMixin
+
 from ..models import (
     TipoUP,
     ActividadUP,
@@ -58,39 +60,39 @@ from ..serializers import (
     DetalleApicolasSerializer,
 )
 
-class TipoUPViewSet(viewsets.ModelViewSet):
+class TipoUPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TipoUP.objects.all()
     serializer_class = TipoUPSerializer
 
-class ActividadUPViewSet(viewsets.ModelViewSet):
+class ActividadUPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ActividadUP.objects.all()
     serializer_class = ActividadUPSerializer
 
-class UnidadesViewSet(viewsets.ModelViewSet):
+class UnidadesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Unidades.objects.all()
     serializer_class = UnidadesSerializer
 
-class ArchivosUPViewSet(viewsets.ModelViewSet):
+class ArchivosUPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ArchivosUP.objects.all()
     serializer_class = ArchivosUPSerializer
 
-class DetalleUPViewSet(viewsets.ModelViewSet):
+class DetalleUPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleUP.objects.all()
     serializer_class = DetalleUPSerializer
 
-class ProductosUPsViewSet(viewsets.ModelViewSet):
+class ProductosUPsViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ProductosUPs.objects.all()
     serializer_class = ProductosUPsSerializer
 
-class ProduccionUPAgricolaViewSet(viewsets.ModelViewSet):
+class ProduccionUPAgricolaViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ProduccionUPAgricola.objects.all()
     serializer_class = ProduccionUPAgricolaSerializer
 
-class ProduccionUPAgroindustrialViewSet(viewsets.ModelViewSet):
+class ProduccionUPAgroindustrialViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ProduccionUPAgroindustrial.objects.all()
     serializer_class = ProduccionUPAgroindustrialSerializer
 
-class GrupoAnimalViewSet(viewsets.ModelViewSet):
+class GrupoAnimalViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = GrupoAnimal.objects.all()
     serializer_class = GrupoAnimalSerializer
 
@@ -101,23 +103,23 @@ class GrupoAnimalViewSet(viewsets.ModelViewSet):
             .values_list('Raza__id', 'Raza__Raza').order_by('Raza__Raza')
         return Response([{'id': rid, 'Raza': nombre} for rid, nombre in razas])
 
-class TiposAvesViewSet(viewsets.ModelViewSet):
+class TiposAvesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposAves.objects.all()
     serializer_class = TiposAvesSerializer
 
-class PropositosViewSet(viewsets.ModelViewSet):
+class PropositosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Propositos.objects.all()
     serializer_class = PropositosSerializer
 
-class AnimalesViewSet(viewsets.ModelViewSet):
+class AnimalesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Animales.objects.all()
     serializer_class = AnimalesSerializer
 
-class AnimalesUpsViewSet(viewsets.ModelViewSet):
+class AnimalesUpsViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = AnimalesUps.objects.all()
     serializer_class = AnimalesUpsSerializer
 
-class RazasViewSet(viewsets.ModelViewSet):
+class RazasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Razas.objects.all()
     serializer_class = RazasSerializer
 
@@ -135,46 +137,46 @@ class RazasViewSet(viewsets.ModelViewSet):
                 Animales.objects.get_or_create(GrupoAnimal=grupo, Raza=raza)
         return Response(RazasSerializer(raza).data, status=status.HTTP_201_CREATED)
 
-class ProductosApicolasViewSet(viewsets.ModelViewSet):
+class ProductosApicolasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ProductosApicolas.objects.all()
     serializer_class = ProductosApicolasSerializer
 
-class DetalleBovinosViewSet(viewsets.ModelViewSet):
+class DetalleBovinosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleBovinos.objects.all()
     serializer_class = DetalleBovinosSerializer
 
-class DetalleAvesViewSet(viewsets.ModelViewSet):
+class DetalleAvesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleAves.objects.all()
     serializer_class = DetalleAvesSerializer
 
-class DetallePorcinosViewSet(viewsets.ModelViewSet):
+class DetallePorcinosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetallePorcinos.objects.all()
     serializer_class = DetallePorcinosSerializer
 
-class DetalleEquinosViewSet(viewsets.ModelViewSet):
+class DetalleEquinosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleEquinos.objects.all()
     serializer_class = DetalleEquinosSerializer
 
-class DetalleCaprinosViewSet(viewsets.ModelViewSet):
+class DetalleCaprinosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleCaprinos.objects.all()
     serializer_class = DetalleCaprinosSerializer
 
-class DetalleOvinosViewSet(viewsets.ModelViewSet):
+class DetalleOvinosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleOvinos.objects.all()
     serializer_class = DetalleOvinosSerializer
 
-class DetalleConejosViewSet(viewsets.ModelViewSet):
+class DetalleConejosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleConejos.objects.all()
     serializer_class = DetalleConejosSerializer
 
-class DetalleCuriesViewSet(viewsets.ModelViewSet):
+class DetalleCuriesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleCuries.objects.all()
     serializer_class = DetalleCuriesSerializer
 
-class DetallePecesViewSet(viewsets.ModelViewSet):
+class DetallePecesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetallePeces.objects.all()
     serializer_class = DetallePecesSerializer
 
-class DetalleApicolasViewSet(viewsets.ModelViewSet):
+class DetalleApicolasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleApicolas.objects.all()
     serializer_class = DetalleApicolasSerializer

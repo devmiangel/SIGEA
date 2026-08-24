@@ -26,8 +26,11 @@ def es_recibo(visita):
 
 
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def generar_documento_visita(request, visita_id):
+    if not request.user.has_perm('Visitas.view_visitas'):
+        return Response({'error': 'No tienes permisos para descargar el documento'}, status=403)
+
     visita = get_object_or_404(Visitas, id=visita_id)
     try:
         if es_recibo(visita):

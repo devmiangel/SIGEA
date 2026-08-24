@@ -1,6 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 
+from SIGEAsite.permissions import SigeaModelPermissionMixin
+
 from ..models import Sectores, Veredas, TiposTenencias, Seguros, TiposRegistrosICA
 
 from ..serializers import (
@@ -11,19 +13,19 @@ from ..serializers import (
     TiposRegistrosICASerializer,
 )
 
-class SectoresViewSet(viewsets.ModelViewSet):
+class SectoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Sectores.objects.all()
     serializer_class = SectoresSerializer
 
-class VeredasViewSet(viewsets.ModelViewSet):
+class VeredasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Veredas.objects.all()
     serializer_class = VeredasSerializer
 
-class TiposTenenciasViewSet(viewsets.ModelViewSet):
+class TiposTenenciasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposTenencias.objects.all()
     serializer_class = TiposTenenciasSerializer
 
-class SegurosViewSet(viewsets.ModelViewSet):
+class SegurosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Seguros.objects.all()
     serializer_class = SegurosSerializer
 
@@ -35,7 +37,7 @@ class SegurosViewSet(viewsets.ModelViewSet):
                 return Response(self.get_serializer(obj).data, status=200)
         return super().create(request, *args, **kwargs)
 
-class TiposRegistrosICAViewSet(viewsets.ModelViewSet):
+class TiposRegistrosICAViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposRegistrosICA.objects.all()
     serializer_class = TiposRegistrosICASerializer
 

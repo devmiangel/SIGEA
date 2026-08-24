@@ -1,6 +1,7 @@
 from datetime import date
 
 from rest_framework import viewsets
+from SIGEAsite.permissions import SigeaModelPermissionMixin
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,15 +14,15 @@ from ..serializers import (
     AsignacionHerramientasSerializer,
 )
 
-class TiposHerramientasViewSet(viewsets.ModelViewSet):
+class TiposHerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposHerramientas.objects.all()
     serializer_class = TiposHerramientasSerializer
 
-class HerramientasViewSet(viewsets.ModelViewSet):
+class HerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Herramientas.objects.all()
     serializer_class = HerramientasSerializer
 
-class AsignacionHerramientasViewSet(viewsets.ModelViewSet):
+class AsignacionHerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = AsignacionHerramientas.objects.all()
     serializer_class = AsignacionHerramientasSerializer
 

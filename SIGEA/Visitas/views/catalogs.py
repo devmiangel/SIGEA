@@ -1,6 +1,7 @@
 import unicodedata
 
 from rest_framework import viewsets
+from SIGEAsite.permissions import SigeaModelPermissionMixin
 from rest_framework.response import Response
 
 from ..models import (
@@ -34,19 +35,19 @@ from ..serializers import (
 
 )
 
-class MotivosSolicitudesViewSet(viewsets.ModelViewSet):
+class MotivosSolicitudesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = MotivosSolicitudes.objects.all()
     serializer_class = MotivosSolicitudesSerializer
 
-class EstadosViewSet(viewsets.ModelViewSet):
+class EstadosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Estados.objects.all()
     serializer_class = EstadosSerializer
 
-class SolicitudesViewSet(viewsets.ModelViewSet):
+class SolicitudesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Solicitudes.objects.all()
     serializer_class = SolicitudesSerializer
 
-class TiposVisitasViewSet(viewsets.ModelViewSet):
+class TiposVisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()
     serializer_class = TiposVisitasSerializer
 
@@ -61,7 +62,7 @@ def _es_visita_caracterizacion(visita):
     return _normalizar_texto(tipo) == 'caracterizacion'
 
 
-class VisitasViewSet(viewsets.ModelViewSet):
+class VisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Visitas.objects.all()
     serializer_class = VisitasSerializer
 
@@ -95,30 +96,30 @@ class VisitasViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-class InsumoVisitaViewSet(viewsets.ModelViewSet):
+class InsumoVisitaViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = InsumoVisita.objects.all()
     serializer_class = InsumoVisitaSerializer
 
-class CalificacionesViewSet(viewsets.ModelViewSet):
+class CalificacionesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Calificaciones.objects.all()
     serializer_class = CalificacionesSerializer
 
-class InfoVisitaViewSet(viewsets.ModelViewSet):
+class InfoVisitaViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = InfoVisita.objects.all()
     serializer_class = InfoVisitaSerializer
 
-class ServiciosPagosViewSet(viewsets.ModelViewSet):
+class ServiciosPagosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = ServiciosPagos.objects.all()
     serializer_class = ServiciosPagosSerializer
 
-class AperosViewSet(viewsets.ModelViewSet):
+class AperosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Aperos.objects.all()
     serializer_class = AperosSerializer
 
-class PajillasViewSet(viewsets.ModelViewSet):
+class PajillasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Pajillas.objects.all()
     serializer_class = PajillasSerializer
 
-class VisitasServiciosPagosViewSet(viewsets.ModelViewSet):
+class VisitasServiciosPagosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = VisitasServiciosPagos.objects.all()
     serializer_class = VisitasServiciosPagosSerializer

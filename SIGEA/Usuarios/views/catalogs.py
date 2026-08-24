@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
 
+from SIGEAsite.permissions import SigeaModelPermissionMixin
+
 from ..models import (
     TiposDocumentos,
     Personas,
@@ -31,19 +33,19 @@ from ..serializers import (
     ContactosSerializer,
 )
 
-class TiposDocumentosViewSet(viewsets.ModelViewSet):
+class TiposDocumentosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposDocumentos.objects.all()
     serializer_class = TiposDocumentosSerializer
 
-class PersonasViewSet(viewsets.ModelViewSet):
+class PersonasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
    queryset = Personas.objects.all()
    serializer_class = PersonasSerializer
 
-class EmpresasViewSet(viewsets.ModelViewSet):
+class EmpresasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Empresas.objects.all()
     serializer_class = EmpresasSerializer
 
-class UsuarioViewSet(viewsets.ModelViewSet):
+class UsuarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
@@ -206,30 +208,30 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-class FuncionariosViewSet(viewsets.ModelViewSet):
+class FuncionariosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Funcionarios.objects.all()
     serializer_class = FuncionariosSerializer
 
-class AdministradoresViewSet(viewsets.ModelViewSet):
+class AdministradoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Administradores.objects.all()
     serializer_class = AdministradoresSerializer
 
-class ProductoresViewSet(viewsets.ModelViewSet):
+class ProductoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Productores.objects.all()
     serializer_class = ProductoresSerializer
 
-class TiposContactosViewSet(viewsets.ModelViewSet):
+class TiposContactosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposContactos.objects.all()
     serializer_class = TiposContactosSerializer
 
-class TiposNivelesEducativosViewSet(viewsets.ModelViewSet):
+class TiposNivelesEducativosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposNivelesEducativos.objects.all()
     serializer_class = TiposNivelesEducativosSerializer
 
-class SisbenViewSet(viewsets.ModelViewSet):
+class SisbenViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Sisben.objects.all()
     serializer_class = SisbenSerializer
 
-class ContactosViewSet(viewsets.ModelViewSet):
+class ContactosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Contactos.objects.all()
     serializer_class = ContactosSerializer

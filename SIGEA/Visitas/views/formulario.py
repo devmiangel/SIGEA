@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from Inventario.models import InventarioFuncionario
@@ -42,7 +42,7 @@ def _hora_datetime(fecha, hora):
         return fecha
 
 class FormularioVisitaTecnicaView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = FormularioVisitaTecnicaSerializer
 
     def get(self, request):
@@ -302,7 +302,7 @@ class FormularioVisitaTecnicaView(APIView):
 
 
 class FormularioReciboPagoView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = FormularioReciboPagoSerializer
 
     @transaction.atomic
