@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from ..models import (
+    EventosUP,
     TipoUP,
     ActividadUP,
     Unidades,
@@ -151,4 +152,9 @@ class DetallePecesSerializer(serializers.ModelSerializer):
 class DetalleApicolasSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetalleApicolas
+        fields = '__all__'
+
+class EventosUPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventosUP
         fields = '__all__'
