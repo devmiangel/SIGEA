@@ -2,9 +2,11 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from SIGEA.UPs.serializers.catalogs import EventosUPSerializer
 from SIGEAsite.permissions import SigeaModelPermissionMixin
 
 from ..models import (
+    EventosUP,
     TipoUP,
     ActividadUP,
     Unidades,
@@ -180,3 +182,7 @@ class DetallePecesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
 class DetalleApicolasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleApicolas.objects.all()
     serializer_class = DetalleApicolasSerializer
+
+class EventosUPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+    queryset = EventosUP.objects.all()
+    serializer_class = EventosUPSerializer
