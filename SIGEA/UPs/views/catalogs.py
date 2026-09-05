@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from SIGEA.UPs.serializers.catalogs import EventosUPSerializer
+from UPs.serializers.catalogs import EventosUPSerializer
 from SIGEAsite.permissions import SigeaModelPermissionMixin
 
 from ..models import (
