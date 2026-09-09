@@ -6,6 +6,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import EventIcon from '@mui/icons-material/Event';
 import PetsIcon from '@mui/icons-material/Pets';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 export const SidebarData = [
     {
@@ -60,6 +61,12 @@ export const SidebarData = [
         title: 'Agenda',
         icon: <EventIcon/>, 
         link: '/funcionario/agenda', 
+        roles: ['Funcionarios']
+    }, 
+     {
+        title: 'Gestion',
+        icon: <AssignmentIcon/>, 
+        link: '/funcionario/gestion', 
         roles: ['Funcionarios']
     }, 
      {

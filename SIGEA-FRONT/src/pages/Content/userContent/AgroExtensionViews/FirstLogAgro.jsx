@@ -83,7 +83,7 @@ export default function FirstLogAgro({ onSolicitudCreada }){
                             <textarea
                                 id="Solicitud_Primera_visita"
                                 name="Solicitud_Primera_visita"
-                                className="w-full p-3 h-auto overflow-y-hidden resize-none border-[1.5px] border-[#3e9a8a] rounded-[10px]"
+                                className="w-full p-3 h-auto overflow-y-hidden resize-none border-[1.5px] border-[#3e9a8a] rounded-[10px] my-4"
                                 placeholder="Cuentanos la direccion en la que se encuentra ubicada tu unidad productiva, añade referencias y toda la informacion que creas necesaria para que podamos encontrarte."
                                 rows={5}
                                 maxLength={255}

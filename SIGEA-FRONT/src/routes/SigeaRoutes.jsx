@@ -29,6 +29,7 @@ import HerramientaFormContentAdmin from "../pages/Content/adminContent/Herramien
 import AgendaContentEmployee from "../pages/Content/employeeContent/AgendaContentEmployee";
 import HomeContentEmployee from "../pages/Content/employeeContent/HomeContentEmployee";
 import InventaryContentEmployee from "../pages/Content/employeeContent/InventaryContentEmployee";
+import GestionContentEmployee from "../pages/Content/employeeContent/GestionContentEmployee";
 import CaracterForm from "../pages/Content/employeeContent/visitViews/CaracterForm";
 import VisitaForm from "../pages/Content/employeeContent/visitViews/VisitaForm";
 import ReciboPagoForm from "../pages/Content/employeeContent/visitViews/ReciboPagoForm";
@@ -77,6 +78,7 @@ export default function SigeaRoutes(){
                 <Route index element={<HomeContentEmployee/>}/>
                 <Route path="agenda" element={<AgendaContentEmployee/>}/>
                 <Route path="recursos" element={<InventaryContentEmployee/>}/>
+                <Route path="gestion" element={<GestionContentEmployee/>}/>
                 <Route path="visitas/caracterizacion" element={<CaracterForm/>}/>
                 <Route path="visitas/visita" element={<VisitaForm/>}/>
                 <Route path="visitas/recibo" element={<ReciboPagoForm/>}/>

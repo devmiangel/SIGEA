@@ -1,6 +1,7 @@
 import MenuCard from '../../../components/MenuCard/MenuCard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import EventIcon from '@mui/icons-material/Event';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 
 
@@ -26,6 +27,16 @@ export default function HomeContentEmployee(){
                 message={'este es el mensaje xd'} 
                 path={'/funcionario/agenda'} 
                 colorLogo={'#55bd85'}
+            />
+
+            <MenuCard 
+                componentLogo={
+                    <AssignmentIcon sx={{fontSize: 40}}/>
+                } 
+                title={'Gestion'} 
+                message={'Genera ordenes de visita a productores y usuarios'} 
+                path={'/funcionario/gestion'} 
+                colorLogo={'#9ebd57'}
             />
         </div>
             

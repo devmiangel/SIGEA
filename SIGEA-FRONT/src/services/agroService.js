@@ -95,6 +95,21 @@ export const getMisVisitas = async () => {
     return response.data;
 }
 
+export const buscarProductoresUsuarios = async (q = '') => {
+    const response = await api.get('/usuarios/usuarios/buscar/', { params: { q } });
+    return response.data;
+}
+
+export const crearOrdenVisita = async (data) => {
+    const response = await api.post('/visitas/ordenes/crear/', data);
+    return response.data;
+}
+
+export const getMisOrdenes = async () => {
+    const response = await api.get('/visitas/mis-ordenes/');
+    return response.data;
+}
+
 export const marcarVisitaRealizada = async (visitaId) => {
     const response = await api.patch(`/visitas/visitas/${visitaId}/`, { estado: true });
     return response.data;
