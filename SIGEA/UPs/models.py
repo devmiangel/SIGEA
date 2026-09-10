@@ -71,6 +71,13 @@ class DetalleUP(models.Model):
     FuentesAgua = models.BooleanField(default=False)
     FechaActualizacion = models.DateField(blank=True, null=True)
 
+class EventosUP(models.Model):
+    Titulo = models.CharField(max_length=255)
+    Descripcion = models.TextField()
+    Fecha = models.DateField()
+    Lugar = models.CharField(max_length=255)
+    UP = models.ManyToManyField(UP, blank=True)
+
 class ProductosUPs(models.Model):
     Producto = models.CharField(max_length=255)
     Unidad = models.ForeignKey("Unidades", on_delete=models.PROTECT, null=True, blank=True)

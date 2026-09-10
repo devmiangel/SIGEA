@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
 from knox.models import AuthToken
@@ -31,6 +31,7 @@ def es_productor(request):
 ## formulario de refistro
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     data = request.data
 

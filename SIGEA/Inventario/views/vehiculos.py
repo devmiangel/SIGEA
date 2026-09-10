@@ -1,6 +1,7 @@
 from datetime import date
 
 from rest_framework import viewsets
+from SIGEAsite.permissions import SigeaModelPermissionMixin
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -27,35 +28,35 @@ from ..serializers import (
     RegistroAsignacionVehiculosSerializer,
 )
 
-class TiposVehiculosViewSet(viewsets.ModelViewSet):
+class TiposVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposVehiculos.objects.all()
     serializer_class = TiposVehiculosSerializer
 
-class TiposCombustiblesViewSet(viewsets.ModelViewSet):
+class TiposCombustiblesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposCombustibles.objects.all()
     serializer_class = TiposCombustiblesSerializer
 
-class MarcasVehiculosViewSet(viewsets.ModelViewSet):
+class MarcasVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = MarcasVehiculos.objects.all()
     serializer_class = MarcasVehiculosSerializer
 
-class LineasVehiculosViewSet(viewsets.ModelViewSet):
+class LineasVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = LineasVehiculos.objects.all()
     serializer_class = LineasVehiculosSerializer
 
-class VehiculosViewSet(viewsets.ModelViewSet):
+class VehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Vehiculos.objects.all()
     serializer_class = VehiculosSerializer
 
-class DetalleVehiculosViewSet(viewsets.ModelViewSet):
+class DetalleVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = DetalleVehiculos.objects.all()
     serializer_class = DetalleVehiculosSerializer
 
-class ConductoresViewSet(viewsets.ModelViewSet):
+class ConductoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Conductores.objects.all()
     serializer_class = ConductoresSerializer
 
-class RegistroAsignacionVehiculosViewSet(viewsets.ModelViewSet):
+class RegistroAsignacionVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = RegistroAsignacionVehiculos.objects.all()
     serializer_class = RegistroAsignacionVehiculosSerializer
 

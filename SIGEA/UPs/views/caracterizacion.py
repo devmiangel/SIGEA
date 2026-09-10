@@ -123,6 +123,15 @@ def _caracterizacion_handler(request, userId, serializer_class):
     solicitud, up = _get_up_context(productor, solicitud_id, up_id)
 
     if request.method == 'POST':
+        if not (
+            request.user.has_perm('UPs.add_up')
+            and request.user.has_perm('Predios.add_predios')
+        ):
+            return Response(
+                {"error": "No tienes permisos para registrar la caracterización"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         data = request.data.copy()
         data.pop('userId', None)
         data.pop('solicitud_id', None)
