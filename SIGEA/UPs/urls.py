@@ -28,6 +28,7 @@ router.register(r'detalleConejos', DetalleConejosViewSet)
 router.register(r'detalleCuries', DetalleCuriesViewSet)
 router.register(r'detallePeces', DetallePecesViewSet)
 router.register(r'detalleApicolas', DetalleApicolasViewSet)
+router.register(r'eventosUP', EventosUPViewSet)
 router.register(r'UPs', UPViewSet),
 
 

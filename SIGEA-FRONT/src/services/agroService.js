@@ -25,6 +25,36 @@ export const getMisUPs = async () => {
     return response.data;
 }
 
+export const getUPs = async () => {
+    const response = await api.get('/UPs/UPs/');
+    return response.data;
+}
+
+export const getEventos = async () => {
+    const response = await api.get('/UPs/eventosUP/');
+    return response.data;
+}
+
+export const getEvento = async (eventoId) => {
+    const response = await api.get(`/UPs/eventosUP/${eventoId}/`);
+    return response.data;
+}
+
+export const crearEvento = async (data) => {
+    const response = await api.post('/UPs/eventosUP/', data);
+    return response.data;
+}
+
+export const actualizarEvento = async (eventoId, data) => {
+    const response = await api.patch(`/UPs/eventosUP/${eventoId}/`, data);
+    return response.data;
+}
+
+export const eliminarEvento = async (eventoId) => {
+    const response = await api.delete(`/UPs/eventosUP/${eventoId}/`);
+    return response.data;
+}
+
 export const validarUP = async (upId, aprobada) => {
     const response = await api.post(`/UPs/validar-ups/${upId}/`, { aprobada });
     return response.data;

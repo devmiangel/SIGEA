@@ -58,6 +58,12 @@ export const SidebarData = [
         roles: [] //'Administradores'
     }, 
      {
+        title: 'Eventos',
+        icon: <EventIcon/>, 
+        link: '/administrador/eventos', 
+        roles: ['Administradores']
+    }, 
+     {
         title: 'Agenda',
         icon: <EventIcon/>, 
         link: '/funcionario/agenda', 

@@ -24,6 +24,7 @@ from .catalogs import (
     DetalleCuriesViewSet,
     DetallePecesViewSet,
     DetalleApicolasViewSet,
+    EventosUPViewSet,
 )
 from .ups import (
     UPViewSet,
