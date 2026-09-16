@@ -78,7 +78,7 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Serializer | Modelo | Descripción |
 |---|---|---|
-| `UsuarioSerializer` | `Usuario` | `password` de solo escritura; expone `persona_info` y `rol` calculado (Administradores/Funcionarios/Productores/Usuarios). `create`/`update` gestionan el hash de la contraseña. Valida que el usuario tenga una persona asociada. |
+| `UsuarioSerializer` | `Usuario` | `password` de solo escritura; expone `persona_info`, `rol` calculado (Administradores/Funcionarios/Productores/Usuarios), `es_conductor` y `licencia` (del conductor activo del funcionario). `create`/`update` gestionan el hash de la contraseña. Valida que el usuario tenga una persona asociada. |
 | `LoginSerializer` | - | Serializer de login (email + password). Su `to_representation` devuelve `id`, `email` y el `rol` del usuario. |
 
 ### Roles (`serializers/roles.py`)
@@ -95,9 +95,15 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 ### Catálogos (`views/catalogs.py`)
 
-12 `ModelViewSet` con CRUD completo (`list`, `retrieve`, `create`, `update`, `partial_update`, `destroy`):
+12 `ModelViewSet` con CRUD completo (`list`, `retrieve`, `create`, `update`, `partial_update`, `destroy`), protegidos con `SigeaModelPermissionMixin` (autenticación + permiso de modelo):
 
 `TiposDocumentosViewSet`, `PersonasViewSet`, `EmpresasViewSet`, `UsuarioViewSet`, `FuncionariosViewSet`, `AdministradoresViewSet`, `ProductoresViewSet`, `TiposContactosViewSet`, `TiposNivelesEducativosViewSet`, `SisbenViewSet`, `ContactosViewSet`.
+
+`UsuarioViewSet` añade lógica de negocio:
+
+- `update` / `partial_update`: actualizan la persona, el email/estado y opcionalmente la contraseña; reasignan el rol si cambió (recreando `Administradores`/`Funcionarios`/`Productores` o el grupo `Usuarios`); sincronizan `is_active` con `Estado`; y gestionan el rol complementario de **conductor** (`es_conductor` + `licencia`).
+- `destroy`: hace **borrado lógico** (marca `Estado=False` e `is_active=False`).
+- `detalle` (`@action` GET en `/usuarios/<id>/detalle/`): devuelve el usuario con su rol y, según el rol, sus UPs (productor) o sus asignaciones de insumos, herramientas y vehículos (funcionario).
 
 ### Autenticación (`views/auth.py`)
 
@@ -130,6 +136,7 @@ Rutas registradas en `urls.py` bajo el prefijo `/api/usuarios/`, más rutas glob
 | `/api/usuarios/sisben/` | `SisbenViewSet` |
 | `/api/usuarios/contactos/` | `ContactosViewSet` |
 | `/api/usuarios/login/` | `LoginViewSet` (POST) |
+| `/api/usuarios/usuarios/<id>/detalle/` | `UsuarioViewSet.detalle` (GET) |
 
 ### Rutas adicionales
 
