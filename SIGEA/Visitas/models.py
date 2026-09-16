@@ -39,7 +39,7 @@ class TiposVisitas(models.Model):
 class Visitas(models.Model):
     Solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE)
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_funcionario")
-    Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
+    Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador", blank=True, null=True)
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
     FechaYHoraVisita = models.DateTimeField()
     Ubicacion = models.CharField(max_length=255, blank=True, null=True)

@@ -2,14 +2,16 @@ import AgricultureIcon from '@mui/icons-material/Agriculture'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import CategoryIcon from '@mui/icons-material/Category'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import { AGRO_COLORS, UP_ESTADO_STYLE } from '../../utils/agroConstants'
+import { AGRO_COLORS, UP_ESTADO_RAW, UP_ESTADO_STYLE, normalizarEstadoUP } from '../../utils/agroConstants'
 import { DetailCard, DetailField } from '../DetailCard/DetailCard'
+import QRButton from '../QRButton/QRButton'
 
 export default function UPPReviewCard({ up, onClick }) {
   const estadoLabel = up?.estado_label ?? 'Sin estado'
   const estadoClass = UP_ESTADO_STYLE[estadoLabel] ?? 'bg-gray-100 text-gray-700'
   const tipo = up?.tipo_up_label ?? 'Sin tipo'
   const nombre = up?.productor_nombre ?? 'Unidad productiva'
+  const esAceptada = normalizarEstadoUP(estadoLabel) === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
 
   const handleActivate = () => onClick?.(up)
 
@@ -37,6 +39,11 @@ export default function UPPReviewCard({ up, onClick }) {
         label="Predio"
         value={up?.nombre_predio ?? '—'}
       />
+      {esAceptada && (
+        <div className="flex items-center">
+          <QRButton up={up} />
+        </div>
+      )}
     </DetailCard>
   )
 }

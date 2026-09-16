@@ -23,13 +23,13 @@ export default function Login() {
                     <section className="mb-6 relative">
                         <Input {...register('email', emailRules)} placeholder="Correo" />
                         <FieldError message={errors.email?.message} />
-                        <NavLink href="https://google.com">Olvidaste tu correo</NavLink>
+                        {/* <NavLink href="https://google.com">Olvidaste tu correo</NavLink> */}
                     </section>
 
                     <section className="mb-6 relative">
                         <Input {...register('password', passwordRules)} type="password" placeholder="contraseña" autoComplete="password" />
                         <FieldError message={errors.password?.message} />
-                        <NavLink href="https://google.com">Olvidaste tu contraseña</NavLink>
+                        {/* <NavLink href="https://google.com">Olvidaste tu contraseña</NavLink> */}
                     </section>
 
                     <SubmitButton text="Iniciar sesion" disabled={loading} />

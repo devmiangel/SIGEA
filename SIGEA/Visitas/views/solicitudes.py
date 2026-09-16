@@ -54,6 +54,71 @@ def crear_solicitud(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def crear_orden_visita(request):
+    from UPs.models import UP
+
+    funcionario = getattr(request.user, 'funcionarios', None)
+    if not funcionario:
+        return Response({'error': 'El usuario autenticado no es un funcionario'}, status=403)
+
+    data = request.data
+    usuario_id = data.get('usuario_id')
+    up_id = data.get('up_id')
+    tipo_visita_id = data.get('tipo_visita_id')
+    fecha_visita = data.get('fecha_visita')
+    ubicacion = data.get('ubicacion')
+    direccion = data.get('direccion')
+    observacion = data.get('observacion')
+
+    errores = {}
+    if not usuario_id:
+        errores['usuario_id'] = 'El productor o usuario es requerido'
+    if not tipo_visita_id:
+        errores['tipo_visita_id'] = 'El tipo de visita es requerido'
+    if not fecha_visita:
+        errores['fecha_visita'] = 'La fecha y hora de la visita es requerida'
+    if not direccion or not str(direccion).strip():
+        errores['direccion'] = 'La dirección es requerida'
+    if not observacion or not str(observacion).strip():
+        errores['observacion'] = 'La descripción es requerida'
+
+    if errores:
+        return Response({'error': 'Complete todos los campos', 'campos': errores}, status=400)
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    tipo_visita = get_object_or_404(TiposVisitas, id=tipo_visita_id)
+
+    up = None
+    if up_id:
+        up = get_object_or_404(UP, id=up_id)
+
+    # Si se establece una UP activa el motivo es "Visita", de lo contrario es
+    # "Caracterización" (aún no hay una UP a la que visitar).
+    motivo_id = 1 if up else 2
+
+    solicitud = Solicitudes.objects.create(
+        UP=up,
+        MotivoSolicitud_id=motivo_id,
+        Observacion=str(observacion).strip(),
+        Direccion=str(direccion).strip(),
+        Estado_id=2,
+        Usuario=usuario,
+    )
+
+    visita = Visitas.objects.create(
+        Solicitud=solicitud,
+        Funcionario=funcionario,
+        Administrador=None,
+        TipoVisita=tipo_visita,
+        FechaYHoraVisita=fecha_visita,
+        Ubicacion=str(ubicacion).strip() if ubicacion and str(ubicacion).strip() else None,
+    )
+
+    serializer = VisitasSerializer(visita)
+    return Response(serializer.data, status=201)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def reagendar_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id=solicitud_id)
 
@@ -213,6 +278,28 @@ def mis_visitas(request):
         .filter(Funcionario=funcionario)
         .exclude(Solicitud__Estado_id=4)
         .order_by('FechaYHoraVisita')
+    )
+    serializer = VisitasSerializer(visitas, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mis_ordenes(request):
+    funcionario = getattr(request.user, 'funcionarios', None)
+    if not funcionario:
+        return Response({'error': 'El usuario autenticado no es un funcionario'}, status=403)
+
+    visitas = (
+        Visitas.objects
+        .select_related(
+            'Solicitud__MotivoSolicitud',
+            'Solicitud__Usuario__persona',
+            'Funcionario__usuario__persona',
+            'TipoVisita'
+        )
+        .filter(Funcionario=funcionario, Administrador__isnull=True)
+        .order_by('-FechaYHoraVisita')
     )
     serializer = VisitasSerializer(visitas, many=True)
     return Response(serializer.data)

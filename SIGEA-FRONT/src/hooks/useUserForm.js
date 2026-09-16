@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import { AGRO_COLORS } from '../utils/agroConstants'
 import { registerUser } from '../services/authService'
 import { getUsuario, actualizarUsuario } from '../services/agroService'
-import { formatRegisterData } from '../utils/formatRegisterData'
 
 export function useUserForm(usuarioId) {
     const esEdicion = Boolean(usuarioId)
@@ -92,7 +91,7 @@ export function useUserForm(usuarioId) {
                     showConfirmButton: false,
                 }).then(() => navigate('/administrador/usuarios'))
             } else {
-                await registerUser(formatRegisterData(base))
+                await registerUser(base)
                 Swal.fire({
                     icon: 'success',
                     title: 'Usuario creado',

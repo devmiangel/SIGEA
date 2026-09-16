@@ -7,11 +7,12 @@ class VisitasSerializer(serializers.ModelSerializer):
     funcionario_info = serializers.SerializerMethodField()
     administrador_info = serializers.SerializerMethodField()
     tipo_visita_label = serializers.SerializerMethodField()
+    generada_por_funcionario = serializers.SerializerMethodField()
 
     class Meta:
         model = Visitas
         fields = ['id', 'Solicitud', 'Funcionario', 'Administrador', 'TipoVisita', 'FechaYHoraVisita', 'Ubicacion', 'estado', 'Autorizacion', 'FirmaProductor', 'FirmaFuncionario',
-                  'solicitud_info', 'funcionario_info', 'administrador_info', 'tipo_visita_label']
+                  'solicitud_info', 'funcionario_info', 'administrador_info', 'tipo_visita_label', 'generada_por_funcionario']
 
     def get_solicitud_info(self, obj):
         persona = getattr(obj.Solicitud.Usuario, 'persona', None)
@@ -26,6 +27,7 @@ class VisitasSerializer(serializers.ModelSerializer):
             'estado_id': obj.Solicitud.Estado_id,
             'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'up_id': getattr(up, 'id', None),
+            'ruea': getattr(up, 'RUEA', None),
             'predio': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'up_estado': getattr(getattr(up, 'idEstado', None), 'Estado', None),
             'solicitante': {
@@ -45,6 +47,8 @@ class VisitasSerializer(serializers.ModelSerializer):
         }
 
     def get_administrador_info(self, obj):
+        if obj.Administrador_id is None:
+            return None
         persona = getattr(obj.Administrador.usuario, 'persona', None)
         return {
             'nombre': f"{persona.primer_nombre} {persona.primer_apellido}".strip() if persona else None,
@@ -53,3 +57,6 @@ class VisitasSerializer(serializers.ModelSerializer):
 
     def get_tipo_visita_label(self, obj):
         return obj.TipoVisita.TipoVisita
+
+    def get_generada_por_funcionario(self, obj):
+        return obj.Administrador_id is None

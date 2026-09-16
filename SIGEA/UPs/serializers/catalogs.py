@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from .up import UPSerializer
+
 from ..models import (
     EventosUP,
     TipoUP,
@@ -155,6 +157,8 @@ class DetalleApicolasSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class EventosUPSerializer(serializers.ModelSerializer):
+    UPs = UPSerializer(many=True, read_only=True, source='UP')
+
     class Meta:
         model = EventosUP
-        fields = '__all__'
+        fields = ['id', 'Titulo', 'Descripcion', 'Fecha', 'Lugar', 'UP', 'UPs']

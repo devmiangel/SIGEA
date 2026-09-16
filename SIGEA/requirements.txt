@@ -21,3 +21,4 @@ knox
 # Dogs
 reportlab
 Pillow
+qrcode>=7.0

@@ -17,6 +17,8 @@ import UsersContentAdmin from "../pages/Content/adminContent/UsersContentAdmin";
 import UserFormContentAdmin from "../pages/Content/adminContent/UserFormContentAdmin";
 import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 import VisitasContentAdmin from "../pages/Content/adminContent/VisitasContentAdmin";
+import EventosContentAdmin from "../pages/Content/adminContent/EventosContentAdmin";
+import EventoFormContentAdmin from "../pages/Content/adminContent/EventoFormContentAdmin";
 
 import InvSourceContentAdmin from "../pages/Content/adminContent/InvSourceConetn";
 import SolicitudesInsumoContentAdmin from "../pages/Content/adminContent/SolicitudesInsumoContentAdmin";
@@ -29,6 +31,7 @@ import HerramientaFormContentAdmin from "../pages/Content/adminContent/Herramien
 import AgendaContentEmployee from "../pages/Content/employeeContent/AgendaContentEmployee";
 import HomeContentEmployee from "../pages/Content/employeeContent/HomeContentEmployee";
 import InventaryContentEmployee from "../pages/Content/employeeContent/InventaryContentEmployee";
+import GestionContentEmployee from "../pages/Content/employeeContent/GestionContentEmployee";
 import CaracterForm from "../pages/Content/employeeContent/visitViews/CaracterForm";
 import VisitaForm from "../pages/Content/employeeContent/visitViews/VisitaForm";
 import ReciboPagoForm from "../pages/Content/employeeContent/visitViews/ReciboPagoForm";
@@ -58,6 +61,9 @@ export default function SigeaRoutes(){
                 <Route path="usuarios/editar/:usuarioId" element={<UserFormContentAdmin/>}/> 
                 <Route path="validacion-ups" element={<UpValidationAdmin/>}/> 
                 <Route path="visitas" element={<VisitasContentAdmin/>}/> 
+                <Route path="eventos" element={<EventosContentAdmin/>}/> 
+                <Route path="eventos/nuevo" element={<EventoFormContentAdmin/>}/> 
+                <Route path="eventos/editar/:eventoId" element={<EventoFormContentAdmin/>}/> 
 
                 <Route path='inventario/insumos' element={<InvSourceContentAdmin/>}/>
                 <Route path='inventario/insumos/solicitudes' element={<SolicitudesInsumoContentAdmin/>}/>
@@ -77,6 +83,7 @@ export default function SigeaRoutes(){
                 <Route index element={<HomeContentEmployee/>}/>
                 <Route path="agenda" element={<AgendaContentEmployee/>}/>
                 <Route path="recursos" element={<InventaryContentEmployee/>}/>
+                <Route path="gestion" element={<GestionContentEmployee/>}/>
                 <Route path="visitas/caracterizacion" element={<CaracterForm/>}/>
                 <Route path="visitas/visita" element={<VisitaForm/>}/>
                 <Route path="visitas/recibo" element={<ReciboPagoForm/>}/>

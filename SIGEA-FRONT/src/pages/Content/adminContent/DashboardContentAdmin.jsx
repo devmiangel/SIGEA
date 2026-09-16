@@ -3,6 +3,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import EventIcon from '@mui/icons-material/Event';
 
 
 
@@ -37,6 +38,16 @@ export default function DashboardContentAdmin(){
                 message={'Gestiona los usuarios aquí'} 
                 path={'/administrador/usuarios'} 
                 colorLogo={'#9ebd57'}/>
+
+            <MenuCard 
+                componentLogo={
+                    <EventIcon sx={{fontSize: 40}}/>
+                } 
+                title={'Eventos'} 
+                message={'Gestiona los eventos aquí'} 
+                path={'/administrador/eventos'} 
+                colorLogo={'#7ebcab'}
+            />
 
             {/* <MenuCard 
                 componentLogo={
