@@ -40,6 +40,7 @@ class DetalleVehiculos(models.Model):
     Modelo = models.CharField(max_length=255)
     FechaTecno = models.DateField()
     FechaSoat = models.DateField()
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):
@@ -74,6 +75,7 @@ class TiposHerramientas(models.Model):
 class Herramientas(models.Model):
     Herramienta = models.CharField(max_length=255)
     TipoHerramienta = models.ForeignKey(TiposHerramientas, on_delete=models.PROTECT)
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):
@@ -99,6 +101,7 @@ class Insumos(models.Model):
     Nombre = models.CharField(max_length=255)
     Cantidad = models.IntegerField()
     Unidades = models.ForeignKey(Unidades, on_delete=models.PROTECT)
+    Descripcion = models.TextField(blank=True, default='')
     Estado = models.BooleanField(default=True)
 
     def __str__(self):
@@ -121,4 +124,16 @@ class CardexInsumoFuncionario(models.Model):
 
     def __str__(self):
         return f"Funcionario: {self.Funcionario} | Insumo: {self.Insumo} | Cantidad: {self.Cantidad}"
+
+class SolicitudInsumo(models.Model):
+    Insumo = models.ForeignKey(Insumos, on_delete=models.CASCADE)
+    Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE)
+    Cantidad = models.IntegerField()
+    FechaSolicitud = models.DateField(auto_now_add=True)
+    Estado = models.CharField(max_length=50, default='Pendiente')
+    Observacion = models.TextField(blank=True, null=True)
+
+
+    def __str__(self):
+        return f"Solicitud {self.id} | Funcionario: {self.Funcionario} | Insumo: {self.Insumo} | Cantidad: {self.Cantidad}"
 #FIN TABLAS DE INSUMOS

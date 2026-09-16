@@ -1,5 +1,5 @@
 from django.db import models
-from Usuarios.models import Funcionarios
+from Usuarios.models import Funcionarios, Usuario, Administradores
 from UPs.models import UP
 from Inventario.models import Insumos, InventarioFuncionario
 
@@ -17,14 +17,18 @@ class Estados(models.Model):
         return self.Estado
 
 class Solicitudes(models.Model):
-    UP = models.ForeignKey(UP, on_delete=models.PROTECT)
+    UP = models.ForeignKey(UP, on_delete=models.PROTECT, blank=True, null=True)
     FechaSolicitud = models.DateField(auto_now_add=True)
     MotivoSolicitud = models.ForeignKey(MotivosSolicitudes, on_delete=models.PROTECT)
-    Observacion = models.CharField(max_length=255)
+    Observacion = models.TextField()
+    Direccion = models.CharField(max_length=255)
     Estado = models.ForeignKey(Estados, on_delete=models.PROTECT)
+    Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="solicitudes")
+    motivoAdmin = models.CharField(max_length=255, blank=True, null=True)
+    novedad = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return self.MotivoSolicitud
+        return str(self.MotivoSolicitud.MotivoSolicitud)
 
 class TiposVisitas(models.Model):
     TipoVisita = models.CharField(max_length=255)
@@ -35,13 +39,50 @@ class TiposVisitas(models.Model):
 class Visitas(models.Model):
     Solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE)
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_funcionario")
-    Administrador = models.ForeignKey(Funcionarios, on_delete=models.CASCADE, related_name="visitas_administrador")
+    Administrador = models.ForeignKey(Administradores, on_delete=models.CASCADE, related_name="visitas_administrador")
     TipoVisita = models.ForeignKey(TiposVisitas, on_delete=models.PROTECT)
-    FechaVisita = models.DateField()
-    RutaDocumento = models.CharField(max_length=255)
+    FechaYHoraVisita = models.DateTimeField()
+    Ubicacion = models.CharField(max_length=255, blank=True, null=True)
+    estado = models.BooleanField(default=False)
+    Autorizacion = models.BooleanField(default=False)
+    FirmaProductor = models.TextField(blank=True, null=True)
+    FirmaFuncionario = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.TipoVisita
+        return str(self.TipoVisita.TipoVisita)
+
+class ServiciosPagos(models.Model):
+    ServicioPago = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.ServicioPago
+
+class Aperos(models.Model):
+    Apero = models.CharField(max_length=255)
+    ValorHora = models.IntegerField()
+
+    def __str__(self):
+        return self.Apero
+
+class Pajillas(models.Model):
+    Pajilla = models.CharField(max_length=255)
+    ValorPajilla = models.IntegerField()
+
+    def __str__(self):
+        return self.Pajilla
+
+class VisitasServiciosPagos(models.Model):
+    Visita = models.ForeignKey(Visitas, on_delete=models.CASCADE)
+    ServicioPago = models.ForeignKey(ServiciosPagos, on_delete=models.PROTECT)
+    Apero = models.ForeignKey(Aperos, on_delete=models.PROTECT, blank=True, null=True)
+    NumeroHoras = models.IntegerField(blank=True, null=True)
+    NumeroPajillas = models.IntegerField(blank=True, null=True)
+    Pajilla = models.ForeignKey(Pajillas, on_delete=models.PROTECT, blank=True, null=True)
+    Toro = models.BooleanField(blank=True, null=True)
+    ValorTotal = models.IntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return self.ServicioPago
 
 class InsumoVisita(models.Model):
     Visita = models.ForeignKey(Visitas, on_delete=models.CASCADE)
@@ -63,4 +104,8 @@ class InfoVisita(models.Model):
     ObservacionVisita = models.TextField()
     AccionSeguimiento = models.CharField(max_length=255)
     Firmado = models.BooleanField(default=False)
-
+    DiagnosticoPresuntivo = models.CharField(max_length=255)
+    Acciones = models.CharField(max_length=255)
+    HoraInicio = models.DateTimeField()
+    HoraSalida = models.DateTimeField()
+ 

@@ -1,5 +1,3 @@
-import './contentadmin.css'
-
 import MenuCard from '../../../components/MenuCard/MenuCard';
 import DriveEtaIcon from '@mui/icons-material/DriveEta';
 import HandymanIcon from '@mui/icons-material/Handyman';

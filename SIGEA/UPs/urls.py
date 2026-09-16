@@ -15,6 +15,7 @@ router.register(r'gruposAnimales', GrupoAnimalViewSet)
 router.register(r'tiposAves', TiposAvesViewSet)
 router.register(r'propositos', PropositosViewSet)
 router.register(r'animales', AnimalesViewSet)
+router.register(r'animalesUps', AnimalesUpsViewSet)
 router.register(r'razas', RazasViewSet)
 router.register(r'productosApicolas', ProductosApicolasViewSet)
 router.register(r'detalleBovinos', DetalleBovinosViewSet)
@@ -31,6 +32,12 @@ router.register(r'UPs', UPViewSet),
 
 
 urlpatterns = router.urls
+
+urlpatterns = [
+    path('mis-ups/', mis_ups, name='mis_ups'),
+    path('validar-ups/<int:upId>/', validar_ups, name='validar_ups'),
+    path('upload-archivo-up/', upload_archivo_up, name='upload_archivo_up'),
+] + router.urls
 
 urlpatterns += [
     path(

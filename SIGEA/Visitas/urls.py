@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import *
 
@@ -10,5 +11,18 @@ router.register(r'visitas', VisitasViewSet)
 router.register(r'insumoVisita', InsumoVisitaViewSet)
 router.register(r'calificaciones', CalificacionesViewSet)
 router.register(r'infoVisita', InfoVisitaViewSet)
+router.register(r'serviciosPagos', ServiciosPagosViewSet)
+router.register(r'aperos', AperosViewSet)
+router.register(r'pajillas', PajillasViewSet)
+router.register(r'visitasServiciosPagos', VisitasServiciosPagosViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('solicitudes/crear/', crear_solicitud, name='crear_solicitud'),
+    path('solicitudes/<int:solicitud_id>/atender/', atender_solicitud, name='atender_solicitud'),
+    path('solicitudes/<int:solicitud_id>/reagendar/', reagendar_solicitud, name='reagendar_solicitud'),
+    path('solicitudes/<int:solicitud_id>/rechazar/', rechazar_solicitud, name='rechazar_solicitud'),
+    path('mis-visitas/', mis_visitas, name='mis_visitas'),
+    path('infoVisita/<int:visita_id>/observaciones/', info_visita_observaciones, name='info_visita_observaciones'),
+    path('formulario-visita/', FormularioVisitaTecnicaView.as_view(), name='llenar_formulario_visita_tecnica'),
+    path('formulario-recibo/', FormularioReciboPagoView.as_view(), name='llenar_formulario_recibo_pago'),
+] + router.urls

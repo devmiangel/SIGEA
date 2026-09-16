@@ -1,6 +1,7 @@
 ignorar esto es cosa mia
 
-env:venv\Scripts\activate.bat
+#ejecutar entorno
+venv\Scripts\activate.bat
 
 migraciones 
 python manage.py makemigrations

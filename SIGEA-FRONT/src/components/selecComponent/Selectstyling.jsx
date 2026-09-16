@@ -1,6 +1,5 @@
 import Select from 'react-select'
 import { useEffect, useState} from 'react'
-import './select.css'
 
 export default function Selection({placeholder, url, labelKey, value, onChange}){
 
@@ -19,7 +18,7 @@ export default function Selection({placeholder, url, labelKey, value, onChange})
     }, [url, labelKey])
 
     return(
-        <div className="selection">
+        <div className="font-mono text-[13px] border border-[#015d3b] rounded-[5px]">
             <Select
                 options={options}
                 placeholder={placeholder}

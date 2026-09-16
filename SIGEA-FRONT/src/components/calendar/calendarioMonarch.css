@@ -1,0 +1,10 @@
+:root {
+    --fc-monarch-primary: #015d3b;
+    --fc-monarch-primary-over: #1a7a52;
+    --fc-monarch-primary-down: #2f8a63;
+    --fc-monarch-event: #229e14;
+    --fc-monarch-event-contrast: #ffffff;
+    --fc-monarch-now: #55bd85;
+    --fc-monarch-selected: #015d3b;
+    --fc-monarch-outline: #3e9a8a;
+}
