@@ -27,6 +27,7 @@ class VisitasSerializer(serializers.ModelSerializer):
             'estado_id': obj.Solicitud.Estado_id,
             'up': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'up_id': getattr(up, 'id', None),
+            'ruea': getattr(up, 'RUEA', None),
             'predio': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'up_estado': getattr(getattr(up, 'idEstado', None), 'Estado', None),
             'solicitante': {

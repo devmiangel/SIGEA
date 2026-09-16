@@ -38,6 +38,10 @@ urlpatterns = [
     path('mis-ups/', mis_ups, name='mis_ups'),
     path('validar-ups/<int:upId>/', validar_ups, name='validar_ups'),
     path('upload-archivo-up/', upload_archivo_up, name='upload_archivo_up'),
+    path('buscar-por-ruea/', buscar_up_por_ruea, name='buscar_up_por_ruea'),
+    path('<int:upId>/generar-qr/', generar_qr, name='generar_qr'),
+    path('<int:upId>/qr/', obtener_qr, name='obtener_qr'),
+    path('<int:upId>/descargar-qr/', descargar_qr, name='descargar_qr'),
 ] + router.urls
 
 urlpatterns += [

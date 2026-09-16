@@ -31,6 +31,10 @@ from .ups import (
     validar_ups,
     mis_ups,
     upload_archivo_up,
+    buscar_up_por_ruea,
+    generar_qr,
+    obtener_qr,
+    descargar_qr,
 )
 from .caracterizacion import (
     info_personal_caracterizacion,

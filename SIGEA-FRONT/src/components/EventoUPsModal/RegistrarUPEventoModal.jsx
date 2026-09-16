@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import SearchIcon from '@mui/icons-material/Search'
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EventIcon from '@mui/icons-material/Event'
 import Swal from 'sweetalert2'
-import { getUPs, actualizarEvento } from '../../services/agroService'
+import { getUPs, actualizarEvento, buscarUPPorRUEA } from '../../services/agroService'
+import QRScannerModal from '../QRScannerModal/QRScannerModal'
 import { AGRO_COLORS, AUTOCOMPLETE_MAX_RESULTS } from '../../utils/agroConstants'
 
 const labelUP = (up) => {
@@ -23,6 +24,7 @@ export default function RegistrarUPEventoModal({ evento, onClose, onRegistrado }
         return []
     })
     const [guardando, setGuardando] = useState(false)
+    const [mostrarScannerQR, setMostrarScannerQR] = useState(false)
 
     useEffect(() => {
         let activo = true
@@ -62,13 +64,52 @@ export default function RegistrarUPEventoModal({ evento, onClose, onRegistrado }
     }
 
     const escanearQR = () => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Escaneo QR',
-            text: 'La funcionalidad de escaneo QR estará disponible próximamente.',
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        setMostrarScannerQR(true)
     }
+
+    const handleRUEADetectado = useCallback(async (ruea) => {
+        setMostrarScannerQR(false)
+        try {
+            const up = await buscarUPPorRUEA(ruea)
+            if (!up || !up.id) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'UP no encontrada',
+                    text: `No se encontró una unidad productiva con el RUEA: ${ruea}`,
+                    confirmButtonColor: AGRO_COLORS.primary
+                })
+                return
+            }
+            setRegistradas((prev) => {
+                if (prev.some((u) => u.id === up.id)) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Ya registrada',
+                        text: 'Esta unidad productiva ya está registrada en el evento.',
+                        confirmButtonColor: AGRO_COLORS.primary
+                    })
+                    return prev
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'UP registrada',
+                    text: `${labelUP(up)} fue agregada al evento.`,
+                    confirmButtonColor: AGRO_COLORS.success,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                })
+                return [...prev, up]
+            })
+        } catch {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `No se pudo encontrar la UP con RUEA: ${ruea}. Verifica que el código sea válido.`,
+                confirmButtonColor: AGRO_COLORS.primary
+            })
+        }
+    }, [])
 
     const guardar = async () => {
         setGuardando(true)
@@ -226,6 +267,12 @@ export default function RegistrarUPEventoModal({ evento, onClose, onRegistrado }
                     </button>
                 </div>
             </div>
+            {mostrarScannerQR && (
+                <QRScannerModal
+                    onRUEADetectado={handleRUEADetectado}
+                    onClose={() => setMostrarScannerQR(false)}
+                />
+            )}
         </div>
     )
 }

@@ -3,9 +3,10 @@ import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 import AssignmentIndOutlinedIcon from '@mui/icons-material/AssignmentIndOutlined'
 import HomeWorkOutlinedIcon from '@mui/icons-material/HomeWorkOutlined'
-import { AGRO_COLORS, ESTADO_VISITA_INFO } from '../../utils/agroConstants'
+import { AGRO_COLORS, ESTADO_VISITA_INFO, UP_ESTADO_RAW, normalizarEstadoUP } from '../../utils/agroConstants'
 import { DetailCard, DetailField } from '../DetailCard/DetailCard'
 import { formatFecha } from '../../utils/dateHelpers'
+import QRButton from '../QRButton/QRButton'
 
 export default function UpValidationCard({ visita, numero, estado, onClick }) {
     const solInfo = visita?.solicitud_info ?? {}
@@ -14,6 +15,8 @@ export default function UpValidationCard({ visita, numero, estado, onClick }) {
     const funcionario = visita?.funcionario_info?.nombre ?? '—'
     const administrador = visita?.administrador_info?.nombre ?? '—'
     const fechaFormateada = formatFecha(visita?.FechaYHoraVisita)
+    const upEstado = solInfo?.up_estado ?? 'En revision'
+    const esAceptada = normalizarEstadoUP(upEstado) === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
 
     const { class: badgeClass, label: badgeLabel } = ESTADO_VISITA_INFO[estado ?? 'pendiente'] ?? ESTADO_VISITA_INFO.pendiente
 
@@ -49,6 +52,11 @@ export default function UpValidationCard({ visita, numero, estado, onClick }) {
                 label="Asignó la visita"
                 value={administrador}
             />
+            {esAceptada && solInfo?.up_id && (
+                <div className="flex items-center">
+                    <QRButton up={{ id: solInfo.up_id, RUEA: solInfo.ruea, productor_nombre: nombreUP, nombre_predio: predio }} />
+                </div>
+            )}
         </DetailCard>
     )
 }

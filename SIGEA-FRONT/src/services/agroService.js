@@ -372,3 +372,26 @@ export const eliminarVehiculo = async (vehiculoId) => {
     const response = await api.delete(`/inventario/detalleVehiculos/${vehiculoId}/`);
     return response.data;
 }
+
+export const buscarUPPorRUEA = async (ruea) => {
+    const response = await api.get('/UPs/buscar-por-ruea/', { params: { ruea } });
+    return response.data;
+}
+
+export const generarQR = async (upId) => {
+    const response = await api.post(`/UPs/${upId}/generar-qr/`);
+    return response.data;
+}
+
+export const getQR = async (upId) => {
+    const response = await api.get(`/UPs/${upId}/qr/`);
+    return response.data;
+}
+
+export const descargarQR = async (upId) => {
+    const response = await api.get(`/UPs/${upId}/descargar-qr/`, { responseType: 'blob' });
+    const disposition = response.headers?.['content-disposition'] ?? ''
+    const match = disposition.match(/filename="?([^";]+)"?/)
+    const nombreArchivo = match ? match[1] : `qr_up_${upId}.png`
+    return { blob: response.data, nombreArchivo }
+}
