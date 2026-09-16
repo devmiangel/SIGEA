@@ -4,7 +4,7 @@ Aplicación encargada de la gestión del inventario del sistema. Agrupa tres mó
 
 - **Vehículos**: catálogos (tipos, combustibles, marcas, líneas), registro de vehículos, conductores y asignaciones de vehículos.
 - **Herramientas**: catálogo de tipos de herramienta, registro de herramientas y asignaciones a funcionarios.
-- **Insumos**: registro de insumos, inventario por funcionario y cardex de asignaciones.
+- **Insumos**: registro de insumos, inventario por funcionario, cardex de asignaciones y solicitudes de insumo de los funcionarios.
 
 Estructura interna de la app:
 
@@ -58,6 +58,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 | `Insumos` | `Nombre` (CharField); `Cantidad` (IntegerField); `Descripcion` (TextField); `Estado` (BooleanField) | FK `Unidades` (PROTECT) — app UPs |
 | `InventarioFuncionario` | `Cantidad` (IntegerField) | FK `Insumos` (CASCADE) y `Funcionarios` (CASCADE) — app Usuarios |
 | `CardexInsumoFuncionario` | `Cantidad` (IntegerField); `FechaAsignacion` (DateField) | FK `Funcionarios`, `Insumos` y `Administradores` (CASCADE) — app Usuarios |
+| `SolicitudInsumo` | `Cantidad` (IntegerField); `FechaSolicitud` (DateField, `auto_now_add`); `Estado` (CharField, default `Pendiente`); `Observacion` (TextField, nullable) | FK `Insumos` (CASCADE) y `Funcionarios` (CASCADE) — app Usuarios. Solicitud de insumo creada por un funcionario y resuelta/rechazada por un administrador |
 
 > **Aplicaciones externas involucradas en las FK:**
 > - `Usuarios.Funcionarios` → tabla `Funcionarios` de la app Usuarios (vinculada a un `Usuario`).
@@ -98,12 +99,13 @@ Todos los serializers son `ModelSerializer` con `fields = '__all__'`, es decir, 
 | `InsumosSerializer` | `Insumos` |
 | `InventarioFuncionarioSerializer` | `InventarioFuncionario` |
 | `CardexInsumoFuncionarioSerializer` | `CardexInsumoFuncionario` |
+| `SolicitudInsumoSerializer` | `SolicitudInsumo` (añade `insumo_nombre`, `insumo_unidades`, `funcionario_nombre` y `funcionario_email`) |
 
 ---
 
 ## Views
 
-Todas las vistas son `ModelViewSet` de Django REST Framework, por lo que exponen automáticamente las operaciones CRUD completas: `list`, `retrieve`, `create`, `update`, `partial_update` y `destroy`.
+Todas las vistas son `ModelViewSet` de Django REST Framework, por lo que exponen automáticamente las operaciones CRUD completas: `list`, `retrieve`, `create`, `update`, `partial_update` y `destroy`. Los ViewSets usan `SigeaModelPermissionMixin` (autenticación + permiso de modelo).
 
 ### Vistas Vehículos (`views/vehiculos.py`)
 
@@ -134,6 +136,18 @@ Todas las vistas son `ModelViewSet` de Django REST Framework, por lo que exponen
 | `InventarioFuncionarioViewSet` | `InventarioFuncionario` | CRUD del inventario de insumos por funcionario. |
 | `CardexInsumoFuncionarioViewSet` | `CardexInsumoFuncionario` | CRUD del cardex de asignación de insumos a funcionarios. |
 
+### Vistas de acción (asignaciones y solicitudes)
+
+| Vista | Tipo | Descripción |
+|---|---|---|
+| `listar_solicitudes_insumo` | `@api_view(['GET'])` | Lista las solicitudes de insumo. El funcionario ve solo las suyas; el administrador ve todas. Requiere autenticación. |
+| `crear_solicitud_insumo` | `@api_view(['POST'])` | El funcionario solicita un insumo (valida disponibilidad y stock). Requiere autenticación. |
+| `asignar_solicitud_insumo` | `@api_view(['POST'])` | El administrador atiende una solicitud: crea el `CardexInsumoFuncionario`, incrementa `InventarioFuncionario` y descuenta el stock del `Insumos` (atómico). |
+| `rechazar_solicitud_insumo` | `@api_view(['POST'])` | El administrador rechaza una solicitud pendiente, guardando la observación. |
+| `asignar_insumo_directo` | `@api_view(['POST'])` | El administrador asigna insumos directamente a un funcionario sin solicitud previa. |
+| `asignar_herramienta_directo` | `@api_view(['POST'])` | El administrador asigna una herramienta disponible a un funcionario. |
+| `asignar_vehiculo_directo` | `@api_view(['POST'])` | El administrador asigna un vehículo disponible a un funcionario con licencia de conductor. |
+
 ---
 
 ## Endpoints (URLs)
@@ -156,6 +170,18 @@ Las rutas se registran con `DefaultRouter` en `urls.py`, bajo el prefijo `/api/i
 | `/api/inventario/insumos/` | `InsumosViewSet` |
 | `/api/inventario/inventarioFuncionario/` | `InventarioFuncionarioViewSet` |
 | `/api/inventario/cardexInsumoFuncionario/` | `CardexInsumoFuncionarioViewSet` |
+
+### Rutas de acción
+
+| Endpoint | Vista | Método |
+|---|---|---|
+| `/api/inventario/solicitudInsumo/` | `listar_solicitudes_insumo` | GET |
+| `/api/inventario/solicitudInsumo/crear/` | `crear_solicitud_insumo` | POST |
+| `/api/inventario/solicitudInsumo/<solicitud_id>/asignar/` | `asignar_solicitud_insumo` | POST |
+| `/api/inventario/solicitudInsumo/<solicitud_id>/rechazar/` | `rechazar_solicitud_insumo` | POST |
+| `/api/inventario/insumos/<insumo_id>/asignar/` | `asignar_insumo_directo` | POST |
+| `/api/inventario/herramientas/<herramienta_id>/asignar/` | `asignar_herramienta_directo` | POST |
+| `/api/inventario/detalleVehiculos/<detalle_vehiculo_id>/asignar/` | `asignar_vehiculo_directo` | POST |
 
 ---
 

@@ -19,21 +19,21 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 
 ### Administradores (`/administrador`)
 - Panel principal y dashboard.
-- Gestión de usuarios: creación, edición y asignación de roles.
+- Gestión de usuarios: creación, edición, asignación de roles y rol de conductor.
 - Gestión del inventario: insumos (con solicitudes y asignación), herramientas y vehículos.
 - Validación de unidades productivas.
-- Consulta de visitas y reportes.
+- Gestión de solicitudes de visita (atender, reagendar o rechazar) y consulta de visitas.
+- Gestión de eventos asociados a las UPs.
 - Agenda / horarios.
 
 ### Funcionarios (`/funcionario`)
 - Inicio con agenda de visitas.
-- Visitas de caracterización y visita técnica con formularios por secciones (datos del productor, UP, predio, secciones agrícola/pecuaria/agroindustrial, insumos, firmas digitales).
-- Consulta de recursos (inventario).
-- Atención de solicitudes de caracterización.
+- Visitas de caracterización, visita técnica y **recibo de pago de servicios agropecuarios** (maquinaria e inseminación), con formularios por secciones (datos del productor, UP, predio, secciones agrícola/pecuaria/agroindustrial, insumos, firmas digitales).
+- Consulta de recursos (inventario) y solicitud de insumos al administrador.
 
 ### Productores y Usuarios (`/usuario`)
 - Acceso a la extensión agropecuaria.
-- Solicitud de caracterización de su unidad productiva (primer registro).
+- Solicitud de caracterización/visita de su unidad productiva (primer registro).
 - Visualización de sus UPs y estado de solicitudes.
 - Trámites de protección animal.
 
@@ -45,9 +45,9 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 | `Predios` | Registro de predios y catálogos de ubicación. |
 | `UPs` | Unidades productivas y su caracterización (agrícola, pecuaria, agroindustrial). |
 | `Inventario` | Vehículos, herramientas, insumos, cardex y solicitudes de insumo. |
-| `Visitas` | Solicitudes y visitas técnicas, con formularios y estados. |
-| `documentos` | Generación de documentos PDF (visita técnica, reportlab). |
-| `seeders` | Datos semilla / carga inicial. |
+| `Visitas` | Solicitudes y visitas técnicas, formulario de visita y recibo de pago, con estados. |
+| `documentos` | Generación de documentos PDF al vuelo: visita técnica, caracterización y recibo de pago (reportlab). |
+| `seeders` | Datos semilla / carga inicial y seeder de permisos por rol (`seed_permisos`). |
 
 > Documentación técnica detallada de cada app en su respectivo `README` dentro de `SIGEA/`.
 
@@ -68,7 +68,7 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 ```
 SIGEA_WA/
 ├── SIGEA/                  # Backend (Django + DRF)
-│   ├── SIGEAsite/          # Configuración general (settings, urls)
+│   ├── SIGEAsite/          # Configuración general (settings, urls, permissions)
 │   ├── Usuarios/           # App usuarios y autenticación
 │   ├── Predios/            # App predios
 │   ├── UPs/                # App unidades productivas
@@ -113,11 +113,12 @@ pnpm dev           # http://localhost:5173
 
 El frontend consume la API en `http://localhost:5173` (CORS habilitado para el backend en local).
 
-## Autenticación
+## Autenticación y permisos
 
 - Login por **email** y contraseña.
 - Sesiones por **token** (Knox).
 - Rutas y vistas protegidas por rol tanto en frontend (React Router + `ProtectedRoute`) como en backend (permissions DRF).
+- Los ViewSets del backend usan `SigeaModelPermissionMixin` (`SIGEAsite/permissions.py`), que exige autenticación **y** el permiso de modelo (`view`/`add`/`change`/`delete`) correspondiente al rol. Los permisos por rol se cargan con `python manage.py seed_permisos`.
 
 ## Endpoints principales de la API
 
@@ -129,7 +130,7 @@ El frontend consume la API en `http://localhost:5173` (CORS habilitado para el b
 | `/api/usuarios/` | Usuarios, personas, roles y catálogos |
 | `/api/predios/` | Predios y ubicación |
 | `/api/UPs/` | Unidades productivas y caracterización |
-| `/api/inventario/` | Insumos, herramientas, vehículos y solicitudes |
-| `/api/visitas/` | Visitas y solicitudes |
-| `/api/documentos/` | Generación de documentos (PDF) |
+| `/api/inventario/` | Insumos, herramientas, vehículos, solicitudes de insumo y asignaciones |
+| `/api/visitas/` | Visitas, solicitudes, formulario de visita y recibo de pago |
+| `/api/documentos/` | Generación de documentos PDF (visita, caracterización, recibo) |
 | `/admin/` | Panel de administración de Django |
