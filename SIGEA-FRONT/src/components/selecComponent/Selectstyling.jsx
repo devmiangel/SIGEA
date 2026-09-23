@@ -6,15 +6,24 @@ export default function Selection({placeholder, url, labelKey, value, onChange})
     const [options, setOptions] = useState([])
 
     useEffect(()=>{
-        fetch(url)
-            .then(res => res.json())
+        const token = localStorage.getItem('token')
+        fetch(url, {
+            headers: token ? { Authorization: `Token ${token}` } : {},
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`Error ${res.status} al cargar ${url}`)
+                return res.json()
+            })
             .then(data => {
-                const formatted = data.map(item => ({
+                // Soporta respuesta paginada {results: []} o lista directa []
+                const list = Array.isArray(data) ? data : data.results ?? []
+                const formatted = list.map(item => ({
                     value: item.id,
                     label: item[labelKey]
                 }))
                 setOptions(formatted)
             })
+            .catch(() => setOptions([]))
     }, [url, labelKey])
 
     return(

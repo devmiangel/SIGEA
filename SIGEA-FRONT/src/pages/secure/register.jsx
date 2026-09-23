@@ -15,7 +15,7 @@ export default function Register() {
 
     return (
         <div className="min-h-screen flex flex-col lg:flex-row justify-center items-center w-full p-5 lg:gap-24 gap-0.5 bg-[#fdfcf8]">
-            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5 sticky top-40">
+            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5 top-40">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
