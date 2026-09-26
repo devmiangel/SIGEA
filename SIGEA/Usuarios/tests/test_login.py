@@ -106,4 +106,4 @@ class LoginTests(APITestCase):
         resp = self.client.post(
             self.url, {"email": "productor.login@example.com"}, format="json"
         )
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 400) 
