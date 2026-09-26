@@ -21,6 +21,15 @@ const REQUERIDOS = [
     { nombre: 'Direccion', label: 'Dirección' },
 ]
 
+const normalizarNumero = (valor, decimales) => {
+    if (valor === null || valor === undefined) return null
+    const texto = String(valor).trim().replace(',', '.')
+    if (texto === '') return null
+    const numero = Number(texto)
+    if (!Number.isFinite(numero)) return { error: `"${valor}" no es un número válido.` }
+    return Number(numero.toFixed(decimales))
+}
+
 const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
     const [form, setForm] = useState(INICIAL)
     const [tenencias, setTenencias] = useState([])
@@ -92,7 +101,28 @@ const SeccionPredio = forwardRef(({ userId, solicitudId }, ref) => {
         if (faltantes.length) {
             return { ok: false, motivo: `Campos obligatorios: ${faltantes.join(', ')}.` }
         }
-        return guardarSeccion(() => saveInfoPredio(userId, solicitudId, form))
+        const latitud = normalizarNumero(form.Latitud, 8)
+        if (latitud?.error) return { ok: false, motivo: `Latitud: ${latitud.error}` }
+        if (latitud !== null && (latitud < -90 || latitud > 90)) {
+            return { ok: false, motivo: 'Latitud: debe estar entre -90 y 90.' }
+        }
+        const longitud = normalizarNumero(form.Longitud, 8)
+        if (longitud?.error) return { ok: false, motivo: `Longitud: ${longitud.error}` }
+        if (longitud !== null && (longitud < -180 || longitud > 180)) {
+            return { ok: false, motivo: 'Longitud: debe estar entre -180 y 180.' }
+        }
+        const area = normalizarNumero(form.AreaPredio, 3)
+        if (area?.error) return { ok: false, motivo: `Área: ${area.error}` }
+        if (area !== null && area < 0) {
+            return { ok: false, motivo: 'Área: no puede ser negativa.' }
+        }
+        const payload = {
+            ...form,
+            Latitud: latitud,
+            Longitud: longitud,
+            AreaPredio: area,
+        }
+        return guardarSeccion(() => saveInfoPredio(userId, solicitudId, payload))
     }, [form, userId, solicitudId, guardarSeccion])
 
     useImperativeHandle(ref, () => ({ guardar }))
