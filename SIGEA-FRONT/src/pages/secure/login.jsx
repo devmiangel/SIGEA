@@ -21,13 +21,13 @@ export default function Login() {
                 <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Iniciar Sesión</h2>
                 <form onSubmit={submitLogin}>
                     <section className="mb-6 relative">
-                        <Input {...register('email', emailRules)} placeholder="Correo" />
+                        <Input {...register('email', emailRules)} placeholder="Correo" data-cy="login-email" />
                         <FieldError message={errors.email?.message} />
                         <NavLink href="https://google.com">Olvidaste tu correo</NavLink>
                     </section>
 
                     <section className="mb-6 relative">
-                        <Input {...register('password', passwordRules)} type="password" placeholder="contraseña" autoComplete="password" />
+                        <Input {...register('password', passwordRules)} type="password" placeholder="contraseña" autoComplete="password" data-cy="login-password" />
                         <FieldError message={errors.password?.message} />
                         <NavLink href="https://google.com">Olvidaste tu contraseña</NavLink>
                     </section>
@@ -40,7 +40,7 @@ export default function Login() {
 
                     {errorMsg && (
                         <div className="flex justify-center items-center w-full mt-4">
-                            <div className="text-red-600 text-sm text-center">{errorMsg}</div>
+                            <div className="text-red-600 text-sm text-center" data-cy="login-error">{errorMsg}</div>
                         </div>
                     )}
                 </form>
