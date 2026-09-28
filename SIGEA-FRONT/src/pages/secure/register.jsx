@@ -20,7 +20,7 @@ export default function Register() {
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh]">
+            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh] mb-6">
                 <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Regístrate</h2>
                 <form onSubmit={submitRegister}>
                     <NameFields register={register} errors={errors} />
@@ -45,6 +45,7 @@ export default function Register() {
                         ¿Ya tienes cuenta? <strong>ingresa al aplicativo con tus credenciales</strong>
                     </NavLink>
                 </form>
+                <p className='text-[10px] text-black no-underline ml-1 pb-4'>Al registrarte estás aceptando el <NavLink href="/tratamiento-datos"><strong>tratamiento de datos</strong></NavLink></p>
             </div>
         </div>
     )

@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 
 import Login from "../pages/secure/login";
 import Register from "../pages/secure/register";
+import DataTreatment from "../pages/secure/dataTreatment";
 
 import AdminLayout from "../layouts/adminlayout";
 import EmployeeLayout from "../layouts/EmployeeLayout";
@@ -46,6 +47,7 @@ export default function SigeaRoutes(){
         <Routes>
             <Route index element={<Login/>} />
             <Route path="/registro" element={<Register/>} />
+            <Route path="/tratamiento-datos" element={<DataTreatment/>} />
 
             <Route path="/administrador" element={
                 <ProtectedRoute allowedRoles={['Administradores']}>
