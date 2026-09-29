@@ -21,6 +21,10 @@ def validar_ups(request, upId=None):
     from ..models import EstadosUP
 
     up = get_object_or_404(UP, id=upId)
+
+    if not hasattr(request.user, 'administradores') and not request.user.is_staff and not request.user.is_superuser:
+        return Response({"error": "Solo un administrador puede validar UPs"}, status=status.HTTP_403_FORBIDDEN)
+
     aprobada = request.data.get('aprobada')
 
     if aprobada is None:
