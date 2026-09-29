@@ -35,6 +35,7 @@ class UP(models.Model):
     FechaActualizacion = models.DateField()
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.PROTECT)
     idEstado = models.ForeignKey(EstadosUP, on_delete=models.PROTECT, null=True, blank=True)
+    CodigoQR = models.ImageField(blank=True, null=True, upload_to='qr_up/')
 
     #GENERACION DE CODIGO RUEA
     def save(self, *args, **kwargs):

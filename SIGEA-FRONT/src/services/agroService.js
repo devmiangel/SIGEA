@@ -25,6 +25,36 @@ export const getMisUPs = async () => {
     return response.data;
 }
 
+export const getUPs = async () => {
+    const response = await api.get('/UPs/UPs/');
+    return response.data;
+}
+
+export const getEventos = async () => {
+    const response = await api.get('/UPs/eventosUP/');
+    return response.data;
+}
+
+export const getEvento = async (eventoId) => {
+    const response = await api.get(`/UPs/eventosUP/${eventoId}/`);
+    return response.data;
+}
+
+export const crearEvento = async (data) => {
+    const response = await api.post('/UPs/eventosUP/', data);
+    return response.data;
+}
+
+export const actualizarEvento = async (eventoId, data) => {
+    const response = await api.patch(`/UPs/eventosUP/${eventoId}/`, data);
+    return response.data;
+}
+
+export const eliminarEvento = async (eventoId) => {
+    const response = await api.delete(`/UPs/eventosUP/${eventoId}/`);
+    return response.data;
+}
+
 export const validarUP = async (upId, aprobada) => {
     const response = await api.post(`/UPs/validar-ups/${upId}/`, { aprobada });
     return response.data;
@@ -92,6 +122,21 @@ export const getVisitas = async () => {
 
 export const getMisVisitas = async () => {
     const response = await api.get('/visitas/mis-visitas/');
+    return response.data;
+}
+
+export const buscarProductoresUsuarios = async (q = '') => {
+    const response = await api.get('/usuarios/usuarios/buscar/', { params: { q } });
+    return response.data;
+}
+
+export const crearOrdenVisita = async (data) => {
+    const response = await api.post('/visitas/ordenes/crear/', data);
+    return response.data;
+}
+
+export const getMisOrdenes = async () => {
+    const response = await api.get('/visitas/mis-ordenes/');
     return response.data;
 }
 
@@ -326,4 +371,27 @@ export const actualizarVehiculo = async (vehiculoId, data) => {
 export const eliminarVehiculo = async (vehiculoId) => {
     const response = await api.delete(`/inventario/detalleVehiculos/${vehiculoId}/`);
     return response.data;
+}
+
+export const buscarUPPorRUEA = async (ruea) => {
+    const response = await api.get('/UPs/buscar-por-ruea/', { params: { ruea } });
+    return response.data;
+}
+
+export const generarQR = async (upId) => {
+    const response = await api.post(`/UPs/${upId}/generar-qr/`);
+    return response.data;
+}
+
+export const getQR = async (upId) => {
+    const response = await api.get(`/UPs/${upId}/qr/`);
+    return response.data;
+}
+
+export const descargarQR = async (upId) => {
+    const response = await api.get(`/UPs/${upId}/descargar-qr/`, { responseType: 'blob' });
+    const disposition = response.headers?.['content-disposition'] ?? ''
+    const match = disposition.match(/filename="?([^";]+)"?/)
+    const nombreArchivo = match ? match[1] : `qr_up_${upId}.png`
+    return { blob: response.data, nombreArchivo }
 }

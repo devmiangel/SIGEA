@@ -13,7 +13,7 @@ const CAMPOS = [
     { name: 'DocumentoProductor', label: 'Documento', requerido: true, noEditable: true },
     { name: 'RazonSocialProductor', label: 'Razón social' },
     { name: 'NitProductor', label: 'NIT' },
-    { name: 'Celular', label: 'Celular', requerido: true, noEditable: true },
+    { name: 'Celular', label: 'Celular', requerido: true, noEditable: false },
     { name: 'Correo', label: 'Correo', requerido: true, noEditable: true },
     { name: 'FechaNacimiento', label: 'Fecha de nacimiento', type: 'date', requerido: true, noEditable: true },
 ]

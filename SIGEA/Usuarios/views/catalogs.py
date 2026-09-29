@@ -1,9 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
+from django.db.models import Q
 
-from SIGEAsite.permissions import SigeaModelPermissionMixin
+from SIGEAsite.permissions import SigeaModelPermissionMixin, SigeaModelPermissions
+from rest_framework.permissions import IsAuthenticated
 
 from ..models import (
     TiposDocumentos,
@@ -37,6 +40,14 @@ class TiposDocumentosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposDocumentos.objects.all()
     serializer_class = TiposDocumentosSerializer
 
+    def get_permissions(self):
+        # El formulario de registro es público (AllowAny) y necesita
+        # listar los tipos de documento sin token. El resto sigue
+        # exigiendo autenticación + permiso de modelo.
+        if self.action in ('list', 'retrieve'):
+            return [AllowAny()]
+        return [IsAuthenticated(), SigeaModelPermissions()]
+
 class PersonasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
    queryset = Personas.objects.all()
    serializer_class = PersonasSerializer
@@ -49,6 +60,27 @@ class UsuarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
+
+    @action(detail=False, methods=['get'])
+    def buscar(self, request):
+        q = (request.query_params.get('q') or '').strip()
+
+        usuarios = Usuario.objects.exclude(
+            Q(administradores__isnull=False) | Q(funcionarios__isnull=False)
+        )
+
+        if q:
+            usuarios = usuarios.filter(
+                Q(email__icontains=q) |
+                Q(persona__primer_nombre__icontains=q) |
+                Q(persona__segundo_nombre__icontains=q) |
+                Q(persona__primer_apellido__icontains=q) |
+                Q(persona__segundo_apellido__icontains=q) |
+                Q(persona__numero_documento__icontains=q)
+            ).distinct()
+
+        serializer = UsuarioSerializer(usuarios, many=True)
+        return Response(serializer.data)
 
     def _actualizar_usuario(self, instance, data):
         # 1. Actualizar datos de la persona

@@ -15,12 +15,12 @@ export default function Register() {
 
     return (
         <div className="min-h-screen flex flex-col lg:flex-row justify-center items-center w-full p-5 lg:gap-24 gap-0.5 bg-[#fdfcf8]">
-            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5 sticky top-40">
+            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5 top-40">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
 
-            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh]">
+            <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh] mb-6">
                 <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Regístrate</h2>
                 <form onSubmit={submitRegister}>
                     <NameFields register={register} errors={errors} />
@@ -45,6 +45,7 @@ export default function Register() {
                         ¿Ya tienes cuenta? <strong>ingresa al aplicativo con tus credenciales</strong>
                     </NavLink>
                 </form>
+                <p className='text-[10px] text-black no-underline ml-1 pb-4'>Al registrarte estás aceptando el <NavLink href="/tratamiento-datos"><strong>tratamiento de datos</strong></NavLink></p>
             </div>
         </div>
     )

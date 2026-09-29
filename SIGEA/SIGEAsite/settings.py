@@ -121,8 +121,9 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTH_USER_MODEL = 'Usuarios.Usuario'
 
-AUTHENTICATION_BACKEND = [ # HAY QUE REVISAR ESTA COSA
-    'user.auth_backend.EmailAuthBackend'
+AUTHENTICATION_BACKENDS = [
+    'Usuarios.auth_backend.EmailAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Internationalization

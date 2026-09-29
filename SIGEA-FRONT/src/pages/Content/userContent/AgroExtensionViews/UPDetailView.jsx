@@ -6,7 +6,8 @@ import { Header } from "../../../../components/Tettles-Buttons/Title"
 import { getMisUPs } from "../../../../services/agroService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useCaracterizacion } from "../../../../hooks/useCaracterizacion"
-import { AGRO_COLORS, UP_ESTADO_STYLE } from "../../../../utils/agroConstants"
+import { AGRO_COLORS, UP_ESTADO_RAW, UP_ESTADO_STYLE, normalizarEstadoUP } from "../../../../utils/agroConstants"
+import QRButton from "../../../../components/QRButton/QRButton"
 
 const valor = (v) => (v === null || v === undefined || v === '' ? null : v)
 
@@ -82,6 +83,7 @@ export default function UPDetailView() {
     const estadoClass = UP_ESTADO_STYLE[estadoLabel] ?? 'bg-gray-100 text-gray-700'
     const nombre = up?.productor_nombre ?? 'Unidad productiva'
     const personal = secciones?.personal ?? {}
+    const esAceptada = normalizarEstadoUP(estadoLabel) === normalizarEstadoUP(UP_ESTADO_RAW.ACEPTADA)
 
     return (
         <div className="w-full max-w-full">
@@ -114,6 +116,9 @@ export default function UPDetailView() {
                                         <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide shrink-0 ${estadoClass}`}>
                                             {estadoLabel}
                                         </span>
+                                        {esAceptada && (
+                                            <QRButton up={up} />
+                                        )}
                                     </div>
                                     <p className="text-xs text-gray-400 mt-0.5">
                                         {up?.RUEA ?? 'Sin RUEA'} · {up?.tipo_up_label ?? 'Sin tipo'} · {up?.nombre_predio ?? 'Predio sin nombre'}

@@ -8,6 +8,7 @@ class UPSerializer(serializers.ModelSerializer):
     nombre_predio = serializers.CharField(source='Predio.NombrePredio', read_only=True)
     direccion = serializers.CharField(source='Predio.Direccion', read_only=True, default='')
     productor_nombre = serializers.SerializerMethodField()
+    tiene_qr = serializers.SerializerMethodField()
 
     class Meta:
         model = UP
@@ -23,3 +24,6 @@ class UPSerializer(serializers.ModelSerializer):
             persona.primer_apellido,
             persona.segundo_apellido,
         ])) or None
+
+    def get_tiene_qr(self, obj):
+        return obj.CodigoQR is not None

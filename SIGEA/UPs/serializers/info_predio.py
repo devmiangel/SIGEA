@@ -12,8 +12,8 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
     Seguro = serializers.CharField(required=False, allow_null=True)
     AccesoCredito = serializers.BooleanField(source='Predio.AccesoCredito', required=False, allow_null=True)
     UsoSuelo = serializers.BooleanField(source='Predio.UsoSuelo', required=False, allow_null=True)
-    Latitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Latitud', required=False, allow_null=True)
-    Longitud = serializers.DecimalField(max_digits=16, decimal_places=14, source='Predio.Longitud', required=False, allow_null=True)
+    Latitud = serializers.DecimalField(max_digits=11, decimal_places=8, source='Predio.Latitud', required=False, allow_null=True)
+    Longitud = serializers.DecimalField(max_digits=11, decimal_places=8, source='Predio.Longitud', required=False, allow_null=True)
     Direccion = serializers.CharField(source='Predio.Direccion', required=False, allow_null=True)
 
     TipoTenencia = serializers.CharField(required=False, allow_null=True)
@@ -26,6 +26,36 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
             'NombrePredio', 'AreaPredio', 'RegistroICA', 'Seguro', 'AccesoCredito',
             'UsoSuelo', 'Latitud', 'Longitud', 'Direccion', 'TipoTenencia', 'Vereda', 'Sector'
         ]
+
+    def to_internal_value(self, data):
+        # Normalizar coordenadas/área antes de validar:
+        # '' -> None (ya lo hace el mixin), '4,6097' -> '4.6097',
+        # recortar a 8 decimales para no rechazar precisión de GPS.
+        data = dict(data or {})
+        for campo in ('Latitud', 'Longitud', 'AreaPredio'):
+            valor = data.get(campo)
+            if isinstance(valor, str):
+                valor = valor.strip().replace(',', '.')
+                if valor == '':
+                    data[campo] = None
+                    continue
+                try:
+                    numero = float(valor)
+                    decimales = 8 if campo in ('Latitud', 'Longitud') else 3
+                    data[campo] = str(round(numero, decimales))
+                except ValueError:
+                    data[campo] = valor
+        return super().to_internal_value(data)
+
+    def validate_Latitud(self, value):
+        if value is not None and (value < -90 or value > 90):
+            raise serializers.ValidationError('La latitud debe estar entre -90 y 90.')
+        return value
+
+    def validate_Longitud(self, value):
+        if value is not None and (value < -180 or value > 180):
+            raise serializers.ValidationError('La longitud debe estar entre -180 y 180.')
+        return value
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -43,6 +73,7 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
 
     def update(self, instance, validated_data):
         from django.db import transaction
+        from rest_framework.exceptions import ValidationError
         from Predios.models import Seguros, TiposTenencias, Sectores, Veredas, TiposRegistrosICA
 
         predio_data = validated_data.pop('Predio', {})
@@ -85,7 +116,10 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
                 else:
                     sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
                     if sector_obj is None:
-                        sector_obj = Sectores.objects.create(NombreSector=sector_str)
+                        raise ValidationError({
+                            'Sector': 'Para crear un sector nuevo primero indique la vereda.',
+                            'Vereda': 'Seleccione o cree la vereda antes de definir el sector.',
+                        })
 
                 predio.Sector = sector_obj
             # Actualizar Registro ICA (varchar): se crea el codigo si no existe

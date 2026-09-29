@@ -19,5 +19,7 @@ from .solicitudes import (
     rechazar_solicitud,
     mis_visitas,
     info_visita_observaciones,
+    crear_orden_visita,
+    mis_ordenes,
 )
 from .formulario import FormularioVisitaTecnicaView, FormularioReciboPagoView
