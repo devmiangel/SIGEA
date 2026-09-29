@@ -75,3 +75,11 @@ Desktop.ini
 # Otros
 # ========================
 .antigravityignore
+
+# ========================
+# Cypress (E2E)
+# ========================
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress/results/
