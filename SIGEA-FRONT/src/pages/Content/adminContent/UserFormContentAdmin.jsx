@@ -48,7 +48,12 @@ function CampoRegistro({ label, required = false, error, children }) {
 }
 
 const passwordEditRules = {
-    validate: (val) => !val || val.length >= 6 || 'Mínimo 6 caracteres',
+    validate: (val) => {
+        if (!val) return true
+        if (val.length < 8) return 'Mínimo 8 caracteres'
+        if (/^\d+$/.test(val)) return 'La contraseña no puede ser solo números'
+        return true
+    },
 }
 
 function passwordConfirmEditRules(watch) {

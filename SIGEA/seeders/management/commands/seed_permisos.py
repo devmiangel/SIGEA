@@ -169,6 +169,7 @@ FUNCIONARIOS_PERMISSIONS = [
     'add_productores',
     'change_productores',
     'view_productores',
+    'view_funcionarios',
     'view_usuario',
     'view_personas',
     'view_contactos',
@@ -203,7 +204,6 @@ PRODUCTORES_PERMISSIONS = [
     'view_detallecuries',
     'view_detallepeces',
     'view_detalleapicolas',
-    'view_archivosup',
     'view_tipoup',
     'view_estadosup',
 
@@ -236,16 +236,8 @@ PRODUCTORES_PERMISSIONS = [
     'view_aperos',
     'view_pajillas',
 
-    # Información del productor y su usuario
-    'view_productores',
-    'view_usuario',
-    'view_personas',
-    'view_contactos',
+    # Sus datos personales se leen con /api/me/ (no con los listados generales).
 
-    # Inventario consultado dentro del flujo de solicitud de visita
-    'view_insumos',
-    'view_herramientas',
-    'view_detallevehiculos',
 ]
 
 
@@ -254,9 +246,6 @@ PRODUCTORES_PERMISSIONS = [
 # Solo consulta su información y crea la primera solicitud para ser productor.
 # ---------------------------------------------------------------------------
 USUARIOS_PERMISSIONS = [
-    'view_usuario',
-    'view_personas',
-    'view_productores',
     'view_solicitudes',
     'add_solicitudes',
     'view_motivossolicitudes',
@@ -265,11 +254,6 @@ USUARIOS_PERMISSIONS = [
     'view_serviciospagos',
     'view_aperos',
     'view_pajillas',
-    'view_up',
-    'view_predios',
-    'view_insumos',
-    'view_herramientas',
-    'view_detallevehiculos',
 ]
 
 

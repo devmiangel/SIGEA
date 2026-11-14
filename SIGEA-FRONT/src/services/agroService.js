@@ -395,3 +395,11 @@ export const descargarQR = async (upId) => {
     const nombreArchivo = match ? match[1] : `qr_up_${upId}.png`
     return { blob: response.data, nombreArchivo }
 }
+
+// Descarga un adjunto de UP (archivo privado: el backend valida el dueño de la UP).
+export const descargarArchivoUP = async (archivoId) => {
+    const response = await api.get(`/UPs/archivosUP/${archivoId}/descargar/`, { responseType: 'blob' });
+    const disposition = response.headers['content-disposition'] || ''
+    const match = disposition.match(/filename="?([^"]+)"?/)
+    return { blob: response.data, nombreArchivo: match ? match[1] : `archivo_${archivoId}` }
+}

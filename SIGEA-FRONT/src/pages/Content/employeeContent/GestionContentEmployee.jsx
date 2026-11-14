@@ -9,6 +9,7 @@ import VisitaCard from '../../../components/VisitaCard/VisitaCard'
 import VisitaInfo from '../../../components/VisitaInfo/VisitaInfo'
 import { AGRO_COLORS } from '../../../utils/agroConstants'
 import { getNombreCompleto } from '../../../utils/userDisplay'
+import { escapeHtml } from '../../../utils/sanitize'
 import {
     buscarProductoresUsuarios,
     crearOrdenVisita,
@@ -226,7 +227,7 @@ export default function GestionContentEmployee() {
                             <label style="${modalLabelStyle}">Tipo de documento <span style="color:#dc2626;">*</span></label>
                             <select id="np-tipo-doc" style="${modalInputStyle}">
                                 <option value="">Seleccione...</option>
-                                ${tiposDocumento.map((t) => `<option value="${t.value}">${t.label}</option>`).join('')}
+                                ${tiposDocumento.map((t) => `<option value="${escapeHtml(t.value)}">${escapeHtml(t.label)}</option>`).join('')}
                             </select>
                         </div>
                         <div>

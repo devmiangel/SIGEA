@@ -4,6 +4,8 @@ from django.contrib.auth.models import Group
 from rest_framework.test import APITestCase
 
 from Usuarios.models import (
+    Administradores,
+    Funcionarios,
     Personas,
     Productores,
     TiposContactos,
@@ -34,7 +36,14 @@ class RegistroTests(APITestCase):
         data.update(overrides)
         return data
 
+    def _autenticar_admin(self):
+        admin = Usuario.objects.create_user(email="admin.test@example.com", password="x")
+        grupo, _ = Group.objects.get_or_create(name="Administradores")
+        admin.groups.add(grupo)
+        self.client.force_authenticate(user=admin)
+
     def test_registro_ok_crea_persona_usuario_y_rol(self):
+        self._autenticar_admin()
         resp = self.client.post(self.url, self._payload(), format="json")
         self.assertEqual(resp.status_code, 200, resp.content)
         self.assertEqual(resp.data["rol"], "Productores")
@@ -52,6 +61,38 @@ class RegistroTests(APITestCase):
         self.assertEqual(resp.status_code, 200, resp.content)
         usuario = Usuario.objects.get(email="nuevo@example.com")
         self.assertTrue(usuario.groups.filter(name="Usuarios").exists())
+
+    def test_registro_publico_ignora_rol_privilegiado(self):
+        payload = self._payload(rol="Administradores")
+        resp = self.client.post(self.url, payload, format="json")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertEqual(resp.data["rol"], "Usuarios")
+        usuario = Usuario.objects.get(email="nuevo@example.com")
+        self.assertTrue(usuario.groups.filter(name="Usuarios").exists())
+        self.assertFalse(usuario.groups.filter(name="Administradores").exists())
+        self.assertFalse(Administradores.objects.filter(usuario=usuario).exists())
+
+    def test_registro_no_admin_autenticado_ignora_rol(self):
+        otro = Usuario.objects.create_user(email="func.test@example.com", password="x")
+        grupo, _ = Group.objects.get_or_create(name="Funcionarios")
+        otro.groups.add(grupo)
+        self.client.force_authenticate(user=otro)
+        resp = self.client.post(self.url, self._payload(rol="Administradores"), format="json")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertEqual(resp.data["rol"], "Usuarios")
+
+    def test_registro_admin_puede_crear_funcionario(self):
+        self._autenticar_admin()
+        resp = self.client.post(self.url, self._payload(rol="Funcionarios"), format="json")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        usuario = Usuario.objects.get(email="nuevo@example.com")
+        self.assertTrue(Funcionarios.objects.filter(usuario=usuario).exists())
+
+    def test_registro_invalido_no_deja_persona_huerfana(self):
+        # Email inválido: la persona se valida primero pero no debe quedar guardada
+        resp = self.client.post(self.url, self._payload(email="no-es-email"), format="json")
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(Personas.objects.filter(numero_documento="1000000001").exists())
 
     def test_registro_email_duplicado_da_400(self):
         self.assertEqual(
