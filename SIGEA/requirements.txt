@@ -23,6 +23,10 @@ reportlab
 Pillow
 qrcode>=7.0
 
+# Servidor / despliegue
+gunicorn==23.0.0
+whitenoise==6.9.0
+
 # Tests
 pytest
 pytest-django
