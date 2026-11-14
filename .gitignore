@@ -85,3 +85,11 @@ Front_Doc.md
 historicChangesOpenCode.md
 logica_funciones_APPS.md
 roles.md
+
+# ========================
+# Cypress (E2E)
+# ========================
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress/results/

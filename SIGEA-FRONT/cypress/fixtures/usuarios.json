@@ -1,0 +1,20 @@
+{
+  "administrador": {
+    "email": "admin@admin.com",
+    "password": "administrador",
+    "rol": "Administradores",
+    "ruta": "/administrador"
+  },
+  "funcionario": {
+    "email": "funcionario@example.com",
+    "password": "admin123",
+    "rol": "Funcionarios",
+    "ruta": "/funcionario"
+  },
+  "productor": {
+    "email": "productor@example.com",
+    "password": "admin123",
+    "rol": "Productores",
+    "ruta": "/usuario"
+  }
+}
