@@ -1,4 +1,5 @@
 import Swal from 'sweetalert2'
+import { escapeHtml } from '../../utils/sanitize'
 import { AGRO_COLORS, MOTIVO_SOLICITUD } from '../../utils/agroConstants'
 
 export async function abrirModalNuevaSolicitud(ups) {
@@ -13,7 +14,7 @@ export async function abrirModalNuevaSolicitud(ups) {
                 <select id="swal-up" ${tieneUPs ? '' : 'disabled'}
                     style="width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; background:#fff; color:${tieneUPs ? '#374151' : '#9ca3af'};">
                     <option value="">${tieneUPs ? 'Selecciona una UP' : 'No tienes UPs registradas'}</option>
-                    ${ups.map(u => `<option value="${u.id}">${u.RUEA}</option>`).join('')}
+                    ${ups.map(u => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.RUEA)}</option>`).join('')}
                 </select>
                 <label style="display:block; margin:16px 0 6px; font-weight:600;">Dirección</label>
                 <input id="swal-direccion" type="text" maxlength="255" placeholder="Dirección de tu unidad productiva..."

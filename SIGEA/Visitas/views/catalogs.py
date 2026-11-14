@@ -1,7 +1,7 @@
 import unicodedata
 
 from rest_framework import viewsets
-from SIGEAsite.permissions import SigeaModelPermissionMixin
+from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff
 from rest_framework.response import Response
 
 from ..models import (
@@ -43,9 +43,18 @@ class EstadosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Estados.objects.all()
     serializer_class = EstadosSerializer
 
-class SolicitudesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Usuario'
     queryset = Solicitudes.objects.all()
     serializer_class = SolicitudesSerializer
+
+    def perform_create(self, serializer):
+        # Un productor/usuario solo puede crear solicitudes a su propio nombre,
+        # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.
+        if es_staff(self.request.user):
+            serializer.save()
+        else:
+            serializer.save(Usuario=self.request.user)
 
 class TiposVisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()
@@ -62,7 +71,8 @@ def _es_visita_caracterizacion(visita):
     return _normalizar_texto(tipo) == 'caracterizacion'
 
 
-class VisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Solicitud__Usuario'
     queryset = Visitas.objects.all()
     serializer_class = VisitasSerializer
 
@@ -96,7 +106,8 @@ class VisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-class InsumoVisitaViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class InsumoVisitaViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Visita__Solicitud__Usuario'
     queryset = InsumoVisita.objects.all()
     serializer_class = InsumoVisitaSerializer
 
@@ -104,7 +115,8 @@ class CalificacionesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Calificaciones.objects.all()
     serializer_class = CalificacionesSerializer
 
-class InfoVisitaViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class InfoVisitaViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Visita__Solicitud__Usuario'
     queryset = InfoVisita.objects.all()
     serializer_class = InfoVisitaSerializer
 
@@ -120,6 +132,7 @@ class PajillasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Pajillas.objects.all()
     serializer_class = PajillasSerializer
 
-class VisitasServiciosPagosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class VisitasServiciosPagosViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Visita__Solicitud__Usuario'
     queryset = VisitasServiciosPagos.objects.all()
     serializer_class = VisitasServiciosPagosSerializer

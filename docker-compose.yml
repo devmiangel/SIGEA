@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-SIGEA_DB}
-      POSTGRES_USER: ${POSTGRES_USER:-sigea}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en tu archivo .env}
+      POSTGRES_DB: ${DB_NAME:-SIGEA_DB}
+      POSTGRES_USER: ${DB_USER:-sigea}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en tu archivo .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,21 +24,33 @@ services:
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
-      POSTGRES_DB: ${POSTGRES_DB:-SIGEA_DB}
-      POSTGRES_USER: ${POSTGRES_USER:-sigea}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en tu archivo .env}
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
+      DB_NAME: ${DB_NAME:-SIGEA_DB}
+      DB_USER: ${DB_USER:-sigea}
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en tu archivo .env}
+      DB_HOST: db
+      DB_PORT: 5432
+      KNOX_TOKEN_TTL_MINUTES: ${KNOX_TOKEN_TTL_MINUTES:-600}
+      THROTTLE_ANON: ${THROTTLE_ANON:-60/min}
+      THROTTLE_USER: ${THROTTLE_USER:-600/min}
+      THROTTLE_LOGIN: ${THROTTLE_LOGIN:-5/min}
+      THROTTLE_LOGIN_EMAIL: ${THROTTLE_LOGIN_EMAIL:-10/hour}
+      THROTTLE_REGISTER: ${THROTTLE_REGISTER:-10/hour}
+      NUM_PROXIES: ${NUM_PROXIES:-2}
+      PRIVATE_MEDIA_ROOT: /app/private_media
+      USE_X_ACCEL_REDIRECT: ${USE_X_ACCEL_REDIRECT:-True}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-5}
+      DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-True}
+      DJANGO_SECURE_HSTS_SECONDS: ${DJANGO_SECURE_HSTS_SECONDS:-3600}
+      DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS: ${DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+      DJANGO_LANGUAGE_CODE: ${DJANGO_LANGUAGE_CODE:-es-co}
+      DJANGO_TIME_ZONE: ${DJANGO_TIME_ZONE:-America/Bogota}
       GUNICORN_WORKERS: ${GUNICORN_WORKERS:-3}
       RUN_SEEDERS: ${RUN_SEEDERS:-false}
-      DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-False}
-      DJANGO_SESSION_COOKIE_SECURE: ${DJANGO_SESSION_COOKIE_SECURE:-False}
-      DJANGO_CSRF_COOKIE_SECURE: ${DJANGO_CSRF_COOKIE_SECURE:-False}
-      DJANGO_SECURE_HSTS_SECONDS: ${DJANGO_SECURE_HSTS_SECONDS:-0}
-      DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS: ${DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
-      DJANGO_SECURE_HSTS_PRELOAD: ${DJANGO_SECURE_HSTS_PRELOAD:-False}
     volumes:
       - media_data:/app/media
+      - private_media_data:/app/private_media
+      - static_data:/app/staticfiles
     depends_on:
       db:
         condition: service_healthy
@@ -47,10 +59,12 @@ services:
     build:
       context: ./SIGEA-FRONT
       args:
-        VITE_API_URL: /api
+        VITE_API_BASE_URL: /api
     restart: unless-stopped
     volumes:
       - media_data:/var/www/media:ro
+      - private_media_data:/var/www/private_media:ro
+      - static_data:/var/www/static:ro
     depends_on:
       - backend
     ports:
@@ -59,3 +73,5 @@ services:
 volumes:
   postgres_data:
   media_data:
+  private_media_data:
+  static_data:

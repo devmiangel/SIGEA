@@ -1,17 +1,33 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 
-from SIGEAsite.permissions import SigeaModelPermissionMixin
+from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, IsStaff, es_staff
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse
-import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 from ..models import UP
 from ..serializers import UPSerializer
+from ..services.archivos_service import ArchivoInvalido, guardar_archivo
 
-class UPViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+
+def puede_ver_up(user, up):
+    """Staff (Administradores/Funcionarios) o el productor dueño de la UP."""
+    if es_staff(user):
+        return True
+    productor = getattr(user, 'productores', None)
+    return productor is not None and up.Productor_id == productor.id
+
+
+def _sin_permiso_up():
+    return Response({"error": "No tiene permiso sobre esta UP"}, status=status.HTTP_403_FORBIDDEN)
+
+class UPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'Productor__usuario'
     queryset = UP.objects.all()
     serializer_class = UPSerializer
 
@@ -51,40 +67,24 @@ def mis_ups(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsStaff])
 def upload_archivo_up(request, userId=None):
-    from django.conf import settings
-    import os
-    import uuid
-
     archivo = request.FILES.get('archivo')
     if not archivo:
         return Response({"error": "No se recibió ningún archivo"}, status=status.HTTP_400_BAD_REQUEST)
 
-    ext = os.path.splitext(archivo.name)[1].lower()
-    permitidas = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf'}
-    if ext not in permitidas:
-        return Response(
-            {"error": "Solo se permiten imágenes (JPG, PNG, GIF, WEBP, BMP) o archivos PDF"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    try:
+        ruta = guardar_archivo(archivo)
+    except ArchivoInvalido as exc:
+        return Response({"error": exc.mensaje}, status=exc.status)
 
-    carpeta = settings.MEDIA_ROOT / 'archivos_up'
-    os.makedirs(carpeta, exist_ok=True)
-
-    nombre_archivo = f"{uuid.uuid4().hex}{ext}"
-    ruta_disco = carpeta / nombre_archivo
-
-    with open(ruta_disco, 'wb+') as destino:
-        for chunk in archivo.chunks():
-            destino.write(chunk)
-
-    ruta_publica = f"/media/archivos_up/{nombre_archivo}"
-    return Response({"RutaArchivo": ruta_publica, "NombreArchivo": archivo.name})
+    # RutaArchivo es una ruta privada: el archivo se descarga con
+    # GET /api/UPs/archivosUP/<id>/descargar/ (valida el dueño de la UP).
+    return Response({"RutaArchivo": ruta, "NombreArchivo": archivo.name})
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsStaff])
 def buscar_up_por_ruea(request):
     ruea = request.query_params.get('ruea', '').strip()
     if not ruea:
@@ -101,9 +101,12 @@ def buscar_up_por_ruea(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def generar_qr(request, upId=None):
-    try:
-        up = get_object_or_404(UP, id=upId)
+    up = get_object_or_404(UP, id=upId)
 
+    if not puede_ver_up(request.user, up):
+        return _sin_permiso_up()
+
+    try:
         if up.idEstado and up.idEstado.Estado != 'Aceptada':
             return Response(
                 {"error": "Solo se puede generar QR para UPs aceptadas"},
@@ -116,11 +119,11 @@ def generar_qr(request, upId=None):
         up.refresh_from_db()
         serializer = UPSerializer(up)
         return Response(serializer.data)
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(f"ERROR QR: {e}\n{tb}")
+    except Exception:
+        # El detalle queda en el log del servidor; no se expone al cliente.
+        logger.exception("Error generando QR de la UP %s", upId)
         return Response(
-            {"error": str(e), "traceback": tb},
+            {"error": "No se pudo generar el código QR"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -129,6 +132,8 @@ def generar_qr(request, upId=None):
 @permission_classes([IsAuthenticated])
 def obtener_qr(request, upId=None):
     up = get_object_or_404(UP, id=upId)
+    if not puede_ver_up(request.user, up):
+        return _sin_permiso_up()
 
     if not up.CodigoQR:
         return Response(
@@ -143,6 +148,8 @@ def obtener_qr(request, upId=None):
 @permission_classes([IsAuthenticated])
 def descargar_qr(request, upId=None):
     up = get_object_or_404(UP, id=upId)
+    if not puede_ver_up(request.user, up):
+        return _sin_permiso_up()
 
     if not up.CodigoQR:
         return Response(

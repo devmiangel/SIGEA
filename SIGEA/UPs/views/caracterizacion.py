@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from Usuarios.models import Usuario, Funcionarios
+from SIGEAsite.permissions import es_staff
 from Predios.models import Predios, TiposTenencias
 from ..models import UP, TipoUP
 from ..serializers import (
@@ -23,6 +24,14 @@ from ..serializers import (
 def _get_productor(request, userId=None):
     if not userId:
         return None, Response({"error": "userId es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Solo el staff (caracterización en campo) o el propio usuario pueden
+    # consultar o modificar la caracterización de un productor.
+    if not es_staff(request.user) and str(userId) != str(request.user.pk):
+        return None, Response(
+            {"error": "No tienes permiso para consultar esta caracterización"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     usuario = get_object_or_404(Usuario, id=userId)
     productor = getattr(usuario, 'productores', None)
@@ -50,7 +59,9 @@ def _get_up_context(productor, solicitud_id=None, up_id=None):
             return solicitud, up
 
     if solicitud_id:
-        solicitud = Solicitudes.objects.filter(id=solicitud_id).first()
+        # La solicitud debe pertenecer al mismo productor: evita leer/escribir
+        # la UP de otra persona pasando un solicitud_id ajeno.
+        solicitud = Solicitudes.objects.filter(id=solicitud_id, Usuario=productor.usuario).first()
         if solicitud is not None and solicitud.UP is not None:
             return solicitud, solicitud.UP
 

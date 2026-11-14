@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from SIGEAsite.permissions import IsInGroup, ROLES_STAFF, usuario_en_grupo
+
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
 from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
@@ -29,6 +31,9 @@ def crear_solicitud(request):
     # productor (usuario_id), igual que lo hace el productor en su módulo.
     usuario = request.user
     if usuario_id := data.get('usuario_id'):
+        # Solo funcionarios/administradores pueden crear a nombre de otro usuario.
+        if str(usuario_id) != str(request.user.id) and not usuario_en_grupo(request.user, *ROLES_STAFF):
+            return Response({'error': 'No puede crear solicitudes a nombre de otro usuario'}, status=403)
         usuario = get_object_or_404(Usuario, id=usuario_id)
 
     up = None
@@ -118,7 +123,7 @@ def crear_orden_visita(request):
     return Response(serializer.data, status=201)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsInGroup(*ROLES_STAFF)])
 def reagendar_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id=solicitud_id)
 
@@ -209,7 +214,7 @@ def atender_solicitud(request, solicitud_id):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsInGroup(*ROLES_STAFF)])
 def rechazar_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id=solicitud_id)
 
@@ -227,7 +232,7 @@ def rechazar_solicitud(request, solicitud_id):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsInGroup(*ROLES_STAFF)])
 def info_visita_observaciones(request, visita_id):
     visita = get_object_or_404(Visitas, id=visita_id)
     info = InfoVisita.objects.filter(Visita=visita).first()
