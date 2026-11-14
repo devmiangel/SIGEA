@@ -1,6 +1,9 @@
 # Archivos específicos
 SIGEA/seeders/management/commands/seed_pruebas.py
 SIGEA/seeders/management/commands/seed_visitas.py
+# Notas locales (contienen credenciales)
+SIGEA/PCra.txt
+SIGEA/o.txt
 
 # ========================
 # Backend (Django/Python)
@@ -17,10 +20,13 @@ venv/
 env/
 ENV/
 media/
+private_media/
 
 # Variables de entorno
 .env
 .env.*
+!.env.example
+!SIGEA-FRONT/.env.development
 
 # Archivos estáticos
 staticfiles/
@@ -32,9 +38,7 @@ staticfiles/
 .coverage
 htmlcov/
 
-# Migraciones (si esa es la política del proyecto)
-**/migrations/*
-!**/migrations/__init__.py
+# Las migraciones SÍ se versionan: producción debe aplicar exactamente el mismo esquema.
 
 # ========================
 # Frontend (React/Vite/Node)
@@ -75,3 +79,9 @@ Desktop.ini
 # Otros
 # ========================
 .antigravityignore
+
+CLAUDE.md
+Front_Doc.md
+historicChangesOpenCode.md
+logica_funciones_APPS.md
+roles.md

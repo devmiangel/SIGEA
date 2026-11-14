@@ -4,7 +4,7 @@ import { Input } from '../../components/formElements/Input'
 import { NavLink } from '../../components/formElements/NavLink'
 import { SubmitButton } from '../../components/formElements/SubmitButton'
 import { useLoginForm } from '../../hooks/useLoginForm'
-import { emailRules, passwordRules } from '../../utils/validationRules'
+import { emailRules, loginPasswordRules } from '../../utils/validationRules'
 import { FieldError } from './components/FieldError'
 
 export default function Login() {
@@ -27,7 +27,7 @@ export default function Login() {
                     </section>
 
                     <section className="mb-6 relative">
-                        <Input {...register('password', passwordRules)} type="password" placeholder="contraseña" autoComplete="password" />
+                        <Input {...register('password', loginPasswordRules)} type="password" placeholder="contraseña" autoComplete="password" />
                         <FieldError message={errors.password?.message} />
                         {/* <NavLink href="https://google.com">Olvidaste tu contraseña</NavLink> */}
                     </section>

@@ -5,6 +5,8 @@ import { AGRO_COLORS } from '../../../../utils/agroConstants'
 import Swal from 'sweetalert2'
 
 const EXT_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.pdf']
+// Debe coincidir con MAX_UPLOAD_MB del backend (el servidor valida igualmente).
+const MAX_UPLOAD_MB = 5
 
 const SeccionAdicional = forwardRef(({ userId, solicitudId, visita }, ref) => {
     const [archivos, setArchivos] = useState([])
@@ -47,6 +49,15 @@ const SeccionAdicional = forwardRef(({ userId, solicitudId, visita }, ref) => {
             })
             return
         }
+        if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Archivo demasiado grande',
+                text: `El tamaño máximo permitido es ${MAX_UPLOAD_MB} MB.`,
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+            return
+        }
         setArchivos((arr) => arr.map((it, i) =>
             i === idx ? { ...it, nombreArchivoLocal: file.name, subiendo: true } : it))
         try {
@@ -55,13 +66,14 @@ const SeccionAdicional = forwardRef(({ userId, solicitudId, visita }, ref) => {
                 i === idx
                     ? { ...it, RutaArchivo: resp.RutaArchivo, NombreArchivo: resp.NombreArchivo, nombreArchivoLocal: null, subiendo: false }
                     : it))
-        } catch {
+        } catch (e) {
             setArchivos((arr) => arr.map((it, i) =>
                 i === idx ? { ...it, nombreArchivoLocal: null, subiendo: false } : it))
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo subir el archivo. Intenta de nuevo.',
+                // El backend explica el motivo (tamaño, contenido inválido); text no interpreta HTML.
+                text: e?.response?.data?.error || 'No se pudo subir el archivo. Intenta de nuevo.',
                 confirmButtonColor: AGRO_COLORS.primary,
             })
         }

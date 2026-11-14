@@ -2,26 +2,29 @@
 distlib==0.4.0
 Django==6.0.1
 djangorestframework==3.17.1
-djangorestframework_simplejwt==5.5.1
 django-cors-headers==4.9.0
 django-rest-knox==5.0.4
 filelock==3.20.3
 numpy==2.4.2
 pandas==3.0.0
 platformdirs==4.5.1
-PyJWT==2.12.1
 python-dateutil==2.9.0.post0
 six==1.17.0
 sqlparse==0.5.5
 tzdata==2025.3
 virtualenv==20.36.1
 psycopg2-binary==2.9.11
-knox
 
-# Dogs
-reportlab
-Pillow
-qrcode>=7.0
+# Configuración por variables de entorno
+python-dotenv==1.1.1
+
+# Servidor WSGI (producción)
+gunicorn==23.0.0
+
+# Documentos (PDF / imágenes / QR)
+reportlab==5.0.0
+Pillow==12.3.0
+qrcode==8.2
 
 # Tests
 pytest

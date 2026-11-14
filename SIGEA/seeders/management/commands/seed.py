@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
@@ -10,6 +11,19 @@ from datetime import date
 #ingerto de seeder
 class Command(BaseCommand):
     help = 'Seeder inicial para poblar las tablas maestras'
+
+    def add_arguments(self, parser):
+        grupo = parser.add_mutually_exclusive_group()
+        grupo.add_argument('--demo', dest='demo', action='store_true', default=None,
+                           help='Crear datos/usuarios de prueba (por defecto solo con DEBUG=True).')
+        grupo.add_argument('--sin-demo', dest='demo', action='store_false',
+                           help='No crear datos/usuarios de prueba (recomendado en producción).')
+
+    @staticmethod
+    def _incluir_demo(kwargs):
+        demo = kwargs.get('demo')
+        return settings.DEBUG if demo is None else demo
+
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Iniciando seeder...')
@@ -56,7 +70,10 @@ class Command(BaseCommand):
         ])
 
         # --- Usuarios por rol ---
-        self.seed_usuarios()
+        if self._incluir_demo(kwargs):
+            self.seed_usuarios()
+        else:
+            self.stdout.write('  - Usuarios de prueba omitidos (--sin-demo / DEBUG=False). Cree el admin con createsuperuser.')
 
         # --- UPs ---
         self.seed_maestro(TipoUP, 'TipoUP', [

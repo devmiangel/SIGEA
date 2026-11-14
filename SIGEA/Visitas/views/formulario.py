@@ -8,6 +8,8 @@ from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+
+from SIGEAsite.permissions import IsStaff
 from rest_framework.exceptions import ValidationError
 
 from Inventario.models import InventarioFuncionario
@@ -42,7 +44,7 @@ def _hora_datetime(fecha, hora):
         return fecha
 
 class FormularioVisitaTecnicaView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
     serializer_class = FormularioVisitaTecnicaSerializer
 
     def get(self, request):
@@ -103,13 +105,8 @@ class FormularioVisitaTecnicaView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        usuario = request.user if request.user.is_authenticated else None
-        if usuario is None and data.get('usuario_id'):
-            usuario = Usuario.objects.filter(id=data['usuario_id']).first()
-        if usuario is None:
-            usuario = Usuario.objects.filter(email='productor.visitas@example.com').first()
-        if usuario is None:
-            return Response({'error': 'Se requiere usuario autenticado o usuario_id'}, status=400)
+        # La vista exige staff autenticado; ya no se recurre a usuarios de prueba.
+        usuario = request.user
 
         self._auto_llenar_usuario(usuario, data)
 
@@ -302,7 +299,7 @@ class FormularioVisitaTecnicaView(APIView):
 
 
 class FormularioReciboPagoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
     serializer_class = FormularioReciboPagoSerializer
 
     @transaction.atomic

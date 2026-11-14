@@ -30,18 +30,15 @@ export const logoutService = async () => {
     await api.post('/auth/logout/')
 }
 
+// Usa la instancia "api": si hay sesión (admin creando usuarios) envía el token,
+// y el backend solo respeta el "rol" enviado cuando quien registra es administrador.
+// En el registro público no hay token y el rol siempre queda como "Usuarios".
 export const registerUser = async (payload) => {
-    const response = await fetch(`${API_BASE_URL}/register/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-
-    const result = await response.json().catch(() => null)
-
-    if (!response.ok) {
+    try {
+        const response = await api.post('/register/', payload)
+        return response.data
+    } catch (error) {
+        const result = error.response?.data
         throw new Error(result?.message || 'Error al registrar el usuario')
     }
-
-    return result
 }

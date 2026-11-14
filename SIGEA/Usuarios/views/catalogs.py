@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import Group
 from django.db.models import Q
 
-from SIGEAsite.permissions import SigeaModelPermissionMixin, SigeaModelPermissions
+from SIGEAsite.permissions import SigeaModelPermissionMixin, SigeaModelPermissions, OwnedQuerysetMixin, IsStaff
 from rest_framework.permissions import IsAuthenticated
 
 from ..models import (
@@ -48,20 +48,23 @@ class TiposDocumentosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
             return [AllowAny()]
         return [IsAuthenticated(), SigeaModelPermissions()]
 
-class PersonasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-   queryset = Personas.objects.all()
-   serializer_class = PersonasSerializer
+class PersonasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'usuario'
+    queryset = Personas.objects.all()
+    serializer_class = PersonasSerializer
 
-class EmpresasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class EmpresasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'personas__usuario'
     queryset = Empresas.objects.all()
     serializer_class = EmpresasSerializer
 
-class UsuarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'pk'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsStaff])
     def buscar(self, request):
         q = (request.query_params.get('q') or '').strip()
 
@@ -240,15 +243,18 @@ class UsuarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
 
         return Response(data)
 
-class FuncionariosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class FuncionariosViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    # Solo staff: los demás roles reciben un queryset vacío.
     queryset = Funcionarios.objects.all()
     serializer_class = FuncionariosSerializer
 
-class AdministradoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class AdministradoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    # Solo staff: los demás roles reciben un queryset vacío.
     queryset = Administradores.objects.all()
     serializer_class = AdministradoresSerializer
 
-class ProductoresViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'usuario'
     queryset = Productores.objects.all()
     serializer_class = ProductoresSerializer
 
@@ -264,6 +270,7 @@ class SisbenViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Sisben.objects.all()
     serializer_class = SisbenSerializer
 
-class ContactosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class ContactosViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
+    owner_lookup = 'personas__usuario'
     queryset = Contactos.objects.all()
     serializer_class = ContactosSerializer
