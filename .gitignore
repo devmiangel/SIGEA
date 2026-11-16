@@ -1,7 +1,6 @@
-# Archivos específicos
 SIGEA/seeders/management/commands/seed_pruebas.py
 SIGEA/seeders/management/commands/seed_visitas.py
-# Notas locales (contienen credenciales)
+
 SIGEA/PCra.txt
 SIGEA/o.txt
 
@@ -28,21 +27,15 @@ private_media/
 !.env.example
 !SIGEA-FRONT/.env.development
 
-# Archivos estáticos
 staticfiles/
 
-# Caché de Python
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 
-# Las migraciones SÍ se versionan: producción debe aplicar exactamente el mismo esquema.
 
-# ========================
-# Frontend (React/Vite/Node)
-# ========================
 node_modules/
 dist/
 build/
@@ -64,9 +57,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# ========================
-# Sistema / IDE
-# ========================
 .vscode/
 !.vscode/extensions.json
 .idea/
@@ -75,9 +65,6 @@ lerna-debug.log*
 Thumbs.db
 Desktop.ini
 
-# ========================
-# Otros
-# ========================
 .antigravityignore
 
 CLAUDE.md
@@ -85,5 +72,4 @@ Front_Doc.md
 historicChangesOpenCode.md
 logica_funciones_APPS.md
 roles.md
-# Skills locales de Claude Code (descargadas, no versionadas)
 .claude/skills/

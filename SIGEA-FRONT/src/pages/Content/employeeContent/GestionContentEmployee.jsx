@@ -387,7 +387,7 @@ export default function GestionContentEmployee() {
                             <label className={LABEL_CLASE}>
                                 Descripción <span className="text-red-500">*</span>
                             </label>
-                            <textarea value={observacion} onChange={(e) => setObservacion(e.target.value)} className={`${INPUT_CLASE} min-h-[90px] resize-y`} placeholder="Describe el motivo de la visita" />
+                            <textarea value={observacion} onChange={(e) => setObservacion(e.target.value)} className={`${INPUT_CLASE} min-h-22.5 resize-y`} placeholder="Describe el motivo de la visita" />
                         </div>
                     </div>
 
