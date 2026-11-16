@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 
 export default function MenuCard({componentLogo, title, message, path, colorLogo}){
     return(
-        <div className="rounded-xl w-[98%] lg:w-auto lg:min-w-100 h-58.75 bg-[#ddd9] border-2 border-[#0000001a] m-2.5">
-            <div className="p-6.25">
+        <div className="rounded-xl w-[98%] lg:w-auto lg:min-w-100 min-h-58.75 bg-[#ddd9] border-2 border-[#0000001a] m-2.5">
+            <div className="p-5 sm:p-6.25">
                 <div className="flex items-center justify-center w-17.5 h-17.5 rounded-full" style={{backgroundColor: colorLogo}}>
                     {componentLogo}
                 </div>

@@ -1,19 +1,21 @@
 export function Header({componentLogo, headerText, message,  colorLogo, firstButton, secondButton}){
     return(
-        <div className="bg-[#aaaaaa39] min-w-[96%] h-auto rounded-xl flex p-5 items-center justify-between">
-            <div className="flex items-center">
-                <div className="flex items-center justify-center w-13.75 h-13.75 rounded-full" style={{backgroundColor: colorLogo}}>
+        <div className="w-full bg-[#aaaaaa39] rounded-xl flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div className="flex items-center gap-3 min-w-0 sm:gap-5">
+                <div className="flex items-center justify-center shrink-0 w-12 h-12 rounded-full sm:w-13.75 sm:h-13.75" style={{backgroundColor: colorLogo}}>
                     {componentLogo}
                 </div>
-                <div className="m-5">
-                    <h3>{headerText}</h3>
-                    <p className='my-2.5 text-[12px]'>{message}</p>
+                <div className="min-w-0">
+                    <h3 className="text-base font-semibold leading-tight sm:text-lg">{headerText}</h3>
+                    <p className="mt-1.5 text-xs text-pretty sm:text-[12px]">{message}</p>
                 </div>
             </div>
-            <div className="flex flex-col gap-1 max-w-25">
-                {firstButton}
-                {secondButton}
-            </div>
+            {(firstButton || secondButton) && (
+                <div className="flex flex-col gap-2 w-full sm:w-auto sm:max-w-44 sm:shrink-0">
+                    {firstButton}
+                    {secondButton}
+                </div>
+            )}
         </div>
     )
 }

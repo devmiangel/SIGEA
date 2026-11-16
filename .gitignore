@@ -85,3 +85,5 @@ Front_Doc.md
 historicChangesOpenCode.md
 logica_funciones_APPS.md
 roles.md
+# Skills locales de Claude Code (descargadas, no versionadas)
+.claude/skills/

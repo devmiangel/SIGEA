@@ -39,6 +39,9 @@ export const registerUser = async (payload) => {
         return response.data
     } catch (error) {
         const result = error.response?.data
-        throw new Error(result?.message || 'Error al registrar el usuario')
+        const err = new Error(result?.message || 'Error al registrar el usuario')
+        // Errores por campo de DRF, p. ej. { password: ['La contraseña es muy común…'] }
+        err.fieldErrors = result && typeof result === 'object' && !result.message ? result : null
+        throw err
     }
 }

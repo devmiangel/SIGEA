@@ -88,7 +88,7 @@ function RazasDetalle({ it, propositos, productosApicolas, onCreateProposito, on
                     </div>
                     {g === 'Bovinos' ? (
                         <div className="flex flex-col gap-3">
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 <NumOpc label="Número de machos" value={raza.Detalles?.Machos} onChange={(v) => onUpdateDetalle(j, 'Machos', v)} />
                                 <NumOpc label="Número de hembras" value={raza.Detalles?.Hembras} onChange={(v) => onUpdateDetalle(j, 'Hembras', v)} />
                             </div>

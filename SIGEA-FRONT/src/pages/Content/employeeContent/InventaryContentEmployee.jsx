@@ -214,7 +214,7 @@ export default function InventaryContentEmployee(){
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-6 p-4 rounded-xl bg-[#f7fafc] border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">{tituloUsuario}</h3>
                     <p className="text-sm text-gray-500">{subtituloUsuario}</p>
@@ -255,7 +255,8 @@ export default function InventaryContentEmployee(){
                             )}
 
                             {activeTab === 'Vehículos' && (
-                                <table className="min-w-full divide-y divide-gray-200">
+                                <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+                                <table className="min-w-full divide-y divide-gray-200 whitespace-nowrap">
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
@@ -277,10 +278,12 @@ export default function InventaryContentEmployee(){
                                         ))}
                                     </tbody>
                                 </table>
+                                </div>
                             )}
 
                             {activeTab === 'Herramientas' && (
-                                <table className="min-w-full divide-y divide-gray-200">
+                                <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+                                <table className="min-w-full divide-y divide-gray-200 whitespace-nowrap">
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Herramienta</th>
@@ -300,6 +303,7 @@ export default function InventaryContentEmployee(){
                                         ))}
                                     </tbody>
                                 </table>
+                                </div>
                             )}
                         </div>
                     )}

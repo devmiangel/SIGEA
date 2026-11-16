@@ -29,7 +29,7 @@ export default function AgendaContentEmployee(){
                 message={'Consulta las visitas que te han sido asignadas para realizar atención a los productores'}
                 colorLogo={'#55bd85'}
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-6">
                     <CalendarioVisitas visitas={visitas} />
                 </div>

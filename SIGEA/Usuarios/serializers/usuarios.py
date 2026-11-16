@@ -54,15 +54,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return instance
 
     def validate_password(self, value):
-        # Aplica AUTH_PASSWORD_VALIDATORS (longitud mínima, contraseñas comunes,
-        # solo numéricas, parecida a los datos del usuario) en registro y en cambio de clave.
-        from django.contrib.auth.password_validation import validate_password as validar
-        from django.core.exceptions import ValidationError as DjangoValidationError
-        usuario = self.instance or Usuario(email=self.initial_data.get('email', ''))
-        try:
-            validar(value, user=usuario)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(list(exc.messages))
+        # Reglas de construcción (registro y cambio de clave): longitud mínima, no solo
+        # números, no común y sin información personal. Cada error se devuelve con un
+        # mensaje que le explica al usuario qué le falta (ver Usuarios/password_rules.py).
+        from ..models import Personas
+        from ..password_rules import errores_password
+
+        datos = getattr(self, 'initial_data', None) or {}
+        email = datos.get('email') or getattr(self.instance, 'email', '')
+
+        persona = getattr(self.instance, 'persona', None)
+        persona_id = datos.get('persona')
+        if persona is None and persona_id and not isinstance(persona_id, dict):
+            persona = Personas.objects.filter(pk=persona_id).first()
+
+        usuario = self.instance or Usuario(email=email)
+        mensajes = errores_password(value, user=usuario, persona=persona, email=email)
+        if mensajes:
+            raise serializers.ValidationError(mensajes)
         return value
 
     def validate_persona(self, value):

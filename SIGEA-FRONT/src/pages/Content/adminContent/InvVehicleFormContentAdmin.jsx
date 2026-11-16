@@ -198,7 +198,7 @@ export default function InvVehicleFormContentAdmin() {
                 colorLogo={AGRO_COLORS.primaryLight}
             />
 
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Nuevo vehículo</h3>
                     <p className="text-xs text-gray-500">
@@ -297,17 +297,17 @@ export default function InvVehicleFormContentAdmin() {
                             onChange={onChange}
                         />
 
-                        <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <div className="pt-4 border-t border-gray-100 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:items-center">
                             <button
                                 onClick={() => navigate('/administrador/inventario/vehiculos')}
-                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                                className="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={guardar}
                                 disabled={guardando}
-                                className="px-6 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto px-6 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {guardando ? 'Guardando...' : 'Registrar vehículo'}
                             </button>
