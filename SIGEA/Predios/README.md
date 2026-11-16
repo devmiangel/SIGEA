@@ -61,7 +61,7 @@ Todos los serializers son `ModelSerializer` con `fields = '__all__'`, es decir, 
 
 ## Views
 
-Todas las vistas son `ModelViewSet`, por lo que exponen automáticamente el CRUD completo: `list`, `retrieve`, `create`, `update`, `partial_update` y `destroy`.
+Todas las vistas son `ModelViewSet`, por lo que exponen automáticamente el CRUD completo: `list`, `retrieve`, `create`, `update`, `partial_update` y `destroy`. Usan `SigeaModelPermissionMixin` (autenticación + permiso de modelo).
 
 ### Vistas Ubicación (`views/ubicacion.py`)
 
@@ -71,7 +71,7 @@ Todas las vistas son `ModelViewSet`, por lo que exponen automáticamente el CRUD
 | `VeredasViewSet` | `Veredas` | CRUD de veredas. |
 | `TiposTenenciasViewSet` | `TiposTenencias` | CRUD de tipos de tenencia. |
 | `SegurosViewSet` | `Seguros` | CRUD de seguros. Sobrescribe `create`: si ya existe un seguro con el mismo `NombreSeguro`, devuelve el existente en lugar de duplicar. |
-| `TiposRegistrosICAViewSet` | `TiposRegistrosICA` | CRUD de registros ICA. |
+| `TiposRegistrosICAViewSet` | `TiposRegistrosICA` | CRUD de registros ICA. Sobrescribe `create`: si ya existe un registro con el mismo `CodigoICA`, devuelve el existente en lugar de duplicar. |
 
 ### Vista Predios (`views/predios.py`)
 

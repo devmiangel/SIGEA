@@ -84,9 +84,10 @@ export default function Sidebar () {
         <div className="mb-10 px-4">
           <div className="flex items-center gap-3 text-white no-underline mb-2 px-2">
             <AccountCircleIcon />
-            <span className="text-sm truncate">{nombrePersona}</span>
+            <span className="text-sm truncate" data-cy="user-name">{nombrePersona}</span>
           </div>
           <button
+            data-cy="logout"
             onClick={handleLogout}
             className="flex items-center gap-3 text-white no-underline w-full px-2 py-1 hover:underline text-sm cursor-pointer bg-transparent border-none"
           >
