@@ -315,7 +315,7 @@ export default function GestionContentEmployee() {
                 colorLogo={'#9ebd57'}
             />
 
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-6">
                     <TabList
                         categories={['Generar orden de visita', 'Visitas generadas']}
@@ -387,7 +387,7 @@ export default function GestionContentEmployee() {
                             <label className={LABEL_CLASE}>
                                 Descripción <span className="text-red-500">*</span>
                             </label>
-                            <textarea value={observacion} onChange={(e) => setObservacion(e.target.value)} className={`${INPUT_CLASE} min-h-[90px] resize-y`} placeholder="Describe el motivo de la visita" />
+                            <textarea value={observacion} onChange={(e) => setObservacion(e.target.value)} className={`${INPUT_CLASE} min-h-22.5 resize-y`} placeholder="Describe el motivo de la visita" />
                         </div>
                     </div>
 

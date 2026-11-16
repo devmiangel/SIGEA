@@ -8,7 +8,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 export default function HomeContentEmployee(){
     return(
         <>
-        <div className='md:flex md:flex-wrap md:justify-center'>
+        <div className='w-full flex flex-col items-center md:flex-row md:flex-wrap md:justify-center'>
             <MenuCard 
                 componentLogo={
                     <InventoryIcon sx={{fontSize: 40}}/>

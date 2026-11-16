@@ -9,7 +9,22 @@ import { AGRO_COLORS } from '../utils/agroConstants'
 export function useRegisterForm(options = {}) {
     const { successPath = '/', successTitle, successText } = options
     const form = useForm({ mode: 'onChange' })
-    const { handleSubmit, reset } = form
+    const { handleSubmit, reset, setError: setFieldError } = form
+
+    // Lleva cada error del backend al campo correspondiente del formulario.
+    const aplicarErroresDeCampo = (fieldErrors) => {
+        if (!fieldErrors) return false
+        let aplicados = false
+        Object.entries(fieldErrors).forEach(([campo, mensajes]) => {
+            const lista = Array.isArray(mensajes) ? mensajes : [mensajes]
+            const texto = lista.filter((m) => typeof m === 'string').join(' ')
+            if (texto) {
+                setFieldError(campo, { type: 'server', message: texto, mensajes: lista })
+                aplicados = true
+            }
+        })
+        return aplicados
+    }
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -29,9 +44,10 @@ export function useRegisterForm(options = {}) {
                 confirmButtonColor: AGRO_COLORS.success,
                 timer: 2000,
                 timerProgressBar: true,
-            }).then(() => navigate(successPath))
+            }).then(() => navigate(successPath, { replace: true }))
         } catch (e) {
-            setError(e.message)
+            const hayErroresDeCampo = aplicarErroresDeCampo(e.fieldErrors)
+            setError(hayErroresDeCampo ? 'Revisa los campos marcados en rojo.' : e.message)
             console.error('Error en la petición:', e)
         } finally {
             setLoading(false)

@@ -116,7 +116,7 @@ export default function SolicitudesInsumoContentAdmin() {
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Solicitudes generadas</h3>
                     <p className="text-xs text-gray-500">{solicitudes.length} solicitud(es) registrada(s)</p>
@@ -140,7 +140,7 @@ export default function SolicitudesInsumoContentAdmin() {
                         <select
                             value={filtroEstado}
                             onChange={(e) => setFiltroEstado(e.target.value)}
-                            className="px-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-52"
+                            className="w-full px-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-52"
                         >
                             <option value="">Todos los estados</option>
                             <option value={ESTADO_SOLICITUD_INSUMO.PENDIENTE}>Pendiente</option>

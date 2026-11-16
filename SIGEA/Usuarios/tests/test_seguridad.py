@@ -246,6 +246,45 @@ class LoginYPasswordTests(SeguridadBase):
             self.assertEqual(resp.status_code, 400, debil)
             self.assertIn("password", resp.data)
 
+    def _registrar_con_password(self, password, documento="3333333333"):
+        return self.client.post("/api/register/", {
+            "primer_nombre": "Carlos", "primer_apellido": "Rodríguez",
+            "numero_documento": documento, "TipoDocumento": self.tipo_doc.id,
+            "fecha_nacimiento": "1990-01-01", "email": "carlos.r@example.com",
+            "password": password,
+        }, format="json")
+
+    def _mensajes_password(self, password):
+        resp = self._registrar_con_password(password)
+        self.assertEqual(resp.status_code, 400, resp.content)
+        return " ".join(str(m) for m in resp.data["password"])
+
+    def test_mensajes_explican_que_falta(self):
+        casos = {
+            "Ab1": "muy corta",
+            "84736291": "solo números",
+            "password1": "muy común",
+            "Carlos#2026": "información personal",          # nombre
+            "Rodriguez!77": "información personal",         # apellido, sin tilde
+            "Clave3333333333": "información personal",      # documento
+        }
+        for password, esperado in casos.items():
+            self.assertIn(esperado, self._mensajes_password(password), password)
+
+    def test_varios_mensajes_a_la_vez(self):
+        # Corta y solo números: ambos motivos se informan juntos.
+        mensajes = self._mensajes_password("123")
+        self.assertIn("muy corta", mensajes)
+        self.assertIn("solo números", mensajes)
+
+    def test_registro_invalido_por_password_no_deja_persona(self):
+        self._registrar_con_password("Carlos#2026")
+        self.assertFalse(Personas.objects.filter(numero_documento="3333333333").exists())
+
+    def test_password_fuerte_se_acepta(self):
+        resp = self._registrar_con_password("TrigoVerde#77")
+        self.assertEqual(resp.status_code, 200, resp.content)
+
     def test_usuario_inactivo_no_inicia_sesion(self):
         self.productor_c.is_active = False
         self.productor_c.save(update_fields=["is_active"])

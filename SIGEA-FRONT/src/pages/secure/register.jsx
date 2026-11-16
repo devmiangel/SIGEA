@@ -1,5 +1,7 @@
 import logo_sigea from '../../assets/img/logo_sigea.png'
 import titulo from '../../assets/img/letras_sigea.png'
+import { Link } from 'react-router-dom'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { Input } from '../../components/formElements/Input'
 import { NavLink } from '../../components/formElements/NavLink'
 import { SubmitButton } from '../../components/formElements/SubmitButton'
@@ -11,11 +13,22 @@ import { PasswordFields } from './components/PasswordFields'
 import { FieldError } from './components/FieldError'
 
 export default function Register() {
-    const { register, control, watch, formState: { errors }, loading, error, submitRegister } = useRegisterForm()
+    const { register, control, watch, formState: { errors }, loading, error, submitRegister } = useRegisterForm({
+        successPath: '/',
+        successText: 'Tu usuario fue registrado correctamente. Ahora inicia sesión con tu correo y contraseña.',
+    })
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row justify-center items-center w-full p-5 lg:gap-24 gap-0.5 bg-[#fdfcf8]">
-            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-5 top-40">
+        <div className="relative min-h-screen flex flex-col lg:flex-row justify-center items-center w-full p-5 lg:gap-24 gap-0.5 bg-[#fdfcf8]">
+            <Link
+                to="/"
+                className="absolute top-4 left-4 flex items-center gap-1 text-xs text-[#015d3b] hover:text-[#3e9a8a] transition-colors"
+            >
+                <ArrowBackIcon sx={{ fontSize: 16 }} />
+                <span className="font-semibold">Inicia Sesión</span>
+            </Link>
+
+            <div className="flex flex-col lg:max-w-62.5 max-w-30 mt-10 lg:mt-5 top-40">
                 <img src={logo_sigea} alt="" />
                 <img src={titulo} alt="" />
             </div>
@@ -40,10 +53,6 @@ export default function Register() {
                     {error && (
                         <p className="text-[#a22] text-[10px] text-center mt-2">{error}</p>
                     )}
-
-                    <NavLink href="/">
-                        ¿Ya tienes cuenta? <strong>ingresa al aplicativo con tus credenciales</strong>
-                    </NavLink>
                 </form>
                 <p className='text-[10px] text-black no-underline ml-1 pb-4'>Al registrarte estás aceptando el <NavLink href="/tratamiento-datos"><strong>tratamiento de datos</strong></NavLink></p>
             </div>
