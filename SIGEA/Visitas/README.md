@@ -92,19 +92,16 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Vistas | Tipo | Descripción |
 |---|---|---|
-| `crear_solicitud` | `@api_view(['POST'])` | Crea una solicitud de visita. Requiere `observacion` y `direccion`; acepta `up_id`, `motivo_id` y opcionalmente `usuario_id` (para que un funcionario/administrador cree la solicitud a nombre de un productor). Asegura el registro del `Productores`. Requiere autenticación. |
-| `reagendar_solicitud` | `@api_view(['POST'])` | Permite reagendar una solicitud en estado `En Proceso`/`Reagendado`; exige `motivo_reagendamiento`, lo acumula en `novedad` y cambia el estado a `Reagendado`. |
-| `atender_solicitud` | `@api_view(['POST'])` | Valida que la solicitud esté `En Proceso` o `Reagendado`, crea/actualiza la `Visitas` (fecha, ubicación, funcionario, tipo) y pasa la solicitud a atendida. En caso de reagendamiento reutiliza la visita existente. Requiere autenticación. |
-| `rechazar_solicitud` | `@api_view(['POST'])` | Cambia el estado de la solicitud a rechazado (solo si está `En Proceso`/`Reagendado`), guardando opcionalmente `novedad`. Requiere autenticación. |
-| `info_visita_observaciones` | `@api_view(['GET','POST'])` | `GET`: devuelve la observación de la `InfoVisita`. `POST`: crea o actualiza la observación de la visita (crea una `InfoVisita` con calificación `Sin calificación` si no existe). |
-| `mis_visitas` | `@api_view(['GET'])` | Devuelve las visitas asignadas al funcionario autenticado (excluye las reagendadas), con `select_related` optimizado y ordenadas por fecha. Requiere autenticación. |
+| `crear_solicitud` | `@api_view(['POST'])` | Crea una solicitud de visita (con UP opcional, que debe pertenecer al productor de la solicitud; si no, 400), asegurando que el productor quede registrado como tal. Requiere autenticación. |
+| `atender_solicitud` | `@api_view(['POST'])` | Valida que la solicitud esté `En Proceso`, crea la `Visitas` (fecha, ubicación, funcionario, tipo) y cambia la solicitud al estado atendido. Requiere autenticación. |
+| `rechazar_solicitud` | `@api_view(['POST'])` | Cambia el estado de la solicitud a rechazado (solo si está `En Proceso`). Requiere autenticación. |
+| `mis_visitas` | `@api_view(['GET'])` | Devuelve las visitas asignadas al funcionario autenticado (con `select_related` optimizado y ordenadas por fecha). Requiere autenticación. |
 
 ### Formulario (`views/formulario.py`)
 
 | Vista | Tipo | Descripción |
 |---|---|---|
-| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs de `media/formularios/visitas/` y autollena datos del usuario si se pasa `usuario_id`. `POST`: autollenado de datos del usuario y registra en BD la solicitud, visita, calificación e `InfoVisita`; si llega `visita_id`, reutiliza la solicitud/visita creadas al atender. Además, si la acción `insumos` fue marcada, registra los `InsumoVisita` y descuenta el inventario del funcionario (`InventarioFuncionario.Cantidad`) de forma atómica e idempotente (si la visita ya tiene insumos asociados no vuelve a descontar). El PDF se genera al vuelo en la app `documentos`. |
-| `FormularioReciboPagoView` | `APIView` | `POST`: registra un `VisitasServiciosPagos` para una visita (maquinaria agrícola o inseminación artificial), calcula el valor total y guarda las firmas en la visita. El PDF del recibo se genera al vuelo en la app `documentos`. |
+| `FormularioVisitaTecnicaView` | `APIView` | `GET`: lista los PDFs de `media/formularios/visitas/`. `POST`: diligencia una visita **ya agendada** (`visita_id` obligatorio; sin él 400, inexistente 404). Nunca crea solicitudes ni visitas: el productor sale de `visita.Solicitud.Usuario`. Un funcionario solo puede diligenciar sus visitas asignadas (otra visita = 404); un administrador, cualquiera. Una visita ya registrada (`estado` + `InfoVisita`) responde 409. Actualiza la visita (fecha, ubicación, firmas, `estado`), la `Observacion` de la solicitud (sin recortar; `motivoAdmin` no se toca), la UP solo si pertenece al productor, y crea/actualiza `InfoVisita`. Valida longitudes (255), horas `HH:MM` (salida ≥ inicio) y calificación (malo/regular/bueno/excelente). Además, si la acción `insumos` fue marcada, registra los `InsumoVisita` y descuenta el inventario del funcionario **asignado a la visita** (`InventarioFuncionario.Cantidad`) de forma atómica e idempotente (si la visita ya tiene insumos asociados no vuelve a descontar). El PDF se genera al vuelo en la app `documentos` (`GET /api/documentos/visita/<id>/generar/`). |
 
 ---
 

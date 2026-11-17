@@ -81,7 +81,7 @@ const SeccionAgroindustrial = forwardRef(({ userId, solicitudId }, ref) => {
                             options={unidades.map((u) => u.texto)} onCrear={(valor) => handleCrearUnidad(idx, valor)} onChange={(n, v) => updateItem(idx, n, v)} />
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cantidad</label>
-                            <input type="number" value={it.Cantidad ?? ''}
+                            <input type="number" min="0" step="any" value={it.Cantidad ?? ''}
                                 onChange={(e) => updateItem(idx, 'Cantidad', e.target.value)}
                                 className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none text-sm bg-white" />
                         </div>

@@ -8,12 +8,14 @@ from .vehiculos import (
     ConductoresViewSet,
     RegistroAsignacionVehiculosViewSet,
     asignar_vehiculo_directo,
+    devolver_vehiculo,
 )
 from .herramientas import (
     TiposHerramientasViewSet,
     HerramientasViewSet,
     AsignacionHerramientasViewSet,
     asignar_herramienta_directo,
+    devolver_herramienta,
 )
 from .insumos import (
     InsumosViewSet,

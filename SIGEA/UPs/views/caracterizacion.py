@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 
 from Usuarios.models import Usuario, Funcionarios
@@ -68,13 +69,32 @@ def _get_up_context(productor, solicitud_id=None, up_id=None):
     return solicitud, None
 
 
-def _create_draft_up(productor):
+def _funcionario_caracterizador(user, solicitud=None):
+    """Funcionario responsable de la UP: quien realiza la caracterizacion.
+
+    Si quien guarda no es funcionario (p. ej. un administrador), se usa el
+    funcionario asignado a la visita de la solicitud.
+    """
+    funcionario = Funcionarios.objects.filter(usuario=user).first()
+    if funcionario is not None:
+        return funcionario
+    if solicitud is not None:
+        from Visitas.models import Visitas
+        visita = (
+            Visitas.objects.filter(Solicitud=solicitud, Funcionario__isnull=False)
+            .order_by('-id').first()
+        )
+        if visita is not None:
+            return visita.Funcionario
+    return None
+
+
+def _create_draft_up(productor, funcionario):
     from datetime import date
     from ..models import EstadosUP
 
     tipo_up = TipoUP.objects.first()
     tenencia = TiposTenencias.objects.first()
-    funcionario = Funcionarios.objects.first()
     estado_en_revision = EstadosUP.objects.filter(Estado='En revision').first()
 
     if not (tipo_up and tenencia and funcionario):
@@ -99,6 +119,19 @@ def _create_draft_up(productor):
     )
 
     return up
+
+
+def _devolver_a_revision(up):
+    from ..models import EstadosUP
+    from .ups import quitar_qr
+    from ..serializers.mixins import get_o_crear
+
+    up.refresh_from_db()
+    # get_o_crear tolera estados duplicados en el catalogo
+    en_revision = get_o_crear(EstadosUP, Estado='En revision')
+    up.idEstado = en_revision
+    quitar_qr(up)
+    up.save(update_fields=['idEstado', 'CodigoQR'])
 
 
 def _empty_caracterizacion(serializer_class):
@@ -155,23 +188,47 @@ def _caracterizacion_handler(request, userId, serializer_class):
             serializer = serializer_class(up)
             return Response(serializer.data)
 
-        # Si la solicitud aun no tiene UP, se crea una nueva y se vincula
-        if up is None:
-            up = _create_draft_up(productor)
-            if up is None:
-                return Response(
-                    {"error": "No se pudieron obtener los datos base para crear la UP"},
-                    status=status.HTTP_409_CONFLICT
-                )
-            if solicitud is not None:
-                solicitud.UP = up
-                solicitud.save(update_fields=['UP'])
+        # Una solicitud_id que no pertenece al productor no debe terminar
+        # creando una UP suelta (cada seccion crearia una UP distinta).
+        if up is None and solicitud_id and solicitud is None:
+            return Response(
+                {"error": "La solicitud no existe o no pertenece al productor"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = serializer_class(up, data=data, partial=True)
-        if serializer.is_valid():
+        # Una UP rechazada es definitiva: no se vuelve a editar.
+        estado_up = up.idEstado.Estado if (up is not None and up.idEstado_id) else None
+        if estado_up == 'Rechazada':
+            return Response(
+                {"error": "La UP fue rechazada y no se puede modificar"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Todo o nada: si la seccion no es valida no se deja una UP/predio a medias.
+        with transaction.atomic():
+            # Si la solicitud aun no tiene UP, se crea una nueva y se vincula
+            if up is None:
+                funcionario = _funcionario_caracterizador(request.user, solicitud)
+                up = _create_draft_up(productor, funcionario) if funcionario else None
+                if up is None:
+                    return Response(
+                        {"error": "No se pudieron obtener los datos base para crear la UP"},
+                        status=status.HTTP_409_CONFLICT
+                    )
+                if solicitud is not None:
+                    solicitud.UP = up
+                    solicitud.save(update_fields=['UP'])
+
+            serializer = serializer_class(up, data=data, partial=True)
+            if not serializer.is_valid():
+                transaction.set_rollback(True)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Editar una UP aceptada exige validarla de nuevo: vuelve a
+            # "En revision" y pierde el QR hasta que se acepte otra vez.
+            if estado_up == 'Aceptada':
+                _devolver_a_revision(up)
+        return Response(serializer_class(up).data)
 
     # GET: si la solicitud no tiene UP, se devuelven los campos vacios para llenar
     if up is None:

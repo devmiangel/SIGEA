@@ -30,6 +30,7 @@ class VisitasSerializer(serializers.ModelSerializer):
             'ruea': getattr(up, 'RUEA', None),
             'predio': getattr(getattr(up, 'Predio', None), 'NombrePredio', None),
             'up_estado': getattr(getattr(up, 'idEstado', None), 'Estado', None),
+            'up_motivo_rechazo': getattr(up, 'MotivoRechazo', None) or None,
             'solicitante': {
                 'usuario_id': obj.Solicitud.Usuario.id,
                 'email': obj.Solicitud.Usuario.email,

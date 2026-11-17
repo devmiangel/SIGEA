@@ -52,7 +52,6 @@ export default function ReciboPagoForm() {
         pajilla_id: '',
         numero_pajillas: '',
         toro: '',
-        valor_total: '',
         firma_usuario: '',
         firma_funcionario: '',
     })
@@ -82,13 +81,14 @@ export default function ReciboPagoForm() {
             ? (pajillaSeleccionada?.ValorPajilla ?? '')
             : ''
 
-    const valorTotalMaquinaria = useMemo(() => {
-        if (!esMaquinaria) return ''
-        const horas = Number(form.numero_horas)
+    // Vista previa del total: el backend lo recalcula con la tarifa del catálogo
+    // (horas x valor hora / pajillas x valor pajilla).
+    const valorTotalCalculado = useMemo(() => {
+        const cantidad = Number(esMaquinaria ? form.numero_horas : form.numero_pajillas)
         const unit = Number(valorUnitario)
-        if (!Number.isFinite(horas) || horas <= 0 || !Number.isFinite(unit)) return ''
-        return String(horas * unit)
-    }, [esMaquinaria, form.numero_horas, valorUnitario])
+        if (valorUnitario === '' || !Number.isFinite(cantidad) || cantidad <= 0 || !Number.isFinite(unit)) return ''
+        return String(cantidad * unit)
+    }, [esMaquinaria, form.numero_horas, form.numero_pajillas, valorUnitario])
 
     useEffect(() => {
         let activo = true
@@ -161,7 +161,6 @@ export default function ReciboPagoForm() {
             if (!form.pajilla_id) faltantes.push('Pajilla')
             if (!String(form.numero_pajillas ?? '').trim() || Number(form.numero_pajillas) <= 0) faltantes.push('Nº de pajillas')
             if (form.toro === '') faltantes.push('Toro')
-            if (!String(form.valor_total ?? '').trim()) faltantes.push('Valor total')
         } else {
             faltantes.push('Servicio a pagar')
         }
@@ -190,7 +189,6 @@ export default function ReciboPagoForm() {
             pajilla_id: esInseminacion ? form.pajilla_id : null,
             numero_pajillas: esInseminacion ? Number(form.numero_pajillas) : null,
             toro: esInseminacion ? (form.toro === 'si') : null,
-            valor_total: esMaquinaria ? Number(valorTotalMaquinaria) : (esInseminacion ? Number(form.valor_total) : null),
             firma_usuario: form.firma_usuario,
             firma_funcionario: form.firma_funcionario,
         }
@@ -291,7 +289,7 @@ export default function ReciboPagoForm() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <Campo label="Nº horas" name="numero_horas" type="number" min={1} value={form.numero_horas} onChange={onChange} required />
                                     <Campo label="Valor unitario" name="valor_unitario" type="number" value={valorUnitario} onChange={() => {}} disabled />
-                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalMaquinaria} onChange={() => {}} disabled />
+                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalCalculado} onChange={() => {}} disabled />
                                     <div className="flex flex-col gap-1">
                                         <label className={labelClase}>Apero o implemento</label>
                                         <select
@@ -343,7 +341,7 @@ export default function ReciboPagoForm() {
                                         </select>
                                     </div>
                                     <Campo label="Valor unitario" name="valor_unitario" type="number" value={valorUnitario} onChange={() => {}} disabled />
-                                    <Campo label="Valor total" name="valor_total" type="number" min={0} value={form.valor_total} onChange={onChange} required />
+                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalCalculado} onChange={() => {}} disabled />
                                 </div>
                             )}
 

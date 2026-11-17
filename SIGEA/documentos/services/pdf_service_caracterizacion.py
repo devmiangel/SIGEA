@@ -387,7 +387,7 @@ def generar_caracterizacion(salida, datos=None):
     for i in range(1, 7):
         item = siguiente(prod_agricola)
         prod = (item or {}).get('NombreProducto', '')
-        cant = (item or {}).get('Cantidad', '')
+        cant = (item or {}).get('Cantidad') or ''
         unidad = (item or {}).get('UnidadMedida', '')
         y = row(y, 14, [(0.20, f"PRODUCTO {i}:", True, "left"), (0.55, prod, False, "left"),
                         (0.10, "Cantidad:", True, "left"), (0.15, f"{cant} {unidad}".strip(), False, "left")])
@@ -501,7 +501,7 @@ def generar_caracterizacion(salida, datos=None):
     for i in range(1, 4):
         item = siguiente(prod_agro)
         prod = (item or {}).get('NombreProducto', '')
-        cant = (item or {}).get('Cantidad', '')
+        cant = (item or {}).get('Cantidad') or ''
         unidad = (item or {}).get('UnidadMedida', '')
         invima = (item or {}).get('INVIMA', False)
         y = row(y, 14, [(0.16, f"PRODUCTO {i}:", True, "left"), (0.40, prod, False, "left"),

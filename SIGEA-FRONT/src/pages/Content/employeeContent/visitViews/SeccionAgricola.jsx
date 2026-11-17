@@ -81,6 +81,8 @@ const SeccionAgricola = forwardRef(({ userId, solicitudId }, ref) => {
                             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cantidad</label>
                             <input
                                 type="number"
+                                min="0"
+                                step="any"
                                 value={it.Cantidad ?? ''}
                                 onChange={(e) => updateItem(idx, 'Cantidad', e.target.value)}
                                 className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none text-sm bg-white"

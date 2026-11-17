@@ -46,7 +46,7 @@ function NumOpc({ label, value, onChange }) {
     return (
         <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</label>
-            <input type="number" value={value ?? ''} onChange={(e) => onChange(e.target.value)}
+            <input type="number" min="0" step="1" value={value ?? ''} onChange={(e) => onChange(e.target.value)}
                 className="w-full px-2 py-1.5 rounded-md border border-[#015d3b] outline-none text-sm bg-white" />
         </div>
     )
