@@ -92,6 +92,7 @@ export default function SeccionAccion({ form, onChange }) {
                     value={form.accion_tomada ?? ''}
                     onChange={(e) => onChange('accion_tomada', e.target.value)}
                     rows={5}
+                    maxLength={255}
                     placeholder="Describa la acción tomada durante la visita"
                     className={inputClase}
                 />

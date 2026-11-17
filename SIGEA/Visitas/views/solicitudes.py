@@ -39,6 +39,9 @@ def crear_solicitud(request):
     up = None
     if up_id:
         up = get_object_or_404(UP, id=up_id)
+        # La UP debe ser del productor a cuyo nombre se crea la solicitud.
+        if up.Productor.usuario_id != usuario.id:
+            return Response({'error': 'La UP no pertenece al productor de la solicitud'}, status=400)
 
     solicitud = Solicitudes.objects.create(
         UP=up,

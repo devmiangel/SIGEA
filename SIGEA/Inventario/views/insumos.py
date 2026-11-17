@@ -9,6 +9,9 @@ from rest_framework.response import Response
 
 from ..models import Insumos, InventarioFuncionario, CardexInsumoFuncionario, SolicitudInsumo
 
+from .utils import (
+    ErrorAsignacion, SoloPropiosFuncionarioMixin, administrador_de, cantidad_entera, funcionario_activo,
+)
 from ..serializers import (
     InsumosSerializer,
     InventarioFuncionarioSerializer,
@@ -20,13 +23,49 @@ class InsumosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Insumos.objects.all()
     serializer_class = InsumosSerializer
 
-class InventarioFuncionarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+# Inventario y cardex son de solo lectura: solo cambian por los endpoints de
+# asignacion (que mantienen cuadrados stock, inventario y cardex).
+class InventarioFuncionarioViewSet(SigeaModelPermissionMixin, SoloPropiosFuncionarioMixin, viewsets.ReadOnlyModelViewSet):
     queryset = InventarioFuncionario.objects.all()
     serializer_class = InventarioFuncionarioSerializer
 
-class CardexInsumoFuncionarioViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class CardexInsumoFuncionarioViewSet(SigeaModelPermissionMixin, SoloPropiosFuncionarioMixin, viewsets.ReadOnlyModelViewSet):
     queryset = CardexInsumoFuncionario.objects.all()
     serializer_class = CardexInsumoFuncionarioSerializer
+
+
+def _entregar_insumo(insumo, funcionario, administrador, cantidad):
+    """Mueve `cantidad` del stock central al inventario del funcionario.
+
+    Debe llamarse dentro de una transaccion y con `insumo` bloqueado
+    (select_for_update), para que dos asignaciones simultaneas no dejen el
+    stock en negativo.
+    """
+    if not insumo.Estado:
+        raise ErrorAsignacion('El insumo no está disponible')
+    if cantidad > insumo.Cantidad:
+        raise ErrorAsignacion(f'Stock insuficiente. Disponible: {insumo.Cantidad}')
+
+    cardex = CardexInsumoFuncionario.objects.create(
+        Funcionario=funcionario,
+        Insumo=insumo,
+        Administrador=administrador,
+        Cantidad=cantidad,
+        FechaAsignacion=date.today(),
+    )
+
+    inventario = (
+        InventarioFuncionario.objects.select_for_update()
+        .filter(Insumo=insumo, Funcionario=funcionario).order_by('id').first()
+    )
+    if inventario is None:
+        inventario = InventarioFuncionario.objects.create(Insumo=insumo, Funcionario=funcionario, Cantidad=0)
+    inventario.Cantidad += cantidad
+    inventario.save(update_fields=['Cantidad'])
+
+    insumo.Cantidad -= cantidad
+    insumo.save(update_fields=['Cantidad'])
+    return cardex
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -69,12 +108,9 @@ def crear_solicitud_insumo(request):
         return Response({'error': 'El insumo seleccionado no está disponible'}, status=400)
 
     try:
-        cantidad_int = int(cantidad)
-    except (TypeError, ValueError):
-        return Response({'error': 'La cantidad debe ser un número entero'}, status=400)
-
-    if cantidad_int <= 0:
-        return Response({'error': 'La cantidad debe ser mayor a cero'}, status=400)
+        cantidad_int = cantidad_entera(cantidad)
+    except ErrorAsignacion as exc:
+        return exc.respuesta()
 
     if cantidad_int > insumo.Cantidad:
         return Response({'error': f'La cantidad solicitada supera el stock disponible ({insumo.Cantidad})'}, status=400)
@@ -91,61 +127,38 @@ def crear_solicitud_insumo(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def asignar_solicitud_insumo(request, solicitud_id):
-    from Usuarios.models import Administradores
-
-    administrador = getattr(request.user, 'administradores', None)
+    administrador = administrador_de(request.user)
     if not administrador:
         return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
 
     try:
-        solicitud = SolicitudInsumo.objects.select_related('Insumo', 'Funcionario').get(pk=solicitud_id)
-    except SolicitudInsumo.DoesNotExist:
-        return Response({'error': 'La solicitud no existe'}, status=404)
+        with transaction.atomic():
+            # La solicitud y el insumo se bloquean: dos envios simultaneos no
+            # pueden resolver la misma solicitud ni descontar dos veces.
+            solicitud = (
+                SolicitudInsumo.objects.select_for_update()
+                .filter(pk=solicitud_id).first()
+            )
+            if solicitud is None:
+                raise ErrorAsignacion('La solicitud no existe', 404)
+            if solicitud.Estado != 'Pendiente':
+                raise ErrorAsignacion('Esta solicitud ya fue resuelta')
 
-    if solicitud.Estado != 'Pendiente':
-        return Response({'error': 'Esta solicitud ya fue resuelta'}, status=400)
+            cantidad_int = cantidad_entera(request.data.get('cantidad'))
+            if cantidad_int > solicitud.Cantidad:
+                raise ErrorAsignacion(
+                    f'La cantidad a asignar no puede superar la solicitada ({solicitud.Cantidad})'
+                )
 
-    data = request.data
-    cantidad = data.get('cantidad')
-    observacion = data.get('observacion')
+            funcionario = funcionario_activo(solicitud.Funcionario_id)
+            insumo = Insumos.objects.select_for_update().get(pk=solicitud.Insumo_id)
+            cardex = _entregar_insumo(insumo, funcionario, administrador, cantidad_int)
 
-    try:
-        cantidad_int = int(cantidad)
-    except (TypeError, ValueError):
-        return Response({'error': 'La cantidad debe ser un número entero'}, status=400)
-
-    if cantidad_int <= 0:
-        return Response({'error': 'La cantidad debe ser mayor a cero'}, status=400)
-
-    if cantidad_int > solicitud.Cantidad:
-        return Response({'error': f'La cantidad a asignar no puede superar la solicitada ({solicitud.Cantidad})'}, status=400)
-
-    if cantidad_int > solicitud.Insumo.Cantidad:
-        return Response({'error': f'Stock insuficiente. Disponible: {solicitud.Insumo.Cantidad}'}, status=400)
-
-    with transaction.atomic():
-        cardex = CardexInsumoFuncionario.objects.create(
-            Funcionario=solicitud.Funcionario,
-            Insumo=solicitud.Insumo,
-            Administrador=administrador,
-            Cantidad=cantidad_int,
-            FechaAsignacion=date.today(),
-        )
-
-        inventario, _ = InventarioFuncionario.objects.get_or_create(
-            Insumo=solicitud.Insumo,
-            Funcionario=solicitud.Funcionario,
-            defaults={'Cantidad': 0},
-        )
-        inventario.Cantidad += cantidad_int
-        inventario.save(update_fields=['Cantidad'])
-
-        solicitud.Insumo.Cantidad -= cantidad_int
-        solicitud.Insumo.save(update_fields=['Cantidad'])
-
-        solicitud.Observacion = observacion or None
-        solicitud.Estado = 'Resuelta'
-        solicitud.save(update_fields=['Estado', 'Observacion'])
+            solicitud.Observacion = request.data.get('observacion') or None
+            solicitud.Estado = 'Resuelta'
+            solicitud.save(update_fields=['Estado', 'Observacion'])
+    except ErrorAsignacion as exc:
+        return exc.respuesta()
 
     serializer = CardexInsumoFuncionarioSerializer(cardex)
     return Response(serializer.data, status=201)
@@ -153,62 +166,20 @@ def asignar_solicitud_insumo(request, solicitud_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def asignar_insumo_directo(request, insumo_id):
-    from Usuarios.models import Funcionarios
-
-    administrador = getattr(request.user, 'administradores', None)
+    administrador = administrador_de(request.user)
     if not administrador:
         return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
 
     try:
-        insumo = Insumos.objects.select_related('Unidades').get(pk=insumo_id)
-    except Insumos.DoesNotExist:
-        return Response({'error': 'El insumo no existe'}, status=404)
-
-    if not insumo.Estado:
-        return Response({'error': 'El insumo no está disponible'}, status=400)
-
-    data = request.data
-    funcionario_id = data.get('funcionario_id')
-    cantidad = data.get('cantidad')
-
-    if not funcionario_id:
-        return Response({'error': 'Debes seleccionar un funcionario'}, status=400)
-
-    try:
-        funcionario = Funcionarios.objects.get(pk=funcionario_id)
-    except Funcionarios.DoesNotExist:
-        return Response({'error': 'El funcionario seleccionado no existe'}, status=400)
-
-    try:
-        cantidad_int = int(cantidad)
-    except (TypeError, ValueError):
-        return Response({'error': 'La cantidad debe ser un número entero'}, status=400)
-
-    if cantidad_int <= 0:
-        return Response({'error': 'La cantidad debe ser mayor a cero'}, status=400)
-
-    if cantidad_int > insumo.Cantidad:
-        return Response({'error': f'Stock insuficiente. Disponible: {insumo.Cantidad}'}, status=400)
-
-    with transaction.atomic():
-        cardex = CardexInsumoFuncionario.objects.create(
-            Funcionario=funcionario,
-            Insumo=insumo,
-            Administrador=administrador,
-            Cantidad=cantidad_int,
-            FechaAsignacion=date.today(),
-        )
-
-        inventario, _ = InventarioFuncionario.objects.get_or_create(
-            Insumo=insumo,
-            Funcionario=funcionario,
-            defaults={'Cantidad': 0},
-        )
-        inventario.Cantidad += cantidad_int
-        inventario.save(update_fields=['Cantidad'])
-
-        insumo.Cantidad -= cantidad_int
-        insumo.save(update_fields=['Cantidad'])
+        with transaction.atomic():
+            insumo = Insumos.objects.select_for_update().filter(pk=insumo_id).first()
+            if insumo is None:
+                raise ErrorAsignacion('El insumo no existe', 404)
+            funcionario = funcionario_activo(request.data.get('funcionario_id'))
+            cantidad_int = cantidad_entera(request.data.get('cantidad'))
+            cardex = _entregar_insumo(insumo, funcionario, administrador, cantidad_int)
+    except ErrorAsignacion as exc:
+        return exc.respuesta()
 
     serializer = CardexInsumoFuncionarioSerializer(cardex)
     return Response(serializer.data, status=201)
@@ -216,24 +187,20 @@ def asignar_insumo_directo(request, insumo_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def rechazar_solicitud_insumo(request, solicitud_id):
-    administrador = getattr(request.user, 'administradores', None)
+    administrador = administrador_de(request.user)
     if not administrador:
         return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
 
-    try:
-        solicitud = SolicitudInsumo.objects.select_related('Insumo', 'Funcionario').get(pk=solicitud_id)
-    except SolicitudInsumo.DoesNotExist:
-        return Response({'error': 'La solicitud no existe'}, status=404)
+    with transaction.atomic():
+        solicitud = SolicitudInsumo.objects.select_for_update().filter(pk=solicitud_id).first()
+        if solicitud is None:
+            return Response({'error': 'La solicitud no existe'}, status=404)
+        if solicitud.Estado != 'Pendiente':
+            return Response({'error': 'Esta solicitud ya fue atendida'}, status=400)
 
-    if solicitud.Estado != 'Pendiente':
-        return Response({'error': 'Esta solicitud ya fue atendida'}, status=400)
-
-    data = request.data
-    observacion = data.get('observacion')
-
-    solicitud.Observacion = observacion or None
-    solicitud.Estado = 'Rechazada'
-    solicitud.save(update_fields=['Estado', 'Observacion'])
+        solicitud.Observacion = request.data.get('observacion') or None
+        solicitud.Estado = 'Rechazada'
+        solicitud.save(update_fields=['Estado', 'Observacion'])
 
     serializer = SolicitudInsumoSerializer(solicitud)
     return Response(serializer.data, status=200)

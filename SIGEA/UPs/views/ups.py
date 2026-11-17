@@ -1,10 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 
-from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, IsStaff, es_staff
+from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, IsStaff, IsInGroup, es_staff
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.http import FileResponse
 import logging
 
@@ -31,24 +33,80 @@ class UPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelVie
     queryset = UP.objects.all()
     serializer_class = UPSerializer
 
+ESTADO_EN_REVISION = 'En revision'
+ESTADO_ACEPTADA = 'Aceptada'
+ESTADO_RECHAZADA = 'Rechazada'
+
+
+def _a_booleano(valor):
+    """True/False para valores booleanos claros; None si no se puede interpretar.
+
+    Evita que 'false' o 'no' (cadenas no vacias) se tomen como verdadero.
+    """
+    if isinstance(valor, bool):
+        return valor
+    if isinstance(valor, int) and valor in (0, 1):
+        return bool(valor)
+    if isinstance(valor, str):
+        texto = valor.strip().lower()
+        if texto in ('true', '1', 'si', 'sí'):
+            return True
+        if texto in ('false', '0', 'no'):
+            return False
+    return None
+
+
+def quitar_qr(up):
+    """Elimina el codigo QR de una UP que deja de estar aceptada."""
+    if up.CodigoQR:
+        up.CodigoQR.delete(save=False)
+    up.CodigoQR = None
+
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsInGroup('Administradores')])
+@transaction.atomic
 def validar_ups(request, upId=None):
     from ..models import EstadosUP
+    from ..serializers.mixins import get_o_crear
+    from Visitas.models import Visitas
+    from Usuarios.models import Administradores
 
-    up = get_object_or_404(UP, id=upId)
-
-    if not hasattr(request.user, 'administradores') and not request.user.is_staff and not request.user.is_superuser:
-        return Response({"error": "Solo un administrador puede validar UPs"}, status=status.HTTP_403_FORBIDDEN)
+    get_object_or_404(UP, id=upId)
+    up = UP.objects.select_for_update().get(id=upId)
 
     aprobada = request.data.get('aprobada')
-
     if aprobada is None:
         return Response({"error": "El campo 'aprobada' es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+    aprobada = _a_booleano(aprobada)
+    if aprobada is None:
+        return Response({"error": "El campo 'aprobada' debe ser verdadero o falso"}, status=status.HTTP_400_BAD_REQUEST)
 
-    estado_nombre = 'Aceptada' if aprobada else 'Rechazada'
-    estado, _ = EstadosUP.objects.get_or_create(Estado=estado_nombre)
+    motivo = str(request.data.get('motivo') or '').strip()
+    if not aprobada and not motivo:
+        return Response({"motivo": "Indique el motivo del rechazo"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Solo se valida una UP pendiente ("En revision") ya caracterizada.
+    estado_actual = up.idEstado.Estado if up.idEstado_id else ESTADO_EN_REVISION
+    if estado_actual != ESTADO_EN_REVISION:
+        return Response(
+            {"error": f"La UP ya fue validada ({estado_actual})"},
+            status=status.HTTP_409_CONFLICT,
+        )
+    if not Visitas.objects.filter(Solicitud__UP=up, estado=True).exists():
+        return Response(
+            {"error": "La UP aún no tiene una visita de caracterización finalizada"},
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    estado_nombre = ESTADO_ACEPTADA if aprobada else ESTADO_RECHAZADA
+    estado = get_o_crear(EstadosUP, Estado=estado_nombre)  # tolera duplicados
     up.idEstado = estado
+    up.MotivoRechazo = '' if aprobada else motivo
+    up.ValidadoPor = Administradores.objects.filter(usuario=request.user).first()
+    up.FechaValidacion = timezone.now()
+    if not aprobada:
+        quitar_qr(up)
     up.save()
 
     serializer = UPSerializer(up)

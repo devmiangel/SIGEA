@@ -168,17 +168,15 @@ export default function VisitaForm() {
         }
 
         setFinalizando(true)
+        // El backend toma productor, funcionario y solicitud de la visita
+        // (visita_id); no se envían funcionario_id/administrador_id/motivo_admin.
+        // eslint-disable-next-line no-unused-vars
+        const { funcionario_id, especificacion_nueva_solicitud, ...datos } = form
         const payload = {
-            ...form,
+            ...datos,
             insumos,
-            usuario_id: userId,
             up_id: upId,
             visita_id: visita?.id,
-            tipo_visita_id: visita?.TipoVisita,
-            funcionario_id: visita?.Funcionario,
-            administrador_id: visita?.Administrador,
-            motivo_id: 1,
-            motivo_admin: solicitud.observacion || '',
             firmado: Boolean(form.firma_usuario || form.firma_funcionario),
         }
 

@@ -5,8 +5,8 @@ from .mixins import PermitirVaciosMixin, get_o_crear
 
 class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     
-    NombrePredio = serializers.CharField(source='Predio.NombrePredio', required=False, allow_null=True)
-    AreaPredio = serializers.DecimalField(max_digits=10, decimal_places=3, source='Predio.AreaPredio', required=False, allow_null=True)
+    NombrePredio = serializers.CharField(source='Predio.NombrePredio', required=False, max_length=255)
+    AreaPredio = serializers.DecimalField(max_digits=10, decimal_places=3, source='Predio.AreaPredio', required=False, allow_null=True, min_value=0)
     RegistroICA = serializers.CharField(required=False, allow_null=True)
     
     Seguro = serializers.CharField(required=False, allow_null=True)
@@ -14,7 +14,7 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
     UsoSuelo = serializers.BooleanField(source='Predio.UsoSuelo', required=False, allow_null=True)
     Latitud = serializers.DecimalField(max_digits=11, decimal_places=8, source='Predio.Latitud', required=False, allow_null=True)
     Longitud = serializers.DecimalField(max_digits=11, decimal_places=8, source='Predio.Longitud', required=False, allow_null=True)
-    Direccion = serializers.CharField(source='Predio.Direccion', required=False, allow_null=True)
+    Direccion = serializers.CharField(source='Predio.Direccion', required=False, allow_null=True, max_length=255)
 
     TipoTenencia = serializers.CharField(required=False, allow_null=True)
     Vereda = serializers.CharField(required=False, allow_null=True)
@@ -102,26 +102,39 @@ class InfoPredioCaracterizacionSerializer(PermitirVaciosMixin, serializers.Model
                 tenencia_obj = get_o_crear(TiposTenencias, TipoTenencia=tipo_tenencia_str)
                 predio.TipoTenencia = tenencia_obj
 
-            # Actualizar Vereda (se crea si no existe)
+            # Vereda y sector: el sector se identifica por nombre DENTRO de la
+            # vereda elegida (dos veredas pueden tener un sector con el mismo
+            # nombre). El predio solo guarda el sector; la vereda sale de el.
             vereda_obj = None
             if vereda_str:
                 vereda_obj = get_o_crear(Veredas, NombreVereda=vereda_str)
 
-            # Actualizar Sector y Vereda (sector se crea si no existe, ligado a la vereda)
             if sector_str:
                 if vereda_obj:
-                    sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
-                    if sector_obj is None:
-                        sector_obj = Sectores.objects.create(NombreSector=sector_str, Vereda=vereda_obj)
+                    sector_obj = get_o_crear(Sectores, NombreSector=sector_str, Vereda=vereda_obj)
                 else:
-                    sector_obj = Sectores.objects.filter(NombreSector=sector_str).first()
-                    if sector_obj is None:
+                    sectores = Sectores.objects.filter(NombreSector=sector_str)
+                    if predio.Sector_id and predio.Sector.NombreSector == sector_str:
+                        sector_obj = predio.Sector
+                    elif sectores.count() == 1:
+                        sector_obj = sectores.first()
+                    elif sectores.exists():
+                        raise ValidationError({
+                            'Vereda': 'Hay varios sectores con ese nombre; indique la vereda.',
+                        })
+                    else:
                         raise ValidationError({
                             'Sector': 'Para crear un sector nuevo primero indique la vereda.',
                             'Vereda': 'Seleccione o cree la vereda antes de definir el sector.',
                         })
-
                 predio.Sector = sector_obj
+            elif vereda_obj and not (predio.Sector_id and predio.Sector.Vereda_id == vereda_obj.id):
+                # Sin sector no hay donde guardar la vereda: se avisa en lugar
+                # de descartarla en silencio.
+                raise ValidationError({
+                    'Sector': 'Indique el sector de la vereda seleccionada.',
+                })
+
             # Actualizar Registro ICA (varchar): se crea el codigo si no existe
             # y se asigna como unico registro del predio
             if registro_ica_str:

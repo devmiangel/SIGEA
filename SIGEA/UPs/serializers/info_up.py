@@ -7,15 +7,15 @@ class InfoUPCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSeri
     
     TipoUP_Nombre = serializers.CharField(source='TipoUP.TipoUP', required=False, allow_null=True)
     ActividadUP = serializers.CharField(required=False, allow_null=True)
-    RUEA = serializers.CharField(required=False, allow_null=True)
-    NumeroEmpleados = serializers.IntegerField(required=False, allow_null=True)
+    RUEA = serializers.CharField(required=False, allow_null=True, max_length=20)
+    NumeroEmpleados = serializers.IntegerField(required=False, allow_null=True, min_value=0)
     Asociatividad = serializers.BooleanField(required=False, allow_null=True)
-    AreaCultivada = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
-    AreaPastos = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
-    NumeroPotreros = serializers.IntegerField(required=False, allow_null=True)
-    NumeroInvernaderos = serializers.IntegerField(required=False, allow_null=True)
-    NumeroTanques = serializers.IntegerField(required=False, allow_null=True)
-    NumeroReservorios = serializers.IntegerField(required=False, allow_null=True)
+    AreaCultivada = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True, min_value=0)
+    AreaPastos = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True, min_value=0)
+    NumeroPotreros = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    NumeroInvernaderos = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    NumeroTanques = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    NumeroReservorios = serializers.IntegerField(required=False, allow_null=True, min_value=0)
     FuentesAgua = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
@@ -25,6 +25,23 @@ class InfoUPCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSeri
              'AreaCultivada', 'AreaPastos', 'NumeroPotreros', 'NumeroInvernaderos',
              'NumeroTanques', 'NumeroReservorios', 'FuentesAgua', 'RUEA'
         ]
+
+    def validate_TipoUP_Nombre(self, value):
+        from ..models import TipoUP
+        if value and not TipoUP.objects.filter(TipoUP=value).exists():
+            raise serializers.ValidationError('El tipo de UP indicado no existe.')
+        return value
+
+    def validate_RUEA(self, value):
+        if not value:
+            return value
+        value = value.strip()
+        otras = UP.objects.filter(RUEA__iexact=value)
+        if self.instance is not None:
+            otras = otras.exclude(pk=self.instance.pk)
+        if otras.exists():
+            raise serializers.ValidationError('Este RUEA ya está asignado a otra UP.')
+        return value
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -65,11 +82,10 @@ class InfoUPCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSeri
         
         with transaction.atomic():
             # Actualizar TipoUP si se envía
+            # (validate_TipoUP_Nombre ya garantiza que existe)
             if tipo_up_str:
-                tipo_obj = TipoUP.objects.filter(TipoUP=tipo_up_str).first()
-                if tipo_obj:
-                    instance.TipoUP = tipo_obj
-                    instance.save()
+                instance.TipoUP = TipoUP.objects.filter(TipoUP=tipo_up_str).first()
+                instance.save()
 
             # Actualizar RUEA (si se envía, se asigna)
             if ruea_str:
@@ -78,12 +94,10 @@ class InfoUPCaracterizacionSerializer(PermitirVaciosMixin, serializers.ModelSeri
 
             # Obtener o crear detalle
             default_actividad = ActividadUP.objects.first()
-            detalle, created = DetalleUP.objects.get_or_create(
-                UP=instance,
-                defaults={'NumeroEmpleados': None, 'AreaCultivada': None, 'AreaPastos': None,
-                         'NumeroPotreros': None, 'NumeroInvernaderos': None, 'NumeroTanques': None,
-                         'NumeroReservorios': None, 'Actividad': default_actividad}
-            )
+            # filter().first() en lugar de get_or_create: tolera detalles duplicados
+            detalle = DetalleUP.objects.filter(UP=instance).order_by('id').first()
+            if detalle is None:
+                detalle = DetalleUP.objects.create(UP=instance, Actividad=default_actividad)
             
             # Actualizar Actividad (se crea si no existe)
             if actividad_str:

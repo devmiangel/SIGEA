@@ -1,6 +1,6 @@
 from django.db import models
 from Predios.models import Predios
-from Usuarios.models import Productores, Funcionarios
+from Usuarios.models import Productores, Funcionarios, Administradores
 
 class TipoUP(models.Model):
     TipoUP = models.CharField(max_length=255)
@@ -36,6 +36,12 @@ class UP(models.Model):
     Funcionario = models.ForeignKey(Funcionarios, on_delete=models.PROTECT)
     idEstado = models.ForeignKey(EstadosUP, on_delete=models.PROTECT, null=True, blank=True)
     CodigoQR = models.ImageField(blank=True, null=True, upload_to='qr_up/')
+    # Rastro de la validacion del administrador (validar_ups)
+    MotivoRechazo = models.TextField(blank=True, default='')
+    ValidadoPor = models.ForeignKey(
+        Administradores, on_delete=models.PROTECT, null=True, blank=True, related_name='ups_validadas'
+    )
+    FechaValidacion = models.DateTimeField(null=True, blank=True)
 
     #GENERACION DE CODIGO RUEA
     def save(self, *args, **kwargs):
@@ -89,12 +95,14 @@ class ProductosUPs(models.Model):
 class ProduccionUPAgricola(models.Model):
     UP = models.ForeignKey(UP, on_delete=models.CASCADE)
     Producto = models.ForeignKey(ProductosUPs, on_delete=models.PROTECT)
-    Cantidad = models.IntegerField(null=True, blank=True)
+    # Decimal: la produccion se registra en kg, toneladas, litros... (p. ej. 2.5)
+    Cantidad = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
 
 class ProduccionUPAgroindustrial(models.Model):
     UP = models.ForeignKey(UP, on_delete=models.CASCADE)
     Producto = models.ForeignKey(ProductosUPs, on_delete=models.PROTECT)
-    Cantidad = models.IntegerField(null=True, blank=True)
+    # Decimal: la produccion se registra en kg, toneladas, litros... (p. ej. 2.5)
+    Cantidad = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
     INVIMA = models.BooleanField(default=False)
 
 class GrupoAnimal(models.Model):

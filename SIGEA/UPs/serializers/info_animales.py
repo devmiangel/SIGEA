@@ -32,8 +32,82 @@ DETALLE_MODELS = {
 }
 
 
+# Campos numericos de Detalles que deben ser conteos enteros (animales, estanques).
+CONTEOS_DETALLE = ('Machos', 'Hembras', 'Estanques', 'Gallinas', 'Pollos', 'Patos', 'Codornices', 'Otros')
+
+
+def _conteo(valor, etiqueta):
+    """Convierte a entero >= 0 o lanza ValidationError (nunca un 500)."""
+    if valor is None:
+        return None
+    if isinstance(valor, bool):
+        raise serializers.ValidationError(f'{etiqueta}: debe ser un número entero.')
+    try:
+        numero = float(str(valor).strip().replace(',', '.'))
+    except ValueError:
+        raise serializers.ValidationError(f'{etiqueta}: debe ser un número entero.')
+    if numero != int(numero):
+        raise serializers.ValidationError(f'{etiqueta}: la cantidad de animales debe ser un número entero.')
+    if numero < 0:
+        raise serializers.ValidationError(f'{etiqueta}: no puede ser negativa.')
+    return int(numero)
+
+
+def _limpiar_detalles(detalles, prefijo):
+    if detalles is None:
+        return {}
+    if not isinstance(detalles, dict):
+        raise serializers.ValidationError(f'{prefijo}: detalles inválidos.')
+    limpio = dict(detalles)
+    for campo in CONTEOS_DETALLE:
+        if campo in limpio:
+            limpio[campo] = _conteo(limpio[campo], f'{prefijo} - {campo}')
+    return limpio
+
+
 class InfoProduccionAnimalSerializer(PermitirVaciosMixin, serializers.ModelSerializer):
     Animales = serializers.ListField(child=serializers.DictField(), required=False)
+
+    def validate_Animales(self, value):
+        """Valida conteos enteros y evita filas duplicadas.
+
+        AnimalesUps tiene unique_together (UP, Animal): dos filas con el mismo
+        grupo y raza (o dos entradas de Aves) romperian la restriccion.
+        """
+        vistos = set()
+        aves_vistas = False
+        for item in value:
+            grupo = item.get('GrupoAnimal')
+            if not grupo:
+                continue
+            razas = item.get('Razas') or []
+            if razas:
+                if not isinstance(razas, list):
+                    raise serializers.ValidationError(f'{grupo}: razas inválidas.')
+                for r in razas:
+                    if not isinstance(r, dict):
+                        raise serializers.ValidationError(f'{grupo}: raza inválida.')
+                    nombre = (r.get('Raza') or '').strip()
+                    clave = (grupo.lower(), nombre.lower())
+                    if clave in vistos:
+                        etiqueta = f'{grupo} - {nombre}' if nombre else grupo
+                        raise serializers.ValidationError(f'{etiqueta} está registrado más de una vez.')
+                    vistos.add(clave)
+                    etiqueta = f'{grupo} {nombre}'.strip()
+                    r['Cantidad'] = _conteo(r.get('Cantidad'), etiqueta)
+                    r['Detalles'] = _limpiar_detalles(r.get('Detalles'), etiqueta)
+            else:
+                if grupo == 'Aves':
+                    if aves_vistas:
+                        raise serializers.ValidationError('Aves está registrado más de una vez.')
+                    aves_vistas = True
+                clave = (grupo.lower(), ((item.get('Detalles') or {}).get('Raza') or '').strip().lower())
+                if clave in vistos:
+                    raise serializers.ValidationError(f'{grupo} está registrado más de una vez.')
+                vistos.add(clave)
+                item['CantidadTotal'] = _conteo(item.get('CantidadTotal'), grupo)
+                item['Detalles'] = _limpiar_detalles(item.get('Detalles'), grupo)
+        return value
 
     def _detalle_info(self, au, grupo):
         accessor, mapping = DETALLE_MAP.get(grupo, (None, {}))
@@ -143,7 +217,7 @@ class InfoProduccionAnimalSerializer(PermitirVaciosMixin, serializers.ModelSeria
                 ((detalles.get('TipoOtros') or 'Otros'), detalles.get('Otros')),
             ]
             for nombre_tipo, cantidad in cantidades:
-                cantidad_num = int(cantidad or 0)
+                cantidad_num = cantidad or 0  # ya validado como entero
                 if cantidad_num <= 0:
                     continue
                 tipo_ave = get_o_crear(TiposAves, TipoAve=nombre_tipo)

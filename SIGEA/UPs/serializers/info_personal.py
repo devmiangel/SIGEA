@@ -16,8 +16,8 @@ class InfoPersonalCaracterizacionSerializer(PermitirVaciosMixin, serializers.Mod
     DocumentoProductor = serializers.CharField(source ='Productor.usuario.persona.numero_documento', required=False)
     TipoDocumentoProductor = serializers.CharField(source='Productor.usuario.persona.TipoDocumento.TipoDocumento', read_only=True)
     
-    RazonSocialProductor = serializers.CharField(required=False, allow_null=True)
-    NitProductor = serializers.CharField(required=False, allow_null=True)
+    RazonSocialProductor = serializers.CharField(required=False, allow_null=True, max_length=255)
+    NitProductor = serializers.CharField(required=False, allow_null=True, max_length=255)
     Celular = serializers.CharField(required=False, allow_null=True, validators=[RegexValidator(r'^\+?\d{7,15}$', 'Ingrese un número de celular válido (7-15 dígitos, opcional +)')])
     Correo = serializers.EmailField(required=False, allow_null=True)
     FechaNacimiento = serializers.DateField(source='Productor.usuario.persona.fecha_nacimiento', required=False, allow_null=True)
@@ -45,6 +45,35 @@ class InfoPersonalCaracterizacionSerializer(PermitirVaciosMixin, serializers.Mod
             'RazonSocialProductor', 'NitProductor', 'Celular', 'Correo', 'FechaNacimiento',
             'Edad', 'NivelEducativo', 'Rudea', 'Sisben'
         ]
+
+    def validate(self, attrs):
+        from Usuarios.models import Empresas
+
+        razon_social = attrs.get('RazonSocialProductor')
+        nit = attrs.get('NitProductor')
+        if not (razon_social or nit) or self.instance is None:
+            return attrs
+
+        persona = self.instance.Productor.usuario.persona
+        empresa_actual = persona.Empresa.first()
+
+        # Una empresa nueva necesita razon social y NIT (ambas columnas son NOT NULL).
+        if empresa_actual is None and not (razon_social and nit):
+            faltante = 'NitProductor' if razon_social else 'RazonSocialProductor'
+            raise serializers.ValidationError({
+                faltante: 'Para registrar la empresa indique la razón social y el NIT.'
+            })
+
+        # El NIT es unico: no puede quedar asignado a otra empresa.
+        if nit:
+            otra = Empresas.objects.filter(NitEmpresa=nit)
+            if empresa_actual is not None:
+                otra = otra.exclude(pk=empresa_actual.pk)
+            if otra.exists():
+                raise serializers.ValidationError({
+                    'NitProductor': 'Ya existe una empresa registrada con este NIT.'
+                })
+        return attrs
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
