@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AgricultureIcon from '@mui/icons-material/Agriculture'
+import { Header } from "../../../../components/Tettles-Buttons/Title"
 import { getMisUPs } from "../../../../services/agroService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useCaracterizacion } from "../../../../hooks/useCaracterizacion"
@@ -86,19 +87,12 @@ export default function UPDetailView() {
 
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-6">
-            <header className="rounded-2xl bg-linear-to-br from-[#005C39] to-[#0b7a52] p-5 text-white shadow-md sm:p-6">
-                <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#3e9a8a] ring-4 ring-white/15 sm:h-14 sm:w-14">
-                        <AgricultureIcon sx={{ fontSize: 30 }} />
-                    </div>
-                    <div className="min-w-0">
-                        <h1 className="text-lg font-bold leading-tight sm:text-2xl">Unidad Productiva</h1>
-                        <p className="mt-1 text-sm leading-relaxed text-white/85 text-pretty">
-                            Información completa de tu unidad productiva registrada.
-                        </p>
-                    </div>
-                </div>
-            </header>
+            <Header
+                componentLogo={<AgricultureIcon sx={{ fontSize: 40, color: 'ActiveCaption' }} />}
+                headerText={'Unidad Productiva'}
+                message={'Información completa de tu unidad productiva registrada.'}
+                colorLogo={'#3e9a8a'}
+            />
 
             <section className="min-h-[60vh] rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-5">
                 <button
@@ -114,7 +108,7 @@ export default function UPDetailView() {
                     <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
                         <div className="w-full rounded-xl border border-gray-200 bg-[#f4f9f7] p-4 sm:p-5 lg:col-span-2">
                             <div className="flex items-start gap-3 sm:items-center sm:gap-4">
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shadow-sm">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#005C39] text-white shadow-sm">
                                     <AgricultureIcon sx={{ fontSize: 22, color: '#fff' }} />
                                 </div>
                                 <div className="flex-1 min-w-0">

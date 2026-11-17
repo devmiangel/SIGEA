@@ -55,7 +55,7 @@ export default function QRGeneratorModal({ qrUrl, up, onClose }) {
                 </style>
                 <div class="qr-card">
                     <div style="display:flex; align-items:center; justify-content:center; gap:12px; padding-bottom:14px; border-bottom:2px solid #eef1f4; margin-bottom:12px;">
-                        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(1,93,59,0.25);">${iconoQR}</div>
+                        <div style="width:42px;height:42px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,92,57,0.25);">${iconoQR}</div>
                         <div style="text-align:left;">
                             <p style="margin:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Código QR</p>
                             <h2 style="margin:2px 0 0;font-size:16px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreUP}</h2>

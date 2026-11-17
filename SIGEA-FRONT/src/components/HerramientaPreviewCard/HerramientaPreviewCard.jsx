@@ -31,7 +31,7 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, 
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 sm:px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-[#3e9a8a] transition-all duration-200 w-full m-1">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#005C39] text-white shrink-0 shadow-sm">
         <HandymanIcon sx={{ fontSize: 24, color: '#fff' }} />
       </div>
 

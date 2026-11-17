@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { SubmitButton } from "../../../../components/formElements/SubmitButton"
+import { Header } from "../../../../components/Tettles-Buttons/Title"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import PersonIcon from '@mui/icons-material/Person'
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer'
@@ -46,23 +47,12 @@ export default function FirstLogAgro({ onSolicitudCreada }){
     return(
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-6">
             {/* Bienvenida */}
-            <header className="overflow-hidden rounded-2xl bg-linear-to-br from-[#005C39] to-[#0b7a52] p-5 text-white shadow-md sm:p-6">
-                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#3e9a8a] ring-4 ring-white/15">
-                        <AgricultureIcon sx={{ fontSize: 32 }} />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold leading-tight sm:text-2xl">
-                            ¡Bienvenido al módulo de Extensión Agropecuaria!
-                        </h1>
-                        <p className="mt-2 text-sm leading-relaxed text-white/85 text-pretty">
-                            Para brindarte el mejor servicio y apoyo técnico, necesitamos conocer tu unidad productiva.
-                            Solicita una visita de caracterización: nuestro equipo técnico visitará tu predio para evaluar
-                            tus necesidades y ofrecerte asistencia personalizada.
-                        </p>
-                    </div>
-                </div>
-            </header>
+            <Header
+                componentLogo={<AgricultureIcon sx={{ fontSize: 40, color: 'ActiveCaption' }} />}
+                headerText={'¡Bienvenido al módulo de Extensión Agropecuaria!'}
+                message={'Para brindarte el mejor servicio y apoyo técnico, necesitamos conocer tu unidad productiva. Solicita una visita de caracterización: nuestro equipo técnico visitará tu predio para evaluar tus necesidades y ofrecerte asistencia personalizada.'}
+                colorLogo={'#3e9a8a'}
+            />
 
             {/* Formulario */}
             <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">

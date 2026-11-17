@@ -19,7 +19,7 @@ export default function Login() {
 
             <div className="my-1 flex flex-col min-w-[30%]">
                 <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Iniciar Sesión</h2>
-                <form onSubmit={submitLogin}>
+                <form onSubmit={submitLogin} className="mt-6">
                     <section className="mb-6 relative">
                         <Input {...register('email', emailRules)} placeholder="Correo" data-cy="login-email" />
                         <FieldError message={errors.email?.message} />

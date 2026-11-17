@@ -68,7 +68,7 @@ export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
                 <div class="vt-card">
                     <div style="display:flex; justify-content:flex-start; margin-bottom:10px;">${badgeEstado}</div>
                     <div style="display:flex; align-items:center; gap:14px; padding-bottom:14px; border-bottom:2px solid #eef1f4;">
-                        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(1,93,59,0.25);">${iconoUsuario}</div>
+                        <div style="width:46px;height:46px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,92,57,0.25);">${iconoUsuario}</div>
                         <div style="min-width:0;">
                             <h2 style="margin:0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreSolicitante} <span style="color:#3e9a8a;">·</span> ${tipoVisita}</h2>
                             <p style="margin:2px 0 0;font-size:12.5px;color:#6b7280;">Visita #${numero} · Solicitud #${solicitud.id ?? '—'}</p>

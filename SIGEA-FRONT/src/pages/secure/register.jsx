@@ -35,7 +35,7 @@ export default function Register() {
 
             <div className="my-6 flex flex-col min-w-[30%] max-h-[90vh] mb-6">
                 <h2 className="mx-auto text-[#015d3b] text-2xl font-bold">Regístrate</h2>
-                <form onSubmit={submitRegister}>
+                <form onSubmit={submitRegister} className="mt-6">
                     <NameFields register={register} errors={errors} />
 
                     <section className="mb-6 relative">

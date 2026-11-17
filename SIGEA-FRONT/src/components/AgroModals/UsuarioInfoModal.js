@@ -57,7 +57,7 @@ function seccionUPs(ups) {
         <div style="background:#fff;border:1px solid #e4ece8;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,40,32,.05);">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#f0fdf9,#e9f5f1);border-bottom:1px solid #e4ece8;">
                 <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                    <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 5px rgba(1,93,59,.2);">${iconoUPBold}</div>
+                    <div style="width:38px;height:38px;border-radius:10px;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 5px rgba(0,92,57,.2);">${iconoUPBold}</div>
                     <div style="min-width:0;">
                         <p style="margin:0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#3e9a8a;">Unidad productiva</p>
                         <p style="margin:2px 0 0;font-size:14.5px;font-weight:600;color:#1f2937;line-height:1.2;">${escapeHtml(up.RUEA ?? `UP ${up.id}` ?? '—')}</p>
@@ -166,7 +166,7 @@ function construirHtml(detail) {
     const botonNuevaSolicitud = rol === 'Productores'
         ? `
             <button id="swal-nueva-solicitud" type="button"
-                style="display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:9px;background:linear-gradient(135deg,#015d3b,#3e9a8a);color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(1,93,59,.25);transition:filter .15s ease;flex-shrink:0;"
+                style="display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:9px;background:#005C39;color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(0,92,57,.25);transition:filter .15s ease;flex-shrink:0;"
                 onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='brightness(1)'">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Nueva solicitud
@@ -196,7 +196,7 @@ function construirHtml(detail) {
         <div class="ui-card">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:2px solid #eef1f4;">
                 <div style="display:flex;align-items:center;gap:14px;min-width:0;">
-                    <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(1,93,59,0.25);">${iconoUsuario}</div>
+                    <div style="width:46px;height:46px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,92,57,0.25);">${iconoUsuario}</div>
                     <div style="min-width:0;">
                         <p style="margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Información del usuario</p>
                         <h2 style="margin:2px 0 0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${getNombreCompleto(persona, usuario.email)}</h2>

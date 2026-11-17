@@ -5,7 +5,7 @@ import './calendario.css'
 export default function OtherCalendar({ placeholder, value, onChange }) {
   return (
     <div className="calendar-wrapper">
-        <LocalizationProvider dateAdapter={AdapterDayjs} className="calendar">
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker 
             value={value}
             onChange={onChange}
@@ -15,9 +15,17 @@ export default function OtherCalendar({ placeholder, value, onChange }) {
                 fullWidth: true,
                 size: 'small',
                 sx: {
-                  '& .MuiInputBase-input': {
-                    fontSize: '12px',
-                    padding:'13px'
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '6px',
+                    '& fieldset': { borderColor: '#015d3b' },
+                    '&:hover fieldset': { borderColor: '#015d3b' },
+                    '&.Mui-focused fieldset': { borderColor: '#015d3b' },
+                    '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(1, 93, 59, 0.25)' },
+                  },
+                  '& .MuiOutlinedInput-input': {
+                    fontSize: '14px',
+                    padding: '12px 14px',
+                    '&::placeholder': { color: '#9ca3af', opacity: 1 },
                   }
                 }
               }
