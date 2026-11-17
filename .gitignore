@@ -73,3 +73,11 @@ historicChangesOpenCode.md
 logica_funciones_APPS.md
 roles.md
 .claude/skills/
+
+# ========================
+# Cypress (E2E)
+# ========================
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress/results/

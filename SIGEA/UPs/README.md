@@ -1,6 +1,6 @@
 # UPs - Documentación
 
-Aplicación encargada de las **Unidades Productivas (UP)**. Incluye los catálogos, el registro de la UP con su código RUEA, la información de caracterización (personal, predio, producción agrícola, agroindustrial, animal e información adicional) y el flujo de validación.
+Aplicación encargada de las **Unidades Productivas (UP)**. Incluye los catálogos, el registro de la UP con su código RUEA, la información de caracterización (personal, predio, producción agrícola, agroindustrial, animal e información adicional), los **eventos** asociados a UPs y el flujo de validación.
 
 Estructura interna de la app:
 
@@ -31,7 +31,7 @@ UPs/
 
 ## Models
 
-Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se organizan en: catálogos, UP principal, producción y detalle animal.
+Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se organizan en: catálogos, UP principal, producción, animales y eventos.
 
 ### Catálogos
 
@@ -46,6 +46,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 | `TiposAves` | `TipoAve` (CharField) | Sin FK |
 | `Propositos` | `Proposito` (CharField) | Sin FK |
 | `ProductosApicolas` | `ProductoApicolas` (CharField) | Sin FK |
+| `Razas` | `Raza` (CharField, unique) | Sin FK |
 
 ### UP principal
 
@@ -53,7 +54,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 |---|---|---|
 | `UP` | `RUEA` (CharField 20, unique); `FechaCaracterizacion`, `FechaActualizacion` (DateField); `MotivoRechazo` (TextField), `FechaValidacion` (DateTimeField, nullable), FK `ValidadoPor` → `Administradores` (nullable) | FK `Productores` (CASCADE) — app Usuarios; FK `Predios` (CASCADE) — app Predios; FK `TipoUP` (PROTECT); FK `Funcionarios` (PROTECT) — app Usuarios; FK `idEstado` → `EstadosUP` (PROTECT, nullable). Genera el RUEA automáticamente (`RUDEA-0000001`) al crearse |
 | `ArchivosUP` | `RutaArchivo`, `NombreArchivo`, `Descripcion` (CharField) | FK `UP` (CASCADE) |
-| `DetalleUP` | `NumeroEmpleados`, `NumeroPotreros`, `NumeroInvernaderos`, `NumeroTanques`, `NumeroReservorios` (IntegerField, nullable); `Asociatividad`, `FuentesAgua` (BooleanField); `AreaCultivada`, `AreaPastos` (Decimal 10,2); `FechaActualizacion` (DateField) | FK `UP` (CASCADE); FK `ActividadUP` (PROTECT, nullable) |
+| `DetalleUP` | `NumeroEmpleados`, `NumeroPotreros`, `NumeroInvernaderos`, `NumeroTanques`, `NumeroReservorios` (IntegerField, nullable); `Asociatividad`, `FuentesAgua` (BooleanField); `AreaCultivada`, `AreaPastos` (Decimal 10,2); `FechaActualizacion` (DateField, nullable) | FK `UP` (CASCADE); FK `ActividadUP` (PROTECT, nullable) |
 
 ### Producción
 
@@ -68,16 +69,22 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 
 | Tabla (Model) | Atributos | Relaciones (FK) |
 |---|---|---|
-| `DetalleBovinos` | `NumeroMachos`, `NumeroHembras` (IntegerField); `RUV` (CharField) | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleAves` | `Cantidad` (IntegerField) | FK `Razas` (PROTECT, nullable); FK `TiposAves` (PROTECT, nullable) |
-| `DetallePorcinos` | `Chapeta` (BooleanField) | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleEquinos` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleCaprinos` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleOvinos` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleConejos` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetalleCuries` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `Propositos` (PROTECT, nullable) |
-| `DetallePeces` | `NumeroEstanques` (IntegerField) | FK `Razas` (PROTECT, nullable) |
-| `DetalleApicolas` | Sin campos propios | FK `Razas` (PROTECT, nullable); FK `ProductosApicolas` (PROTECT, nullable) |
+| `DetalleBovinos` | `NumeroMachos`, `NumeroHembras` (IntegerField); `RUV` (CharField) | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleAves` | `Cantidad` (IntegerField) | FK `AnimalesUps` (CASCADE); FK `TiposAves` (PROTECT, nullable) |
+| `DetallePorcinos` | `Chapeta` (BooleanField) | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleEquinos` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleCaprinos` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleOvinos` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleConejos` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetalleCuries` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `Propositos` (PROTECT, nullable) |
+| `DetallePeces` | `NumeroEstanques` (IntegerField) | FK `AnimalesUps` (CASCADE) |
+| `DetalleApicolas` | Sin campos propios | FK `AnimalesUps` (CASCADE); FK `ProductosApicolas` (PROTECT, nullable) |
+
+### Eventos
+
+| Tabla (Model) | Atributos | Relaciones |
+|---|---|---|
+| `EventosUP` | `Titulo`, `Lugar` (CharField 255); `Descripcion` (TextField); `Fecha` (DateField) | M2M `UP` (`blank=True`). Eventos asociados a una o varias UPs |
 
 > **Aplicaciones externas involucradas en las FK:**
 > - `Usuarios.Productores` y `Usuarios.Funcionarios` → apps de usuarios.
@@ -89,15 +96,15 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 
 ### Catálogos (`serializers/catalogs.py`)
 
-24 serializers `ModelSerializer` (`fields = '__all__'`), uno por cada tabla de catálogo/producción/detalle:
+26 serializers `ModelSerializer` (`fields = '__all__'`), uno por cada tabla de catálogo/producción/detalle/evento:
 
-`TipoUPSerializer`, `ActividadUPSerializer`, `UnidadesSerializer`, `ArchivosUPSerializer`, `DetalleUPSerializer`, `ProductosUPsSerializer`, `ProduccionUPAgricolaSerializer`, `ProduccionUPAgroindustrialSerializer`, `GrupoAnimalSerializer`, `TiposAvesSerializer`, `PropositosSerializer`, `AnimalesSerializer`, `RazasSerializer`, `ProductosApicolasSerializer`, `DetalleBovinosSerializer`, `DetalleAvesSerializer`, `DetallePorcinosSerializer`, `DetalleEquinosSerializer`, `DetalleCaprinosSerializer`, `DetalleOvinosSerializer`, `DetalleConejosSerializer`, `DetalleCuriesSerializer`, `DetallePecesSerializer`, `DetalleApicolasSerializer`.
+`TipoUPSerializer`, `ActividadUPSerializer`, `UnidadesSerializer`, `ArchivosUPSerializer`, `DetalleUPSerializer`, `ProductosUPsSerializer`, `ProduccionUPAgricolaSerializer`, `ProduccionUPAgroindustrialSerializer`, `GrupoAnimalSerializer`, `TiposAvesSerializer`, `PropositosSerializer`, `AnimalesSerializer`, `AnimalesUpsSerializer`, `RazasSerializer`, `ProductosApicolasSerializer`, `DetalleBovinosSerializer`, `DetalleAvesSerializer`, `DetallePorcinosSerializer`, `DetalleEquinosSerializer`, `DetalleCaprinosSerializer`, `DetalleOvinosSerializer`, `DetalleConejosSerializer`, `DetalleCuriesSerializer`, `DetallePecesSerializer`, `DetalleApicolasSerializer`, `EventosUPSerializer`.
 
 ### UP (`serializers/up.py`)
 
 | Serializer | Modelo | Descripción |
 |---|---|---|
-| `UPSerializer` | `UP` | ModelSerializer con campos adicionales de solo lectura: `estado_label`, `tipo_up_label`, `nombre_predio` y `productor_nombre` (nombre completo del productor). |
+| `UPSerializer` | `UP` | ModelSerializer con campos adicionales de solo lectura: `estado_label`, `tipo_up_label`, `nombre_predio`, `direccion` (dirección del predio) y `productor_nombre` (nombre completo del productor). |
 
 ### Utilidades (`serializers/mixins.py`)
 
@@ -127,9 +134,14 @@ Todos los serializers de caracterización sobrescriben `update` para persistir l
 
 ### Catálogos (`views/catalogs.py`)
 
-24 `ModelViewSet` con CRUD completo (`list`, `retrieve`, `create`, `update`, `partial_update`, `destroy`):
+26 `ModelViewSet` con CRUD completo (`list`, `retrieve`, `create`, `update`, `partial_update`, `destroy`), todos protegidos con `SigeaModelPermissionMixin` (autenticación + permiso de modelo):
 
-`TipoUPViewSet`, `ActividadUPViewSet`, `UnidadesViewSet`, `ArchivosUPViewSet`, `DetalleUPViewSet`, `ProductosUPsViewSet`, `ProduccionUPAgricolaViewSet`, `ProduccionUPAgroindustrialViewSet`, `GrupoAnimalViewSet`, `TiposAvesViewSet`, `PropositosViewSet`, `AnimalesViewSet`, `RazasViewSet`, `ProductosApicolasViewSet`, `DetalleBovinosViewSet`, `DetalleAvesViewSet`, `DetallePorcinosViewSet`, `DetalleEquinosViewSet`, `DetalleCaprinosViewSet`, `DetalleOvinosViewSet`, `DetalleConejosViewSet`, `DetalleCuriesViewSet`, `DetallePecesViewSet`, `DetalleApicolasViewSet`.
+`TipoUPViewSet`, `ActividadUPViewSet`, `UnidadesViewSet`, `ArchivosUPViewSet`, `DetalleUPViewSet`, `ProductosUPsViewSet`, `ProduccionUPAgricolaViewSet`, `ProduccionUPAgroindustrialViewSet`, `GrupoAnimalViewSet`, `TiposAvesViewSet`, `PropositosViewSet`, `AnimalesViewSet`, `AnimalesUpsViewSet`, `RazasViewSet`, `ProductosApicolasViewSet`, `DetalleBovinosViewSet`, `DetalleAvesViewSet`, `DetallePorcinosViewSet`, `DetalleEquinosViewSet`, `DetalleCaprinosViewSet`, `DetalleOvinosViewSet`, `DetalleConejosViewSet`, `DetalleCuriesViewSet`, `DetallePecesViewSet`, `DetalleApicolasViewSet`, `EventosUPViewSet`.
+
+Además:
+
+- `GrupoAnimalViewSet.razas` (`@action` GET en `/gruposAnimales/<id>/razas/`): devuelve las razas asociadas a un grupo animal.
+- `RazasViewSet.create`: evita duplicados por nombre (búsqueda `iexact`) y, si se envía `grupoId`, asocia la raza al grupo mediante `Animales`.
 
 ### UP (`views/ups.py`)
 
@@ -156,6 +168,8 @@ Reglas de validación de las secciones (todas responden 400, nunca 500):
 - **Agrícola / agroindustrial**: `Cantidad` decimal ≥ 0. La unidad de un producto existente del catálogo no se modifica (solo se completa si no tenía).
 - **Pecuaria**: conteos de animales enteros ≥ 0; no se permite repetir grupo + raza (ni dos entradas de Aves).
 - **Adicional**: solo se aceptan rutas devueltas por `upload-archivo-up` (`archivos_up/<uuid>.<ext>`) o ya propias de la UP; un archivo de otra UP se rechaza. Los archivos se sincronizan por ruta (los quitados se borran del disco al confirmar).
+
+> El `POST` exige los permisos `UPs.add_up` y `Predios.add_predios`; si faltan responde `403`.
 
 | Vista | Descripción |
 |---|---|
@@ -189,6 +203,7 @@ Rutas registradas en `urls.py`, bajo el prefijo `/api/UPs/`.
 | `/api/UPs/tiposAves/` | `TiposAvesViewSet` |
 | `/api/UPs/propositos/` | `PropositosViewSet` |
 | `/api/UPs/animales/` | `AnimalesViewSet` |
+| `/api/UPs/animalesUps/` | `AnimalesUpsViewSet` |
 | `/api/UPs/razas/` | `RazasViewSet` |
 | `/api/UPs/productosApicolas/` | `ProductosApicolasViewSet` |
 | `/api/UPs/detalleBovinos/` | `DetalleBovinosViewSet` |
@@ -201,6 +216,7 @@ Rutas registradas en `urls.py`, bajo el prefijo `/api/UPs/`.
 | `/api/UPs/detalleCuries/` | `DetalleCuriesViewSet` |
 | `/api/UPs/detallePeces/` | `DetallePecesViewSet` |
 | `/api/UPs/detalleApicolas/` | `DetalleApicolasViewSet` |
+| `/api/UPs/eventosUP/` | `EventosUPViewSet` |
 | `/api/UPs/UPs/` | `UPViewSet` |
 
 ### Rutas de acción

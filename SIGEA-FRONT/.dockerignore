@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+.vite/
+.cache/
+coverage/
+npm-debug.log*
+pnpm-debug.log*
+.git/
+.gitignore
