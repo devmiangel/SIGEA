@@ -3,6 +3,8 @@ from rest_framework import serializers
 from ..models import Insumos, InventarioFuncionario, CardexInsumoFuncionario, SolicitudInsumo
 
 class InsumosSerializer(serializers.ModelSerializer):
+    Cantidad = serializers.IntegerField(min_value=0)  # el stock nunca es negativo
+
     class Meta:
         model = Insumos
         fields = '__all__'

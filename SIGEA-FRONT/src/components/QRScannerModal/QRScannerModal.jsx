@@ -44,7 +44,7 @@ export default function QRScannerModal({ onRUEADetectado, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="w-full max-w-md bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
                 <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-[#005C39] text-white shrink-0">
                         <QrCodeScannerIcon sx={{ fontSize: 22 }} />
                     </div>
                     <div className="min-w-0 flex-1">

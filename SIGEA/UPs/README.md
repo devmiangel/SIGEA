@@ -52,7 +52,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 
 | Tabla (Model) | Atributos | Relaciones (FK) |
 |---|---|---|
-| `UP` | `RUEA` (CharField 20, unique, blank); `FechaCaracterizacion`, `FechaActualizacion` (DateField) | FK `Productores` (CASCADE) — app Usuarios; FK `Predios` (CASCADE) — app Predios; FK `TipoUP` (PROTECT); FK `Funcionarios` (PROTECT) — app Usuarios; FK `idEstado` → `EstadosUP` (PROTECT, nullable). Genera el RUEA automáticamente (`RUDEA-0000001`) al crearse |
+| `UP` | `RUEA` (CharField 20, unique); `FechaCaracterizacion`, `FechaActualizacion` (DateField); `MotivoRechazo` (TextField), `FechaValidacion` (DateTimeField, nullable), FK `ValidadoPor` → `Administradores` (nullable) | FK `Productores` (CASCADE) — app Usuarios; FK `Predios` (CASCADE) — app Predios; FK `TipoUP` (PROTECT); FK `Funcionarios` (PROTECT) — app Usuarios; FK `idEstado` → `EstadosUP` (PROTECT, nullable). Genera el RUEA automáticamente (`RUDEA-0000001`) al crearse |
 | `ArchivosUP` | `RutaArchivo`, `NombreArchivo`, `Descripcion` (CharField) | FK `UP` (CASCADE) |
 | `DetalleUP` | `NumeroEmpleados`, `NumeroPotreros`, `NumeroInvernaderos`, `NumeroTanques`, `NumeroReservorios` (IntegerField, nullable); `Asociatividad`, `FuentesAgua` (BooleanField); `AreaCultivada`, `AreaPastos` (Decimal 10,2); `FechaActualizacion` (DateField, nullable) | FK `UP` (CASCADE); FK `ActividadUP` (PROTECT, nullable) |
 
@@ -60,10 +60,10 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django. Se orga
 
 | Tabla (Model) | Atributos | Relaciones (FK) |
 |---|---|---|
-| `ProduccionUPAgricola` | `Cantidad` (IntegerField, nullable) | FK `UP` (CASCADE); FK `ProductosUPs` (PROTECT) |
-| `ProduccionUPAgroindustrial` | `Cantidad` (IntegerField, nullable); `INVIMA` (BooleanField) | FK `UP` (CASCADE); FK `ProductosUPs` (PROTECT) |
-| `Animales` | Sin campos propios | FK `GrupoAnimal` (PROTECT); FK `Razas` (PROTECT, nullable). Catálogo de combinaciones grupo-raza (`unique_together`) |
-| `AnimalesUps` | `Cantidad` (IntegerField, nullable) | FK `Animales` (CASCADE); FK `UP` (CASCADE). Registra la cantidad de un grupo/raza en la UP (`unique_together` UP+Animal) |
+| `ProduccionUPAgricola` | `Cantidad` (DecimalField 12,3, nullable) | FK `UP` (CASCADE); FK `ProductosUPs` (PROTECT) |
+| `ProduccionUPAgroindustrial` | `Cantidad` (DecimalField 12,3, nullable); `INVIMA` (BooleanField) | FK `UP` (CASCADE); FK `ProductosUPs` (PROTECT) |
+| `Animales` | `Cantidad` (IntegerField) | FK `GrupoAnimal` (PROTECT); FK `UP` (CASCADE) |
+| `Razas` | `Raza` (CharField) | FK `Animales` (CASCADE) |
 
 ### Detalle animal (por especie)
 
@@ -126,7 +126,7 @@ Todos los serializers de caracterización sobrescriben `update` para persistir l
 | `InfoProduccionAgricolaSerializer` | Producción agrícola | Lista de productos agrícolas (producto, cantidad, unidad). Reemplaza los registros existentes. |
 | `InfoProduccionAgroindustrialSerializer` | Producción agroindustrial | Lista de productos agroindustriales (producto, cantidad, unidad, INVIMA). Reemplaza los registros existentes. |
 | `InfoProduccionAnimalSerializer` | Producción animal | Grupos de animales con cantidad total y detalle por especie (bovinos, aves, porcinos, equinos, caprinos, ovinos, conejos, curies, peces, abejas). Reemplaza los registros existentes. |
-| `InfoAdicionalCaracterizacionSerializer` | Adicional | Actualiza `FechaActualizacion` y la lista de archivos (`ArchivosUP`). Reemplaza los archivos existentes. |
+| `InfoAdicionalCaracterizacionSerializer` | Adicional | Actualiza `FechaActualizacion` y la lista de archivos (`ArchivosUP`). Sincroniza por ruta: conserva los existentes, crea los nuevos y elimina los quitados. |
 
 ---
 
@@ -147,8 +147,8 @@ Además:
 
 | Vistas | Tipo | Descripción |
 |---|---|---|
-| `UPViewSet` | `ModelViewSet` | CRUD de unidades productivas (con `SigeaModelPermissionMixin`). |
-| `validar_ups` | `@api_view(['POST'])` | Acepta o rechaza una UP (`aprobada`), asignando el estado `Aceptada`/`Rechazada` en `EstadosUP`. Requiere autenticación. |
+| `UPViewSet` | `ModelViewSet` | CRUD de unidades productivas. |
+| `validar_ups` | `@api_view(['POST'])` | Acepta o rechaza una UP (`aprobada`), asignando el estado `Aceptada`/`Rechazada` en `EstadosUP`. Solo administradores. `aprobada` debe ser booleano (o true/false/1/0/si/no; otro valor = 400). Solo se valida una UP en `En revision` con una visita finalizada (si no, 409). Al rechazar exige `motivo` (400 si falta) y elimina el QR. Guarda `MotivoRechazo`, `ValidadoPor` y `FechaValidacion`. Una UP rechazada es definitiva (la caracterización responde 409); editar una UP aceptada la devuelve a `En revision` y le quita el QR. El estado y el rastro de validación son de solo lectura en `UPSerializer` (no se cambian por `/api/UPs/ups/`). |
 | `mis_ups` | `@api_view(['GET'])` | Devuelve las UP del productor autenticado. Requiere autenticación. |
 | `upload_archivo_up` | `@api_view(['POST'])` | Sube un archivo (imágenes o PDF) a `media/archivos_up/`, validando la extensión. Devuelve la ruta pública. Requiere autenticación. |
 
@@ -156,8 +156,18 @@ Además:
 
 Vistas por sección del formulario. Todas aceptan `GET` y `POST`, reciben `userId` (más opcionalmente `solicitud_id` o `up_id`) y usan un handler común que:
 1. Resuelve el productor y su UP (por `up_id` o por la UP vinculada a la solicitud de visita).
-2. Si no existe UP, crea un borrador y lo vincula a la solicitud (caracterización de visita nueva).
+2. Si no existe UP, crea un borrador y lo vincula a la solicitud (caracterización de visita nueva). El `Funcionario` de la UP es quien caracteriza (o, si guarda un administrador, el funcionario de la visita de la solicitud); si no se puede determinar, responde 409.
 3. Si llega vacío, devuelve el estado actual o un borrador con campos en `null`.
+4. El borrador y el guardado de la sección van en una misma transacción: si la sección no es válida (400) no queda UP ni predio a medias.
+5. Un `solicitud_id` que no existe o no es del productor responde 404 (no crea UPs sueltas).
+
+Reglas de validación de las secciones (todas responden 400, nunca 500):
+- **Personal**: una empresa nueva requiere razón social y NIT; el NIT no puede estar en otra empresa.
+- **UP**: `RUEA` máx. 20 caracteres y único; el tipo de UP debe existir; conteos y áreas ≥ 0.
+- **Predio**: el sector se busca por nombre dentro de la vereda elegida (se crea en ella si no existe); una vereda sin sector se rechaza.
+- **Agrícola / agroindustrial**: `Cantidad` decimal ≥ 0. La unidad de un producto existente del catálogo no se modifica (solo se completa si no tenía).
+- **Pecuaria**: conteos de animales enteros ≥ 0; no se permite repetir grupo + raza (ni dos entradas de Aves).
+- **Adicional**: solo se aceptan rutas devueltas por `upload-archivo-up` (`archivos_up/<uuid>.<ext>`) o ya propias de la UP; un archivo de otra UP se rechaza. Los archivos se sincronizan por ruta (los quitados se borran del disco al confirmar).
 
 > El `POST` exige los permisos `UPs.add_up` y `Predios.add_predios`; si faltan responde `403`.
 

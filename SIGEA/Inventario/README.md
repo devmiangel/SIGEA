@@ -118,7 +118,7 @@ Todas las vistas son `ModelViewSet` de Django REST Framework, por lo que exponen
 | `VehiculosViewSet` | `Vehiculos` | CRUD de vehículos. |
 | `DetalleVehiculosViewSet` | `DetalleVehiculos` | CRUD del detalle de vehículos (placa, modelo, fechas, estado). |
 | `ConductoresViewSet` | `Conductores` | CRUD de conductores. |
-| `RegistroAsignacionVehiculosViewSet` | `RegistroAsignacionVehiculos` | CRUD del registro de asignación/devolución de vehículos a conductores. |
+| `RegistroAsignacionVehiculosViewSet` | `RegistroAsignacionVehiculos` | Solo lectura (el funcionario ve solo sus filas). Se crea con `asignar_vehiculo_directo` y se cierra con `devolver_vehiculo` (`POST registroAsignacionVehiculos/<id>/devolver/`, admin). |
 
 ### Vistas Herramientas (`views/herramientas.py`)
 
@@ -126,15 +126,15 @@ Todas las vistas son `ModelViewSet` de Django REST Framework, por lo que exponen
 |---|---|---|
 | `TiposHerramientasViewSet` | `TiposHerramientas` | CRUD de tipos de herramienta. |
 | `HerramientasViewSet` | `Herramientas` | CRUD de herramientas. |
-| `AsignacionHerramientasViewSet` | `AsignacionHerramientas` | CRUD de asignaciones/devoluciones de herramientas a funcionarios. |
+| `AsignacionHerramientasViewSet` | `AsignacionHerramientas` | Solo lectura (el funcionario ve solo sus filas). Se crea con `asignar_herramienta_directo` y se cierra con `devolver_herramienta` (`POST asignacionHerramientas/<id>/devolver/`, admin). |
 
 ### Vistas Insumos (`views/insumos.py`)
 
 | Vistas | Modelo | Descripción |
 |---|---|---|
 | `InsumosViewSet` | `Insumos` | CRUD de insumos. |
-| `InventarioFuncionarioViewSet` | `InventarioFuncionario` | CRUD del inventario de insumos por funcionario. |
-| `CardexInsumoFuncionarioViewSet` | `CardexInsumoFuncionario` | CRUD del cardex de asignación de insumos a funcionarios. |
+| `InventarioFuncionarioViewSet` | `InventarioFuncionario` | Solo lectura (el funcionario ve solo su inventario). Cambia únicamente por los endpoints de asignación y por el consumo en visitas. |
+| `CardexInsumoFuncionarioViewSet` | `CardexInsumoFuncionario` | Solo lectura (el funcionario ve solo su cardex). |
 
 ### Vistas de acción (asignaciones y solicitudes)
 

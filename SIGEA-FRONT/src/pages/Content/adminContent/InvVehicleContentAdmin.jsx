@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
 import DriveEtaIcon from '@mui/icons-material/DriveEta'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import VehiculoPreviewCard from "../../../components/VehiculoPreviewCard/VehiculoPreviewCard"
 import { useVehiculos } from "../../../hooks/useVehiculos"
-import { getFuncionarios, getConductores, asignarVehiculoDirecto } from "../../../services/agroService"
+import { getFuncionarios, getConductores, asignarVehiculoDirecto, getRegistroAsignacionVehiculos, devolverVehiculo } from "../../../services/agroService"
 import { abrirModalAsignarVehiculo } from "../../../components/AgroModals/AsignarVehiculoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
@@ -12,6 +13,59 @@ import Swal from 'sweetalert2'
 export default function InvVehicleContentAdmin() {
     const { vehiculos, loading, error, eliminar, refresh } = useVehiculos()
     const navigate = useNavigate()
+
+    // Asignaciones vigentes (sin devolver), indexadas por vehículo.
+    const [asignaciones, setAsignaciones] = useState({})
+
+    const cargarAsignaciones = useCallback(async () => {
+        try {
+            const data = (await getRegistroAsignacionVehiculos()) ?? []
+            const vigentes = {}
+            for (const a of data) {
+                if (!a.Entregado) vigentes[a.DetalleVehiculo] = a
+            }
+            setAsignaciones(vigentes)
+        } catch {
+            setAsignaciones({})
+        }
+    }, [])
+
+    useEffect(() => {
+        let activo = true
+        ;(async () => { if (activo) await cargarAsignaciones() })()
+        return () => { activo = false }
+    }, [cargarAsignaciones])
+
+    const handleDevolver = async (vehiculo, asignacion) => {
+        const confirmacion = await Swal.fire({
+            icon: 'question',
+            title: 'Registrar devolución',
+            text: 'El vehículo quedará disponible para asignarlo de nuevo.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: AGRO_COLORS.primary,
+        })
+        if (!confirmacion.isConfirmed) return
+        try {
+            await devolverVehiculo(asignacion.id)
+            Swal.fire({
+                icon: 'success',
+                title: 'Devolución registrada',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            cargarAsignaciones()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo registrar la devolución. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
+    }
 
     const handleAnadir = () => {
         navigate('/administrador/inventario/vehiculos/nuevo')
@@ -43,6 +97,7 @@ export default function InvVehicleContentAdmin() {
                 timerProgressBar: true,
             })
             refresh()
+            cargarAsignaciones()
         } catch (err) {
             Swal.fire({
                 icon: 'error',
@@ -112,7 +167,7 @@ export default function InvVehicleContentAdmin() {
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Vehículos del sistema</h3>
                     <p className="text-xs text-gray-500">{vehiculos.length} vehículo(s) registrado(s)</p>
@@ -133,6 +188,8 @@ export default function InvVehicleContentAdmin() {
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
                                 onAsignar={handleAsignar}
+                                asignacion={asignaciones[vehiculo.id]}
+                                onDevolver={handleDevolver}
                             />
                         ))}
                     </div>

@@ -46,7 +46,7 @@ function NumOpc({ label, value, onChange }) {
     return (
         <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</label>
-            <input type="number" value={value ?? ''} onChange={(e) => onChange(e.target.value)}
+            <input type="number" min="0" step="1" value={value ?? ''} onChange={(e) => onChange(e.target.value)}
                 className="w-full px-2 py-1.5 rounded-md border border-[#015d3b] outline-none text-sm bg-white" />
         </div>
     )
@@ -88,7 +88,7 @@ function RazasDetalle({ it, propositos, productosApicolas, onCreateProposito, on
                     </div>
                     {g === 'Bovinos' ? (
                         <div className="flex flex-col gap-3">
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 <NumOpc label="Número de machos" value={raza.Detalles?.Machos} onChange={(v) => onUpdateDetalle(j, 'Machos', v)} />
                                 <NumOpc label="Número de hembras" value={raza.Detalles?.Hembras} onChange={(v) => onUpdateDetalle(j, 'Hembras', v)} />
                             </div>

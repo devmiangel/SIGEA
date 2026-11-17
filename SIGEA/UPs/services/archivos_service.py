@@ -4,12 +4,16 @@ Los archivos se guardan en PRIVATE_MEDIA_ROOT (fuera de MEDIA_ROOT), por lo que 
 servidor web nunca los publica directamente: solo se descargan a través de la API,
 que valida el dueño de la UP (ver ArchivosUPViewSet.descargar).
 """
+import logging
 import os
+import re
 import uuid
 from pathlib import Path
 
 from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponse
+
+logger = logging.getLogger(__name__)
 
 SUBCARPETA = 'archivos_up'
 PREFIJO_LEGADO = '/media/archivos_up/'
@@ -107,3 +111,27 @@ def respuesta_descarga(ruta_archivo, nombre_descarga=None):
     response['Content-Disposition'] = f'attachment; filename="{nombre}"'
     response['X-Content-Type-Options'] = 'nosniff'
     return response
+
+
+_PATRON_RUTA = re.compile(rf'^{SUBCARPETA}/[0-9a-f]{{32}}\.[a-z]+$')
+
+
+def es_ruta_subida(ruta_archivo):
+    """True si la ruta tiene la forma que devuelve guardar_archivo
+    ('archivos_up/<uuid hex>.<ext>') y una extension permitida."""
+    ruta_archivo = (ruta_archivo or '').strip()
+    if not _PATRON_RUTA.match(ruta_archivo):
+        return False
+    return os.path.splitext(ruta_archivo)[1] in EXTENSIONES_PERMITIDAS
+
+
+def borrar_archivo(ruta_archivo):
+    """Elimina del disco un archivo privado que ya no referencia ningun registro.
+    Los registros legados de /media/ no se tocan."""
+    if not es_ruta_subida(ruta_archivo):
+        return
+    ruta_disco, _ = _resolver(ruta_archivo)
+    try:
+        ruta_disco.unlink(missing_ok=True)
+    except OSError:
+        logger.exception('No se pudo eliminar el archivo %s', ruta_disco)

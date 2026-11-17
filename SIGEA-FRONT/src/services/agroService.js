@@ -55,8 +55,8 @@ export const eliminarEvento = async (eventoId) => {
     return response.data;
 }
 
-export const validarUP = async (upId, aprobada) => {
-    const response = await api.post(`/UPs/validar-ups/${upId}/`, { aprobada });
+export const validarUP = async (upId, aprobada, motivo = '') => {
+    const response = await api.post(`/UPs/validar-ups/${upId}/`, { aprobada, motivo });
     return response.data;
 }
 
@@ -330,6 +330,16 @@ export const asignarHerramientaDirecto = async (herramientaId, data) => {
 
 export const asignarVehiculoDirecto = async (vehiculoId, data) => {
     const response = await api.post(`/inventario/detalleVehiculos/${vehiculoId}/asignar/`, data);
+    return response.data;
+}
+
+export const devolverHerramienta = async (asignacionId) => {
+    const response = await api.post(`/inventario/asignacionHerramientas/${asignacionId}/devolver/`);
+    return response.data;
+}
+
+export const devolverVehiculo = async (asignacionId) => {
+    const response = await api.post(`/inventario/registroAsignacionVehiculos/${asignacionId}/devolver/`);
     return response.data;
 }
 

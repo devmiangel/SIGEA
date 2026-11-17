@@ -160,7 +160,7 @@ export default function SeccionInsumos({ form, onChange }) {
 
             {filas.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg whitespace-nowrap">
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Insumo</th>

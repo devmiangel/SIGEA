@@ -52,6 +52,12 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
         const predio = escapeHtml(solInfo.predio ?? solInfo.up ?? '—')
         const upId = solInfo.up_id
         const upEstado = solInfo.up_estado ?? 'En revision'
+        const motivoRechazo = solInfo.up_motivo_rechazo
+            ? `<div class="vv-tile" style="margin-top:10px;border-color:#fecaca;background:#fef2f2;">
+                   <div class="vv-label">Motivo del rechazo</div>
+                   <p class="vv-value">${escapeHtml(solInfo.up_motivo_rechazo)}</p>
+               </div>`
+            : ''
         const validada = esUPValidada(upEstado)
         const fecha = formatFecha(visita.FechaYHoraVisita)
         const funcionario = escapeHtml(visita.funcionario_info?.nombre ?? '—')
@@ -82,7 +88,7 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                 </style>
                 <div class="vv-card">
                     <div style="display:flex; align-items:center; gap:14px; padding-bottom:14px; border-bottom:2px solid #eef1f4;">
-                        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(1,93,59,0.25);">${iconoUP}</div>
+                        <div style="width:46px;height:46px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,92,57,0.25);">${iconoUP}</div>
                         <div style="min-width:0;">
                             <p style="margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Validación de Unidad Productiva</p>
                             <h2 style="margin:2px 0 0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreUP}</h2>
@@ -107,6 +113,7 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                             <p class="vv-value">${administrador}</p>
                         </div>
                     </div>
+                    ${motivoRechazo}
                 </div>
             `,
             showCloseButton: true,
@@ -125,9 +132,14 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
             allowOutsideClick: () => false,
             didClose: () => onClose?.()
         }).then(async (result) => {
+            if ((result.isConfirmed || result.isDenied) && upId == null) {
+                // Sin UP vinculada no hay nada que validar: no se finge el éxito.
+                mostrarError('La visita no tiene una unidad productiva vinculada para validar.')
+                return
+            }
             if (result.isConfirmed) {
                 try {
-                    if (upId != null) await validarUP(upId, true)
+                    await validarUP(upId, true)
                     Swal.fire({
                         icon: 'success',
                         title: 'UP aceptada',
@@ -138,12 +150,27 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                         showConfirmButton: false
                     })
                     onDecision?.(ESTADO_VISITA.ACEPTADA)
-                } catch {
-                    mostrarError('No se pudo actualizar el estado de la UP.')
+                } catch (err) {
+                    mostrarError(err?.response?.data?.error || 'No se pudo actualizar el estado de la UP.')
                 }
             } else if (result.isDenied) {
+                const motivo = await Swal.fire({
+                    title: 'Motivo del rechazo',
+                    input: 'textarea',
+                    inputPlaceholder: 'Explique por qué se rechaza la unidad productiva',
+                    inputAttributes: { maxlength: 1000 },
+                    showCancelButton: true,
+                    confirmButtonText: 'Rechazar UP',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: AGRO_COLORS.danger,
+                    inputValidator: (valor) => (!String(valor ?? '').trim() ? 'El motivo es obligatorio.' : undefined),
+                })
+                if (!motivo.isConfirmed) {
+                    onClose?.()
+                    return
+                }
                 try {
-                    if (upId != null) await validarUP(upId, false)
+                    await validarUP(upId, false, String(motivo.value).trim())
                     Swal.fire({
                         icon: 'success',
                         title: 'UP rechazada',
@@ -154,8 +181,8 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                         showConfirmButton: false
                     })
                     onDecision?.(ESTADO_VISITA.RECHAZADA)
-                } catch {
-                    mostrarError('No se pudo actualizar el estado de la UP.')
+                } catch (err) {
+                    mostrarError(err?.response?.data?.error || 'No se pudo actualizar el estado de la UP.')
                 }
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 // El botón "cancel" se reutiliza para "Descargar informe" porque

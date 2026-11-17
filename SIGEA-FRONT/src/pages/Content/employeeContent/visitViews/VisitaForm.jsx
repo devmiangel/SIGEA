@@ -168,17 +168,15 @@ export default function VisitaForm() {
         }
 
         setFinalizando(true)
+        // El backend toma productor, funcionario y solicitud de la visita
+        // (visita_id); no se envían funcionario_id/administrador_id/motivo_admin.
+        // eslint-disable-next-line no-unused-vars
+        const { funcionario_id, especificacion_nueva_solicitud, ...datos } = form
         const payload = {
-            ...form,
+            ...datos,
             insumos,
-            usuario_id: userId,
             up_id: upId,
             visita_id: visita?.id,
-            tipo_visita_id: visita?.TipoVisita,
-            funcionario_id: visita?.Funcionario,
-            administrador_id: visita?.Administrador,
-            motivo_id: 1,
-            motivo_admin: solicitud.observacion || '',
             firmado: Boolean(form.firma_usuario || form.firma_funcionario),
         }
 
@@ -220,7 +218,7 @@ export default function VisitaForm() {
                 colorLogo={'#55bd85'}
             />
 
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4">
                 {!visita ? (
                     <div className="text-center py-16">
                         <p className="text-gray-500 text-sm mb-4">
@@ -283,23 +281,23 @@ export default function VisitaForm() {
                             })}
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:items-center">
                             <button
                                 onClick={() => navigate('/funcionario/agenda')}
-                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                                className="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
                             >
                                 Volver a la agenda
                             </button>
-                            <div className="flex gap-3">
+                            <div className="flex flex-col gap-3 sm:flex-row">
                                 {visita?.estado ? (
-                                    <span className="px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-semibold">
+                                    <span className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-semibold">
                                         Visita completada
                                     </span>
                                 ) : (
                                     <button
                                         onClick={finalizar}
                                         disabled={finalizando}
-                                        className="px-4 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {finalizando ? 'Guardando...' : 'Guardar y finalizar visita'}
                                     </button>
@@ -310,7 +308,7 @@ export default function VisitaForm() {
                                             const idx = seccionesVisibles.findIndex((s) => s.nombre === active)
                                             setActive(seccionesVisibles[idx + 1].nombre)
                                         }}
-                                        className="px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors"
+                                        className="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-[#015d3b] text-[#015d3b] text-sm font-semibold hover:bg-[#015d3b]/5 transition-colors"
                                     >
                                         Siguiente sección
                                     </button>

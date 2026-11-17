@@ -4,7 +4,7 @@ import DriveEtaIcon from '@mui/icons-material/DriveEta'
 import { esRegistroActivo } from '../../utils/insumoHelpers'
 import { ACTIVO_STYLE } from '../../utils/agroConstants'
 
-export default function VehiculoPreviewCard({ vehiculo, onEdit, onDelete, onAsignar }) {
+export default function VehiculoPreviewCard({ vehiculo, onEdit, onDelete, onAsignar, asignacion, onDevolver }) {
   const activo = esRegistroActivo(vehiculo)
   const statusClass = activo ? ACTIVO_STYLE.activo : ACTIVO_STYLE.inactivo
   const estadoLabel = activo ? 'Activo' : 'Inactivo'
@@ -26,9 +26,14 @@ export default function VehiculoPreviewCard({ vehiculo, onEdit, onDelete, onAsig
     onAsignar?.(vehiculo)
   }
 
+  const handleDevolver = (e) => {
+    e.stopPropagation()
+    onDevolver?.(vehiculo, asignacion)
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 sm:px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-[#3e9a8a] transition-all duration-200 w-full m-1">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#005C39] text-white shrink-0 shadow-sm">
         <DriveEtaIcon sx={{ fontSize: 24, color: '#fff' }} />
       </div>
 
@@ -42,14 +47,25 @@ export default function VehiculoPreviewCard({ vehiculo, onEdit, onDelete, onAsig
       </div>
 
       <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
-        <button
-          onClick={handleAsignar}
-          aria-label="Asignar vehículo"
-          title="Asignar vehículo"
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
-        >
-          Asignar
-        </button>
+        {asignacion ? (
+          <button
+            onClick={handleDevolver}
+            aria-label="Registrar devolución"
+            title="Registrar devolución"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+          >
+            Registrar devolución
+          </button>
+        ) : (
+          <button
+            onClick={handleAsignar}
+            aria-label="Asignar vehículo"
+            title="Asignar vehículo"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
+          >
+            Asignar
+          </button>
+        )}
         <button
           onClick={handleEdit}
           aria-label="Editar vehículo"

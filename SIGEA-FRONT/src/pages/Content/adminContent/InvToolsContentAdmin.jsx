@@ -1,10 +1,11 @@
 import HandymanIcon from '@mui/icons-material/Handyman'
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import HerramientaPreviewCard from "../../../components/HerramientaPreviewCard/HerramientaPreviewCard"
 import { useHerramientas } from "../../../hooks/useHerramientas"
-import { getFuncionarios, asignarHerramientaDirecto } from "../../../services/agroService"
+import { getFuncionarios, asignarHerramientaDirecto, getAsignacionHerramientas, devolverHerramienta } from "../../../services/agroService"
 import { abrirModalAsignarHerramienta } from "../../../components/AgroModals/AsignarHerramientaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
@@ -12,6 +13,59 @@ import Swal from 'sweetalert2'
 export default function InvToolsContentAdmin() {
     const navigate = useNavigate()
     const { herramientas, loading, error, eliminar, refresh } = useHerramientas()
+
+    // Asignaciones vigentes (sin devolver), indexadas por herramienta.
+    const [asignaciones, setAsignaciones] = useState({})
+
+    const cargarAsignaciones = useCallback(async () => {
+        try {
+            const data = (await getAsignacionHerramientas()) ?? []
+            const vigentes = {}
+            for (const a of data) {
+                if (!a.Entregado) vigentes[a.Herramienta] = a
+            }
+            setAsignaciones(vigentes)
+        } catch {
+            setAsignaciones({})
+        }
+    }, [])
+
+    useEffect(() => {
+        let activo = true
+        ;(async () => { if (activo) await cargarAsignaciones() })()
+        return () => { activo = false }
+    }, [cargarAsignaciones])
+
+    const handleDevolver = async (herramienta, asignacion) => {
+        const confirmacion = await Swal.fire({
+            icon: 'question',
+            title: 'Registrar devolución',
+            text: 'La herramienta quedará disponible para asignarla de nuevo.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: AGRO_COLORS.primary,
+        })
+        if (!confirmacion.isConfirmed) return
+        try {
+            await devolverHerramienta(asignacion.id)
+            Swal.fire({
+                icon: 'success',
+                title: 'Devolución registrada',
+                confirmButtonColor: AGRO_COLORS.success,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            cargarAsignaciones()
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.response?.data?.error || 'No se pudo registrar la devolución. Intenta de nuevo.',
+                confirmButtonColor: AGRO_COLORS.primary,
+            })
+        }
+    }
 
     const handleAnadir = () => {
         navigate('/administrador/inventario/herramientas/nuevo')
@@ -33,6 +87,7 @@ export default function InvToolsContentAdmin() {
                 timerProgressBar: true,
             })
             refresh()
+            cargarAsignaciones()
         } catch (err) {
             Swal.fire({
                 icon: 'error',
@@ -102,7 +157,7 @@ export default function InvToolsContentAdmin() {
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Herramientas del sistema</h3>
                     <p className="text-xs text-gray-500">{herramientas.length} herramienta(s) registrada(s)</p>
@@ -123,6 +178,8 @@ export default function InvToolsContentAdmin() {
                                 onEdit={handleEditar}
                                 onDelete={handleEliminar}
                                 onAsignar={handleAsignar}
+                                asignacion={asignaciones[herramienta.id]}
+                                onDevolver={handleDevolver}
                             />
                         ))}
                     </div>

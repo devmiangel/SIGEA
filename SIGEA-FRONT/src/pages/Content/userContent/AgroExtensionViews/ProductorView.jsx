@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { Header } from "../../../../components/Tettles-Buttons/Title"
 import TabList from "../../../../components/TabList/TabList"
+import { Header } from "../../../../components/Tettles-Buttons/Title"
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import UserRequest from "../../../../components/UserRequest/UserRequest"
 import UPPReviewCard from "../../../../components/UPPReviewCard/UPPReviewCard"
@@ -83,35 +83,40 @@ export default function ProductorView(){
     const currentContent = contentTabs.find(t => t.title === activeTab)?.content
 
     return (
-        <>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-6">
             <Header
-                componentLogo={<AgricultureIcon sx={{fontSize: 40}}/>}
+                componentLogo={<AgricultureIcon sx={{ fontSize: 40, color: 'ActiveCaption' }} />}
                 headerText={'Mis Unidades Productivas'}
+                message={'Gestiona tus unidades productivas registradas y en proceso de aprobación.'}
                 colorLogo={'#3e9a8a'}
-                message={'Gestiona tus unidades productivas registradas y en proceso de aprobación'}
                 firstButton={
                     <button
                         onClick={handleAgregarUnidad}
-                        className="bg-[#229e14] py-2 px-5 border-none text-white rounded-[5px] text-[10px] cursor-pointer hover:bg-[#1d8a11] transition-colors"
+                        className="w-full shrink-0 rounded-xl bg-[#005C39] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#004d2f] sm:w-auto"
                     >
-                        Generar Solicitud
+                        Generar solicitud
                     </button>
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
-                <TabList
-                    categories={contentTabs.map(t => t.title)}
-                    active={activeTab}
-                    onChange={setActiveTab}
-                />
-                <div className="mt-6">
+
+            <section className="min-h-[60vh] rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-5">
+                <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                    <TabList
+                        categories={contentTabs.map(t => t.title)}
+                        active={activeTab}
+                        onChange={setActiveTab}
+                    />
+                </div>
+                <div className="mt-4 sm:mt-6">
                     {activeTab === 'Mis UPs' ? (
                         loadingUps ? (
-                            <p className="text-gray-500 text-sm">Cargando unidades productivas...</p>
+                            <p className="py-8 text-center text-sm text-gray-500">Cargando unidades productivas...</p>
                         ) : currentContent.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No tienes unidades productivas registradas.</p>
+                            <p className="rounded-xl border border-dashed border-gray-300 bg-[#f4f9f7] py-8 text-center text-sm text-gray-500">
+                                No tienes unidades productivas registradas.
+                            </p>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-3">
                                 {currentContent.map((up) => (
                                     <UPPReviewCard
                                         key={up.id}
@@ -123,11 +128,13 @@ export default function ProductorView(){
                         )
                     ) : (
                         loading ? (
-                            <p className="text-gray-500 text-sm">Cargando solicitudes...</p>
+                            <p className="py-8 text-center text-sm text-gray-500">Cargando solicitudes...</p>
                         ) : currentContent.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No tienes solicitudes registradas.</p>
+                            <p className="rounded-xl border border-dashed border-gray-300 bg-[#f4f9f7] py-8 text-center text-sm text-gray-500">
+                                No tienes solicitudes registradas.
+                            </p>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-3">
                                 {currentContent.map((s, i) => (
                                     <UserRequest
                                         key={s.id}
@@ -140,7 +147,7 @@ export default function ProductorView(){
                         )
                     )}
                 </div>
-            </div>
-        </>
+            </section>
+        </div>
     )
 }

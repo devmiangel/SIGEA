@@ -12,6 +12,7 @@ export default function SeccionDescripcion({ form, onChange }) {
                         type="text"
                         value={form.diagnostico_presuntivo ?? ''}
                         onChange={(e) => onChange('diagnostico_presuntivo', e.target.value)}
+                        maxLength={255}
                         className={inputClase}
                     />
                 </div>

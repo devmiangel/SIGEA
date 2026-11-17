@@ -12,7 +12,6 @@ import { getNombreCompleto, getCorreo } from "../../../utils/userDisplay"
 import Swal from 'sweetalert2'
 
 const ROLES = ['Administradores', 'Funcionarios', 'Productores', 'Usuarios']
-const INPUT_CLASE = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
 
 export default function UsersContentAdmin(){
     const navigate = useNavigate()
@@ -84,7 +83,7 @@ export default function UsersContentAdmin(){
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Usuarios del sistema</h3>
                     <p className="text-xs text-gray-500">
@@ -105,13 +104,13 @@ export default function UsersContentAdmin(){
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
                             placeholder="Buscar por nombre o correo..."
-                            className={`${INPUT_CLASE} pl-9`}
+                            className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white pl-9"
                         />
                     </div>
                     <select
                         value={rolFiltro}
                         onChange={(e) => setRolFiltro(e.target.value)}
-                        className={`${INPUT_CLASE} sm:w-60`}
+                        className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-60"
                     >
                         <option value="">Todos los roles</option>
                         {ROLES.map((rol) => (

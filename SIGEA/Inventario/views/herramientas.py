@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.db import transaction
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin
 from rest_framework.decorators import api_view, permission_classes
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 
 from ..models import TiposHerramientas, Herramientas, AsignacionHerramientas
 
+from .utils import ErrorAsignacion, SoloPropiosFuncionarioMixin, administrador_de, funcionario_activo
 from ..serializers import (
     TiposHerramientasSerializer,
     HerramientasSerializer,
@@ -22,46 +24,60 @@ class HerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Herramientas.objects.all()
     serializer_class = HerramientasSerializer
 
-class AsignacionHerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+# Solo lectura: las asignaciones se crean con asignar_herramienta_directo y se
+# cierran con devolver_herramienta.
+class AsignacionHerramientasViewSet(SigeaModelPermissionMixin, SoloPropiosFuncionarioMixin, viewsets.ReadOnlyModelViewSet):
     queryset = AsignacionHerramientas.objects.all()
     serializer_class = AsignacionHerramientasSerializer
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def asignar_herramienta_directo(request, herramienta_id):
-    from Usuarios.models import Funcionarios
-
-    administrador = getattr(request.user, 'administradores', None)
+    administrador = administrador_de(request.user)
     if not administrador:
         return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
 
     try:
-        herramienta = Herramientas.objects.get(pk=herramienta_id)
-    except Herramientas.DoesNotExist:
-        return Response({'error': 'La herramienta no existe'}, status=404)
+        with transaction.atomic():
+            # Se bloquea la herramienta: dos asignaciones simultaneas no pueden
+            # dejarla entregada a dos funcionarios.
+            herramienta = Herramientas.objects.select_for_update().filter(pk=herramienta_id).first()
+            if herramienta is None:
+                raise ErrorAsignacion('La herramienta no existe', 404)
+            if not herramienta.Estado:
+                raise ErrorAsignacion('La herramienta no está disponible')
+            if AsignacionHerramientas.objects.filter(Herramienta=herramienta, Entregado=False).exists():
+                raise ErrorAsignacion('La herramienta ya se encuentra asignada')
 
-    if not herramienta.Estado:
-        return Response({'error': 'La herramienta no está disponible'}, status=400)
-
-    if AsignacionHerramientas.objects.filter(Herramienta=herramienta, Entregado=False).exists():
-        return Response({'error': 'La herramienta ya se encuentra asignada'}, status=400)
-
-    data = request.data
-    funcionario_id = data.get('funcionario_id')
-    if not funcionario_id:
-        return Response({'error': 'Debes seleccionar un funcionario'}, status=400)
-
-    try:
-        funcionario = Funcionarios.objects.get(pk=funcionario_id)
-    except Funcionarios.DoesNotExist:
-        return Response({'error': 'El funcionario seleccionado no existe'}, status=400)
-
-    asignacion = AsignacionHerramientas.objects.create(
-        Herramienta=herramienta,
-        Funcionario=funcionario,
-        Administrador=administrador,
-        FechaAsignacion=date.today(),
-    )
+            funcionario = funcionario_activo(request.data.get('funcionario_id'))
+            asignacion = AsignacionHerramientas.objects.create(
+                Herramienta=herramienta,
+                Funcionario=funcionario,
+                Administrador=administrador,
+                FechaAsignacion=date.today(),
+            )
+    except ErrorAsignacion as exc:
+        return exc.respuesta()
 
     serializer = AsignacionHerramientasSerializer(asignacion)
     return Response(serializer.data, status=201)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def devolver_herramienta(request, asignacion_id):
+    """El administrador registra la devolucion: la herramienta queda disponible."""
+    if not administrador_de(request.user):
+        return Response({'error': 'El usuario autenticado no es un administrador'}, status=403)
+
+    with transaction.atomic():
+        asignacion = AsignacionHerramientas.objects.select_for_update().filter(pk=asignacion_id).first()
+        if asignacion is None:
+            return Response({'error': 'La asignación no existe'}, status=404)
+        if asignacion.Entregado:
+            return Response({'error': 'La herramienta ya fue devuelta'}, status=409)
+        asignacion.Entregado = True
+        asignacion.FechaDevolucion = date.today()
+        asignacion.save(update_fields=['Entregado', 'FechaDevolucion'])
+
+    return Response(AsignacionHerramientasSerializer(asignacion).data)

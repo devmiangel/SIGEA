@@ -1,7 +1,7 @@
 import unicodedata
 
 from rest_framework import viewsets
-from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff
+from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
 from rest_framework.response import Response
 
 from ..models import (
@@ -75,6 +75,15 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
     owner_lookup = 'Solicitud__Usuario'
     queryset = Visitas.objects.all()
     serializer_class = VisitasSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        # Funcionarios (sin rol Administradores) solo ven/editan sus visitas
+        # asignadas; Administradores y superusuario conservan el queryset completo.
+        if es_staff(user) and not usuario_en_grupo(user, 'Administradores'):
+            queryset = queryset.filter(Funcionario__usuario=user)
+        return queryset
 
     def update(self, request, *args, **kwargs):
         from UPs.models import EstadosUP

@@ -107,7 +107,7 @@ export default function InvSourceContentAdmin() {
                     />
                 }
             />
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full overflow-y-hidden">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Insumos del sistema</h3>
                     <p className="text-xs text-gray-500">{insumos.length} insumo(s) registrado(s)</p>

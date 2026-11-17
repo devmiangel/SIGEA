@@ -52,7 +52,6 @@ export default function ReciboPagoForm() {
         pajilla_id: '',
         numero_pajillas: '',
         toro: '',
-        valor_total: '',
         firma_usuario: '',
         firma_funcionario: '',
     })
@@ -82,13 +81,14 @@ export default function ReciboPagoForm() {
             ? (pajillaSeleccionada?.ValorPajilla ?? '')
             : ''
 
-    const valorTotalMaquinaria = useMemo(() => {
-        if (!esMaquinaria) return ''
-        const horas = Number(form.numero_horas)
+    // Vista previa del total: el backend lo recalcula con la tarifa del catálogo
+    // (horas x valor hora / pajillas x valor pajilla).
+    const valorTotalCalculado = useMemo(() => {
+        const cantidad = Number(esMaquinaria ? form.numero_horas : form.numero_pajillas)
         const unit = Number(valorUnitario)
-        if (!Number.isFinite(horas) || horas <= 0 || !Number.isFinite(unit)) return ''
-        return String(horas * unit)
-    }, [esMaquinaria, form.numero_horas, valorUnitario])
+        if (valorUnitario === '' || !Number.isFinite(cantidad) || cantidad <= 0 || !Number.isFinite(unit)) return ''
+        return String(cantidad * unit)
+    }, [esMaquinaria, form.numero_horas, form.numero_pajillas, valorUnitario])
 
     useEffect(() => {
         let activo = true
@@ -161,7 +161,6 @@ export default function ReciboPagoForm() {
             if (!form.pajilla_id) faltantes.push('Pajilla')
             if (!String(form.numero_pajillas ?? '').trim() || Number(form.numero_pajillas) <= 0) faltantes.push('Nº de pajillas')
             if (form.toro === '') faltantes.push('Toro')
-            if (!String(form.valor_total ?? '').trim()) faltantes.push('Valor total')
         } else {
             faltantes.push('Servicio a pagar')
         }
@@ -190,7 +189,6 @@ export default function ReciboPagoForm() {
             pajilla_id: esInseminacion ? form.pajilla_id : null,
             numero_pajillas: esInseminacion ? Number(form.numero_pajillas) : null,
             toro: esInseminacion ? (form.toro === 'si') : null,
-            valor_total: esMaquinaria ? Number(valorTotalMaquinaria) : (esInseminacion ? Number(form.valor_total) : null),
             firma_usuario: form.firma_usuario,
             firma_funcionario: form.firma_funcionario,
         }
@@ -234,7 +232,7 @@ export default function ReciboPagoForm() {
                 colorLogo={'#55bd85'}
             />
 
-            <div className="bg-white min-h-screen rounded-xl m-3 p-4 w-full max-w-full">
+            <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4">
                 {!visita ? (
                     <div className="text-center py-16">
                         <p className="text-gray-500 text-sm mb-4">No se recibió la información de la visita.</p>
@@ -291,7 +289,7 @@ export default function ReciboPagoForm() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <Campo label="Nº horas" name="numero_horas" type="number" min={1} value={form.numero_horas} onChange={onChange} required />
                                     <Campo label="Valor unitario" name="valor_unitario" type="number" value={valorUnitario} onChange={() => {}} disabled />
-                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalMaquinaria} onChange={() => {}} disabled />
+                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalCalculado} onChange={() => {}} disabled />
                                     <div className="flex flex-col gap-1">
                                         <label className={labelClase}>Apero o implemento</label>
                                         <select
@@ -343,7 +341,7 @@ export default function ReciboPagoForm() {
                                         </select>
                                     </div>
                                     <Campo label="Valor unitario" name="valor_unitario" type="number" value={valorUnitario} onChange={() => {}} disabled />
-                                    <Campo label="Valor total" name="valor_total" type="number" min={0} value={form.valor_total} onChange={onChange} required />
+                                    <Campo label="Valor total" name="valor_total" type="number" value={valorTotalCalculado} onChange={() => {}} disabled />
                                 </div>
                             )}
 
@@ -356,22 +354,22 @@ export default function ReciboPagoForm() {
                             {cargando && <p className="text-sm text-gray-500">Cargando servicios y tarifas...</p>}
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:items-center">
                             <button
                                 onClick={() => navigate('/funcionario/agenda')}
-                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                                className="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
                             >
                                 Volver a la agenda
                             </button>
                             {visita?.estado ? (
-                                <span className="px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-semibold">
+                                <span className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-semibold">
                                     Visita completada
                                 </span>
                             ) : (
                                 <button
                                     onClick={finalizar}
                                     disabled={finalizando || cargando}
-                                    className="px-4 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {finalizando ? 'Guardando...' : 'Guardar y finalizar visita'}
                                 </button>

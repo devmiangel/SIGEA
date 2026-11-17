@@ -26,4 +26,6 @@ urlpatterns = [
     path('insumos/<int:insumo_id>/asignar/', asignar_insumo_directo, name='asignar_insumo_directo'),
     path('herramientas/<int:herramienta_id>/asignar/', asignar_herramienta_directo, name='asignar_herramienta_directo'),
     path('detalleVehiculos/<int:detalle_vehiculo_id>/asignar/', asignar_vehiculo_directo, name='asignar_vehiculo_directo'),
+    path('asignacionHerramientas/<int:asignacion_id>/devolver/', devolver_herramienta, name='devolver_herramienta'),
+    path('registroAsignacionVehiculos/<int:asignacion_id>/devolver/', devolver_vehiculo, name='devolver_vehiculo'),
 ] + router.urls
