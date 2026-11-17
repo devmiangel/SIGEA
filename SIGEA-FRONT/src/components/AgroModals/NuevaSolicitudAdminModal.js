@@ -28,7 +28,7 @@ export async function abrirModalNuevaSolicitudAdmin(detail) {
         html: `
             <div style="text-align:left;font-family:'Roboto',sans-serif;">
                 <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:16px;background:#f0fdf9;border:1px solid #e4ece8;border-radius:10px;">
-                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#015d3b,#3e9a8a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">${getIniciales(persona, usuario.email)}</div>
+                    <div style="width:34px;height:34px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">${getIniciales(persona, usuario.email)}</div>
                     <div style="min-width:0;text-align:left;">
                         <p style="margin:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#3e9a8a;">Solicitud para</p>
                         <p style="margin:2px 0 0;font-size:13.5px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreProductor}</p>

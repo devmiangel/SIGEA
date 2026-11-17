@@ -34,7 +34,7 @@ function Bloque({ titulo, subtitulo, icono, estado, children }) {
     return (
         <div className="w-full bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-linear-to-br from-[#015d3b] to-[#3e9a8a] text-white shrink-0 shadow-sm">
+                <div className="flex items-center justify-center w-11 h-11 rounded-full bg-[#005C39] text-white shrink-0 shadow-sm">
                     <Icono sx={{ fontSize: 22, color: '#fff' }} />
                 </div>
                 <div className="flex-1 min-w-0">
