@@ -1,17 +1,15 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import GroupIcon from '@mui/icons-material/Group'
-import SearchIcon from '@mui/icons-material/Search'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import UserPreviewCard from "../../../components/UserPreviewCard/UserPreviewCard"
+import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import { mostrarInfoUsuario } from "../../../components/AgroModals/UsuarioInfoModal"
 import { useUsuarios } from "../../../hooks/useUsuarios"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import { getNombreCompleto, getCorreo } from "../../../utils/userDisplay"
 import Swal from 'sweetalert2'
-
-const ROLES = ['Administradores', 'Funcionarios', 'Productores', 'Usuarios']
 
 export default function UsersContentAdmin(){
     const navigate = useNavigate()
@@ -86,38 +84,33 @@ export default function UsersContentAdmin(){
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Usuarios del sistema</h3>
-                    <p className="text-xs text-gray-500">
-                        {rolFiltro || busqueda.trim()
-                            ? `${usuariosFiltrados.length} de ${usuarios.length} usuario(s)`
-                            : `${usuarios.length} usuario(s) registrado(s)`}
-                    </p>
+                    <p className="text-xs text-gray-500">{usuarios.length} usuario(s) registrado(s)</p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <div className="relative flex-1">
-                        <SearchIcon
-                            fontSize="small"
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        />
-                        <input
-                            type="text"
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            placeholder="Buscar por nombre o correo..."
-                            className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white pl-9"
-                        />
-                    </div>
-                    <select
-                        value={rolFiltro}
-                        onChange={(e) => setRolFiltro(e.target.value)}
-                        className="w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-60"
-                    >
-                        <option value="">Todos los roles</option>
-                        {ROLES.map((rol) => (
-                            <option key={rol} value={rol}>{rol}</option>
-                        ))}
-                    </select>
-                </div>
+                {!loading && !error && usuarios.length > 0 && (
+                    <InventoryFilterBar
+                        search={busqueda}
+                        onSearchChange={setBusqueda}
+                        searchPlaceholder="Buscar por nombre o correo..."
+                        total={usuarios.length}
+                        shown={usuariosFiltrados.length}
+                        onClear={() => { setBusqueda(''); setRolFiltro('') }}
+                        filters={[
+                            {
+                                key: 'rol',
+                                label: 'Rol',
+                                value: rolFiltro,
+                                onChange: setRolFiltro,
+                                options: [
+                                    { value: 'Administradores', label: 'Administradores' },
+                                    { value: 'Funcionarios', label: 'Funcionarios' },
+                                    { value: 'Productores', label: 'Productores' },
+                                    { value: 'Usuarios', label: 'Usuarios' },
+                                ],
+                            },
+                        ]}
+                    />
+                )}
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando usuarios...</p>

@@ -240,12 +240,72 @@ export default function GestionContentEmployee() {
                         </div>
                         <div>
                             <label style="${modalLabelStyle}">Contraseña <span style="color:#dc2626;">*</span></label>
-                            <input id="np-password" type="password" placeholder="Mínimo 6 caracteres" style="${modalInputStyle}">
+                            <input id="np-password" type="password" placeholder="Mínimo 8 caracteres" style="${modalInputStyle}">
+                        </div>
+                        <div style="grid-column:1 / -1; margin-top:-4px;">
+                            <ul style="margin:0; padding:0; list-style:none; font-size:10px; line-height:16px;">
+                                <li id="np-req-len" style="color:#dc2626;">✗ Al menos 8 caracteres</li>
+                                <li id="np-req-num" style="color:#dc2626;">✗ No puede tener solo números: combina letras y números</li>
+                                <li id="np-req-data" style="color:#dc2626;">✗ No debe contener tu nombre, apellido, documento ni correo</li>
+                                <li style="color:#6b7280;">• Evita contraseñas comunes como “12345678”, “password” o “qwerty123”</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             `,
             focusConfirm: false,
+            didOpen: () => {
+                const $ = (id) => document.getElementById(id)
+                const normalizar = (texto) => String(texto ?? '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                const partesPersonales = () => {
+                    const valor = (id) => $(id)?.value?.trim() ?? ''
+                    return [
+                        valor('np-primer-nombre'),
+                        valor('np-segundo-nombre'),
+                        valor('np-primer-apellido'),
+                        valor('np-segundo-apellido'),
+                        valor('np-numero-doc'),
+                        valor('np-email').split('@')[0],
+                    ]
+                        .flatMap((v) => normalizar(v).split(/[\s._\-+]+/))
+                        .filter((parte) => parte.length >= 3)
+                }
+                const pintar = (id, cumple, texto) => {
+                    const el = $(id)
+                    if (!el) return
+                    el.textContent = `${cumple ? '✓' : '✗'} ${texto}`
+                    el.style.color = cumple ? '#015d3b' : '#dc2626'
+                }
+                const actualizar = () => {
+                    const password = $('np-password')?.value ?? ''
+                    const clave = normalizar(password)
+                    pintar('np-req-len', password.length >= 8, 'Al menos 8 caracteres')
+                    pintar(
+                        'np-req-num',
+                        password.length > 0 && !/^\d+$/.test(password),
+                        'No puede tener solo números: combina letras y números'
+                    )
+                    const contiene = partesPersonales().some((parte) => clave.includes(parte))
+                    pintar(
+                        'np-req-data',
+                        password.length > 0 && !contiene,
+                        'No debe contener tu nombre, apellido, documento ni correo'
+                    )
+                }
+                $('np-password')?.addEventListener('input', actualizar)
+                ;[
+                    'np-primer-nombre',
+                    'np-segundo-nombre',
+                    'np-primer-apellido',
+                    'np-segundo-apellido',
+                    'np-numero-doc',
+                    'np-email',
+                ].forEach((id) => $(id)?.addEventListener('input', actualizar))
+                actualizar()
+            },
             showCancelButton: true,
             confirmButtonText: 'Crear productor',
             cancelButtonText: 'Cancelar',
@@ -265,8 +325,35 @@ export default function GestionContentEmployee() {
                     Swal.showValidationMessage('Todos los campos con * son obligatorios')
                     return false
                 }
-                if (password.length < 6) {
-                    Swal.showValidationMessage('La contraseña debe tener al menos 6 caracteres')
+                if (password.length < 8) {
+                    Swal.showValidationMessage('La contraseña debe tener al menos 8 caracteres')
+                    return false
+                }
+                if (/^\d+$/.test(password)) {
+                    Swal.showValidationMessage('La contraseña no puede ser solo números')
+                    return false
+                }
+                const normalizar = (texto) => String(texto ?? '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                const partes = [
+                    primer_nombre,
+                    val('np-segundo-nombre'),
+                    primer_apellido,
+                    val('np-segundo-apellido'),
+                    numero_documento,
+                    email.split('@')[0],
+                ]
+                    .flatMap((v) => normalizar(v).split(/[\s._\-+]+/))
+                    .filter((parte) => parte.length >= 3)
+                if (partes.some((parte) => normalizar(password).includes(parte))) {
+                    Swal.showValidationMessage('La contraseña no debe contener tus datos personales')
+                    return false
+                }
+                const comunes = ['12345678', 'password', 'qwerty123']
+                if (comunes.includes(password.toLowerCase())) {
+                    Swal.showValidationMessage('Elige una contraseña menos común')
                     return false
                 }
 

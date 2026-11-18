@@ -255,8 +255,31 @@ class AdministradoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, view
 
 class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
     owner_lookup = 'usuario'
-    queryset = Productores.objects.all()
+    queryset = Productores.objects.select_related('usuario__persona').prefetch_related('up_set')
     serializer_class = ProductoresSerializer
+
+    @action(detail=True, methods=['get'])
+    def detalle(self, request, pk=None):
+        """Productor + persona + contactos + UPs asociadas (solo staff)."""
+        from UPs.models import UP
+        from UPs.serializers import UPSerializer
+        from ..serializers import PersonaBasicaSerializer
+
+        productor = self.get_object()
+        persona = getattr(productor.usuario, 'persona', None)
+        data = self.get_serializer(productor).data
+        data['persona'] = PersonaBasicaSerializer(persona).data if persona else None
+        data['contactos'] = (
+            ContactosSerializer(persona.contactos.all(), many=True).data
+            if persona else []
+        )
+        data['ups'] = UPSerializer(
+            UP.objects.filter(Productor=productor).select_related(
+                'Predio', 'idEstado', 'TipoUP'
+            ),
+            many=True,
+        ).data
+        return Response(data)
 
 class TiposContactosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposContactos.objects.all()

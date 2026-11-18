@@ -20,6 +20,9 @@ import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 import VisitasContentAdmin from "../pages/Content/adminContent/VisitasContentAdmin";
 import EventosContentAdmin from "../pages/Content/adminContent/EventosContentAdmin";
 import EventoFormContentAdmin from "../pages/Content/adminContent/EventoFormContentAdmin";
+import ProductoresContentAdmin from "../pages/Content/adminContent/ProductoresContentAdmin";
+import ProductorDetailContentAdmin from "../pages/Content/adminContent/ProductorDetailContentAdmin";
+import UPAdminDetailContentAdmin from "../pages/Content/adminContent/UPAdminDetailContentAdmin";
 
 import InvSourceContentAdmin from "../pages/Content/adminContent/InvSourceConetn";
 import SolicitudesInsumoContentAdmin from "../pages/Content/adminContent/SolicitudesInsumoContentAdmin";
@@ -61,6 +64,9 @@ export default function SigeaRoutes(){
                 <Route path="usuarios" element={<UsersContentAdmin/>}/> 
                 <Route path="usuarios/nuevo" element={<UserFormContentAdmin/>}/> 
                 <Route path="usuarios/editar/:usuarioId" element={<UserFormContentAdmin/>}/> 
+                <Route path="productores" element={<ProductoresContentAdmin/>}/>
+                <Route path="productores/:productorId" element={<ProductorDetailContentAdmin/>}/>
+                <Route path="productores/:productorId/up/:upId" element={<UPAdminDetailContentAdmin/>}/>
                 <Route path="validacion-ups" element={<UpValidationAdmin/>}/> 
                 <Route path="visitas" element={<VisitasContentAdmin/>}/> 
                 <Route path="eventos" element={<EventosContentAdmin/>}/> 

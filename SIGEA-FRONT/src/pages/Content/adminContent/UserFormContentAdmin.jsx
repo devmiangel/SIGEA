@@ -14,6 +14,7 @@ import {
     passwordConfirmRules,
 } from '../../../utils/validationRules'
 import { AGRO_COLORS } from '../../../utils/agroConstants'
+import { PasswordRequirements } from '../../secure/components/PasswordRequirements'
 import { API_BASE_URL } from '../../../services/api'
 import OtherCalendar from '../../../components/calendar/OtherCalendar'
 
@@ -100,7 +101,7 @@ export default function UserFormContentAdmin() {
     }, [])
 
     return (
-        <div className="w-full max-w-full flex flex-col items-center">
+        <div className="w-full max-w-full">
             <Header
                 componentLogo={
                     esEdicion
@@ -129,8 +130,15 @@ export default function UserFormContentAdmin() {
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando información del usuario...</p>
                 ) : (
-                    <form onSubmit={submitRegister} className="max-w-4xl">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <form onSubmit={submitRegister} className="w-full space-y-6">
+                        <section className="rounded-xl border border-gray-200 p-4 sm:p-5">
+                            <div className="mb-4 border-b border-gray-100 pb-3">
+                                <h4 className="text-sm font-semibold text-[#015d3b]">Datos personales</h4>
+                                <p className="text-xs text-gray-500">
+                                    Información de identificación y contacto del usuario.
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <CampoRegistro label="Primer nombre" required error={errors.primer_nombre?.message}>
                                 <input
                                     {...register('primer_nombre', nameFieldRules({ required: true }))}
@@ -215,8 +223,18 @@ export default function UserFormContentAdmin() {
                                 />
                             </CampoRegistro>
 
-                            {esEdicion && (
-                                <>
+                            </div>
+                        </section>
+
+                        {esEdicion && (
+                            <section className="rounded-xl border border-gray-200 p-4 sm:p-5">
+                                <div className="mb-4 border-b border-gray-100 pb-3">
+                                    <h4 className="text-sm font-semibold text-[#015d3b]">Rol y estado</h4>
+                                    <p className="text-xs text-gray-500">
+                                        Rol asignado y datos de conductor, si aplica.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <CampoRegistro label="Estado" required error={errors.Estado?.message}>
                                         <select {...register('Estado')} className={INPUT_CLASE}>
                                             <option value="true">Activo</option>
@@ -265,9 +283,22 @@ export default function UserFormContentAdmin() {
                                             <span className="text-xs text-red-500">{errors.licencia.message}</span>
                                         )}
                                     </div>
-                                </>
-                            )}
+                                </div>
+                            </section>
+                        )}
 
+                        <section className="rounded-xl border border-gray-200 p-4 sm:p-5">
+                            <div className="mb-4 border-b border-gray-100 pb-3">
+                                <h4 className="text-sm font-semibold text-[#015d3b]">
+                                    {esEdicion ? 'Cambiar contraseña' : 'Contraseña de acceso'}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                    {esEdicion
+                                        ? 'Déjala en blanco si no deseas cambiarla.'
+                                        : 'Define la contraseña inicial del usuario.'}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <CampoRegistro
                                 label="Contraseña"
                                 required={!esEdicion}
@@ -277,7 +308,7 @@ export default function UserFormContentAdmin() {
                                     {...register('password', esEdicion ? passwordEditRules : passwordRules)}
                                     type="password"
                                     className={INPUT_CLASE}
-                                    placeholder={esEdicion ? 'Dejar en blanco para no cambiar' : 'Mínimo 6 caracteres'}
+                                    placeholder={esEdicion ? 'Dejar en blanco para no cambiar' : 'Mínimo 8 caracteres'}
                                 />
                             </CampoRegistro>
 
@@ -293,7 +324,22 @@ export default function UserFormContentAdmin() {
                                     placeholder="Repite la contraseña"
                                 />
                             </CampoRegistro>
-                        </div>
+
+                            <div className="sm:col-span-2">
+                                <PasswordRequirements
+                                    password={watch('password') || ''}
+                                    datosPersonales={[
+                                        watch('primer_nombre'),
+                                        watch('segundo_nombre'),
+                                        watch('primer_apellido'),
+                                        watch('segundo_apellido'),
+                                        watch('numero_documento'),
+                                        (watch('email') || '').split('@')[0],
+                                    ]}
+                                />
+                            </div>
+                            </div>
+                        </section>
 
                         {error && (
                             <p className="mt-4 px-3 py-2 rounded-md bg-red-50 text-red-600 text-sm">{error}</p>

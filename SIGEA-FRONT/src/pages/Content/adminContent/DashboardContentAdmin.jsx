@@ -2,15 +2,16 @@ import MenuCard from '../../../components/MenuCard/MenuCard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import GroupIcon from '@mui/icons-material/Group';
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import AgricultureIcon from '@mui/icons-material/Agriculture';
 import EventIcon from '@mui/icons-material/Event';
 
 
 
 export default function DashboardContentAdmin(){
     return(
-        <>
-            <MenuCard 
+        <div className="grid w-full max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <InventoryIcon sx={{fontSize: 40}}/>
                 } 
@@ -20,17 +21,30 @@ export default function DashboardContentAdmin(){
                 colorLogo={'#3e9a8a'}
             />
 
-            <MenuCard 
+            <MenuCard
+                className="w-full h-full m-0"
+                componentLogo={
+                    <AgricultureIcon sx={{fontSize: 40}}/>
+                } 
+                title={'Productores'} 
+                message={'Consulta productores, sus UPs y caracterizaciones'} 
+                path={'/administrador/productores'} 
+                colorLogo={'#55bd85'}
+            />
+
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <CalendarMonthIcon sx={{fontSize: 40}}/>
                 } 
                 title={'Horarios'} 
-                message={'Realiza la asignacion de las visitas'} 
+                message={'Realiza la asignación de las visitas'} 
                 path={'/administrador/horarios'} 
                 colorLogo={'#55bd85'}
             />
 
-            <MenuCard 
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <GroupIcon sx={{fontSize: 40}}/>
                 } 
@@ -39,7 +53,8 @@ export default function DashboardContentAdmin(){
                 path={'/administrador/usuarios'} 
                 colorLogo={'#9ebd57'}/>
 
-            <MenuCard 
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <EventIcon sx={{fontSize: 40}}/>
                 } 
@@ -58,6 +73,6 @@ export default function DashboardContentAdmin(){
                 path={'/administrador/reportes'} 
                 colorLogo={'#7ebcab'}
             /> */}
-        </>
+        </div>
     )
 }

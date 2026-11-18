@@ -47,8 +47,14 @@ export const SidebarData = [
     }, 
      {
         title: 'Usuarios',
-        icon: <GroupIcon/>, 
+        icon: <GroupIcon/>,
         link: '/administrador/usuarios', 
+        roles: ['Administradores']
+    }, 
+    {
+        title: 'Productores',
+        icon: <AgricultureIcon/>,
+        link: '/administrador/productores', 
         roles: ['Administradores']
     }, 
      {

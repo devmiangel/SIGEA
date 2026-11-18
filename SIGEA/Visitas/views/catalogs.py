@@ -1,5 +1,6 @@
 import unicodedata
 
+from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
 from rest_framework.response import Response
@@ -83,6 +84,21 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         # asignadas; Administradores y superusuario conservan el queryset completo.
         if es_staff(user) and not usuario_en_grupo(user, 'Administradores'):
             queryset = queryset.filter(Funcionario__usuario=user)
+
+        params = self.request.query_params
+        up_id = params.get('up_id')
+        productor_id = params.get('productor_id')
+        if up_id and str(up_id).isdigit():
+            queryset = queryset.filter(Solicitud__UP_id=int(up_id))
+        if productor_id and str(productor_id).isdigit():
+            queryset = queryset.filter(Solicitud__UP__Productor_id=int(productor_id))
+
+        desde = parse_date(params.get('desde') or '')
+        hasta = parse_date(params.get('hasta') or '')
+        if desde:
+            queryset = queryset.filter(FechaYHoraVisita__date__gte=desde)
+        if hasta:
+            queryset = queryset.filter(FechaYHoraVisita__date__lte=hasta)
         return queryset
 
     def update(self, request, *args, **kwargs):
