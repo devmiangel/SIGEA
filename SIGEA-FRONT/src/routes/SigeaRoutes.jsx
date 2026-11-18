@@ -73,8 +73,10 @@ export default function SigeaRoutes(){
                 <Route path='inventario/insumos/actualizar/:insumoId' element={<InsumoFormContentAdmin/>}/>
                 <Route path='inventario/herramientas' element={<InvToolsContentAdmin/>}/>
                 <Route path='inventario/herramientas/nuevo' element={<HerramientaFormContentAdmin/>}/>
+                <Route path='inventario/herramientas/editar/:herramientaId' element={<HerramientaFormContentAdmin/>}/>
                 <Route path='inventario/vehiculos' element={<InvVehicleContentAdmin/>}/>
                 <Route path='inventario/vehiculos/nuevo' element={<InvVehicleFormContentAdmin/>}/>
+                <Route path='inventario/vehiculos/editar/:vehiculoId' element={<InvVehicleFormContentAdmin/>}/>
             </Route>
 
             <Route path="/funcionario" element={

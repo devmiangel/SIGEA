@@ -9,20 +9,67 @@ from rest_framework.response import Response
 
 from ..models import TiposHerramientas, Herramientas, AsignacionHerramientas
 
-from .utils import ErrorAsignacion, SoloPropiosFuncionarioMixin, administrador_de, funcionario_activo
+from .utils import (
+    CatalogoUnicoMixin,
+    Conflicto,
+    ErrorAsignacion,
+    SoloPropiosFuncionarioMixin,
+    administrador_de,
+    funcionario_activo,
+)
 from ..serializers import (
     TiposHerramientasSerializer,
     HerramientasSerializer,
     AsignacionHerramientasSerializer,
 )
 
-class TiposHerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
+class TiposHerramientasViewSet(CatalogoUnicoMixin, SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposHerramientas.objects.all()
     serializer_class = TiposHerramientasSerializer
+    campos_unicos = ('TipoHerramienta',)
+    prefijo_clave = 'tipo_herramienta'
 
 class HerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = Herramientas.objects.all()
     serializer_class = HerramientasSerializer
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            herramienta = Herramientas.objects.select_for_update().get(
+                pk=serializer.instance.pk
+            )
+            nuevo_estado = serializer.validated_data.get('Estado', herramienta.Estado)
+            if nuevo_estado is False and AsignacionHerramientas.objects.filter(
+                Herramienta=herramienta, Entregado=False
+            ).exists():
+                raise Conflicto(
+                    'No se puede desactivar una herramienta con una asignación activa.'
+                )
+            serializer.save()
+
+    def destroy(self, request, *args, **kwargs):
+        with transaction.atomic():
+            herramienta = Herramientas.objects.select_for_update().filter(
+                pk=kwargs['pk']
+            ).first()
+            if herramienta is None:
+                return Response({'detail': 'No encontrado.'}, status=404)
+
+            asignaciones = AsignacionHerramientas.objects.filter(
+                Herramienta=herramienta
+            )
+            if asignaciones.filter(Entregado=False).exists():
+                raise Conflicto(
+                    'No se puede eliminar una herramienta con una asignación activa.'
+                )
+            if asignaciones.exists():
+                herramienta.Estado = False
+                herramienta.save(update_fields=['Estado'])
+                return Response({
+                    'detail': 'La herramienta tiene historial; se desactivó en lugar de eliminarse.',
+                })
+            herramienta.delete()
+        return Response(status=204)
 
 # Solo lectura: las asignaciones se crean con asignar_herramienta_directo y se
 # cierran con devolver_herramienta.

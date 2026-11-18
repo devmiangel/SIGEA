@@ -1,13 +1,15 @@
 import HandymanIcon from '@mui/icons-material/Handyman'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import HerramientaPreviewCard from "../../../components/HerramientaPreviewCard/HerramientaPreviewCard"
+import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import { useHerramientas } from "../../../hooks/useHerramientas"
-import { getFuncionarios, asignarHerramientaDirecto, getAsignacionHerramientas, devolverHerramienta } from "../../../services/agroService"
+import { getFuncionarios, asignarHerramientaDirecto, getAsignacionHerramientas, devolverHerramienta, getTiposHerramientas } from "../../../services/agroService"
 import { abrirModalAsignarHerramienta } from "../../../components/AgroModals/AsignarHerramientaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
+import { esRegistroActivo } from "../../../utils/insumoHelpers"
 import Swal from 'sweetalert2'
 
 export default function InvToolsContentAdmin() {
@@ -16,6 +18,11 @@ export default function InvToolsContentAdmin() {
 
     // Asignaciones vigentes (sin devolver), indexadas por herramienta.
     const [asignaciones, setAsignaciones] = useState({})
+    const [tipos, setTipos] = useState([])
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroTipo, setFiltroTipo] = useState('')
+    const [filtroEstado, setFiltroEstado] = useState('')
+    const [filtroDisponibilidad, setFiltroDisponibilidad] = useState('')
 
     const cargarAsignaciones = useCallback(async () => {
         try {
@@ -35,6 +42,14 @@ export default function InvToolsContentAdmin() {
         ;(async () => { if (activo) await cargarAsignaciones() })()
         return () => { activo = false }
     }, [cargarAsignaciones])
+
+    useEffect(() => {
+        let activo = true
+        getTiposHerramientas()
+            .then((data) => { if (activo) setTipos(data ?? []) })
+            .catch(() => {})
+        return () => { activo = false }
+    }, [])
 
     const handleDevolver = async (herramienta, asignacion) => {
         const confirmacion = await Swal.fire({
@@ -99,12 +114,7 @@ export default function InvToolsContentAdmin() {
     }
 
     const handleEditar = (herramienta) => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Editar herramienta',
-            text: `El formulario de edición de "${herramienta?.Herramienta}" estará disponible a continuación.`,
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate(`/administrador/inventario/herramientas/editar/${herramienta.id}`)
     }
 
     const handleEliminar = async (herramienta) => {
@@ -139,6 +149,33 @@ export default function InvToolsContentAdmin() {
         }
     }
 
+    const opcionesTipo = useMemo(
+        () => tipos.map((tipo) => ({ value: String(tipo.id), label: tipo.TipoHerramienta })),
+        [tipos]
+    )
+
+    const herramientasFiltradas = useMemo(() => {
+        const q = busqueda.trim().toLowerCase()
+        return herramientas.filter((herramienta) => {
+            const texto = `${herramienta.Herramienta ?? ''} ${herramienta.Descripcion ?? ''}`.toLowerCase()
+            const coincideTexto = !q || texto.includes(q)
+            const coincideTipo = !filtroTipo || String(herramienta.TipoHerramienta) === filtroTipo
+            const activo = esRegistroActivo(herramienta)
+            const coincideEstado = !filtroEstado || (filtroEstado === 'activo' ? activo : !activo)
+            const asignada = Boolean(asignaciones[herramienta.id])
+            const coincideDisponibilidad = !filtroDisponibilidad
+                || (filtroDisponibilidad === 'asignada' ? asignada : !asignada)
+            return coincideTexto && coincideTipo && coincideEstado && coincideDisponibilidad
+        })
+    }, [herramientas, busqueda, filtroTipo, filtroEstado, filtroDisponibilidad, asignaciones])
+
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setFiltroTipo('')
+        setFiltroEstado('')
+        setFiltroDisponibilidad('')
+    }
+
     return (
         <>
             <Header
@@ -170,19 +207,64 @@ export default function InvToolsContentAdmin() {
                 ) : herramientas.length === 0 ? (
                     <p className="text-gray-500 text-sm">No hay herramientas registradas en el sistema.</p>
                 ) : (
-                    <div className="space-y-3">
-                        {herramientas.map((herramienta) => (
-                            <HerramientaPreviewCard
-                                key={herramienta.id}
-                                herramienta={herramienta}
-                                onEdit={handleEditar}
-                                onDelete={handleEliminar}
-                                onAsignar={handleAsignar}
-                                asignacion={asignaciones[herramienta.id]}
-                                onDevolver={handleDevolver}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <InventoryFilterBar
+                            search={busqueda}
+                            onSearchChange={setBusqueda}
+                            searchPlaceholder="Buscar por nombre o descripción..."
+                            total={herramientas.length}
+                            shown={herramientasFiltradas.length}
+                            onClear={limpiarFiltros}
+                            filters={[
+                                {
+                                    key: 'tipo',
+                                    label: 'Tipo',
+                                    value: filtroTipo,
+                                    onChange: setFiltroTipo,
+                                    options: opcionesTipo,
+                                },
+                                {
+                                    key: 'estado',
+                                    label: 'Estado',
+                                    value: filtroEstado,
+                                    onChange: setFiltroEstado,
+                                    options: [
+                                        { value: 'activo', label: 'Activos' },
+                                        { value: 'inactivo', label: 'Inactivos' },
+                                    ],
+                                },
+                                {
+                                    key: 'disponibilidad',
+                                    label: 'Disponibilidad',
+                                    value: filtroDisponibilidad,
+                                    onChange: setFiltroDisponibilidad,
+                                    options: [
+                                        { value: 'disponible', label: 'Disponibles' },
+                                        { value: 'asignada', label: 'Asignadas' },
+                                    ],
+                                },
+                            ]}
+                        />
+                        {herramientasFiltradas.length === 0 ? (
+                            <p className="text-gray-500 text-sm">
+                                No hay herramientas que coincidan con la búsqueda o los filtros.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {herramientasFiltradas.map((herramienta) => (
+                                    <HerramientaPreviewCard
+                                        key={herramienta.id}
+                                        herramienta={herramienta}
+                                        onEdit={handleEditar}
+                                        onDelete={handleEliminar}
+                                        onAsignar={handleAsignar}
+                                        asignacion={asignaciones[herramienta.id]}
+                                        onDevolver={handleDevolver}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </>

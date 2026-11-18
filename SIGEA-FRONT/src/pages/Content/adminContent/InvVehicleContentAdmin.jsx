@@ -1,14 +1,29 @@
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import DriveEtaIcon from '@mui/icons-material/DriveEta'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import VehiculoPreviewCard from "../../../components/VehiculoPreviewCard/VehiculoPreviewCard"
+import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import { useVehiculos } from "../../../hooks/useVehiculos"
 import { getFuncionarios, getConductores, asignarVehiculoDirecto, getRegistroAsignacionVehiculos, devolverVehiculo } from "../../../services/agroService"
 import { abrirModalAsignarVehiculo } from "../../../components/AgroModals/AsignarVehiculoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
+import { esRegistroActivo } from "../../../utils/insumoHelpers"
 import Swal from 'sweetalert2'
+
+function estadoSoat(fecha) {
+    if (!fecha) return 'sin'
+    const [anio, mes, dia] = String(fecha).split('-').map(Number)
+    if (!anio || !mes || !dia) return 'sin'
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    const vence = new Date(anio, mes - 1, dia)
+    const dias = Math.ceil((vence - hoy) / 86400000)
+    if (dias < 0) return 'vencido'
+    if (dias <= 30) return 'por_vencer'
+    return 'vigente'
+}
 
 export default function InvVehicleContentAdmin() {
     const { vehiculos, loading, error, eliminar, refresh } = useVehiculos()
@@ -16,6 +31,14 @@ export default function InvVehicleContentAdmin() {
 
     // Asignaciones vigentes (sin devolver), indexadas por vehículo.
     const [asignaciones, setAsignaciones] = useState({})
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroEstado, setFiltroEstado] = useState('')
+    const [filtroDisponibilidad, setFiltroDisponibilidad] = useState('')
+    const [filtroMarca, setFiltroMarca] = useState('')
+    const [filtroLinea, setFiltroLinea] = useState('')
+    const [filtroTipo, setFiltroTipo] = useState('')
+    const [filtroCombustible, setFiltroCombustible] = useState('')
+    const [filtroSoat, setFiltroSoat] = useState('')
 
     const cargarAsignaciones = useCallback(async () => {
         try {
@@ -109,12 +132,7 @@ export default function InvVehicleContentAdmin() {
     }
 
     const handleEditar = (vehiculo) => {
-        Swal.fire({
-            icon: 'info',
-            title: 'Editar vehículo',
-            text: `El formulario de edición del vehículo "${vehiculo?.Placa}" estará disponible a continuación.`,
-            confirmButtonColor: AGRO_COLORS.primary
-        })
+        navigate(`/administrador/inventario/vehiculos/editar/${vehiculo.id}`)
     }
 
     const handleEliminar = async (vehiculo) => {
@@ -149,6 +167,74 @@ export default function InvVehicleContentAdmin() {
         }
     }
 
+    const opciones = useMemo(() => {
+        const unicos = (campo) => [...new Set(
+            vehiculos.map((vehiculo) => vehiculo[campo]).filter(Boolean)
+        )].sort((a, b) => String(a).localeCompare(String(b)))
+        const aOpciones = (valores) => valores.map((valor) => ({
+            value: String(valor),
+            label: String(valor),
+        }))
+        return {
+            marcas: aOpciones(unicos('MarcaVehiculo')),
+            lineas: aOpciones(unicos('LineaVehiculo')),
+            tipos: aOpciones(unicos('TipoVehiculo')),
+            combustibles: aOpciones(unicos('TipoCombustible')),
+        }
+    }, [vehiculos])
+
+    const vehiculosFiltrados = useMemo(() => {
+        const q = busqueda.trim().toLowerCase()
+        return vehiculos.filter((vehiculo) => {
+            const texto = [
+                vehiculo.Placa,
+                vehiculo.Modelo,
+                vehiculo.Descripcion,
+                vehiculo.MarcaVehiculo,
+                vehiculo.LineaVehiculo,
+                vehiculo.TipoVehiculo,
+                vehiculo.TipoCombustible,
+            ].filter(Boolean).join(' ').toLowerCase()
+            const coincideTexto = !q || texto.includes(q)
+            const activo = esRegistroActivo(vehiculo)
+            const coincideEstado = !filtroEstado || (filtroEstado === 'activo' ? activo : !activo)
+            const asignado = Boolean(asignaciones[vehiculo.id])
+            const coincideDisponibilidad = !filtroDisponibilidad
+                || (filtroDisponibilidad === 'asignado' ? asignado : !asignado)
+            const coincideMarca = !filtroMarca || vehiculo.MarcaVehiculo === filtroMarca
+            const coincideLinea = !filtroLinea || vehiculo.LineaVehiculo === filtroLinea
+            const coincideTipo = !filtroTipo || vehiculo.TipoVehiculo === filtroTipo
+            const coincideCombustible = !filtroCombustible
+                || vehiculo.TipoCombustible === filtroCombustible
+            const coincideSoat = !filtroSoat || estadoSoat(vehiculo.FechaSoat) === filtroSoat
+            return coincideTexto && coincideEstado && coincideDisponibilidad
+                && coincideMarca && coincideLinea && coincideTipo
+                && coincideCombustible && coincideSoat
+        })
+    }, [
+        vehiculos,
+        busqueda,
+        filtroEstado,
+        filtroDisponibilidad,
+        filtroMarca,
+        filtroLinea,
+        filtroTipo,
+        filtroCombustible,
+        filtroSoat,
+        asignaciones,
+    ])
+
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setFiltroEstado('')
+        setFiltroDisponibilidad('')
+        setFiltroMarca('')
+        setFiltroLinea('')
+        setFiltroTipo('')
+        setFiltroCombustible('')
+        setFiltroSoat('')
+    }
+
     return (
         <>
             <Header
@@ -180,19 +266,96 @@ export default function InvVehicleContentAdmin() {
                 ) : vehiculos.length === 0 ? (
                     <p className="text-gray-500 text-sm">No hay vehículos registrados en el sistema.</p>
                 ) : (
-                    <div className="space-y-3">
-                        {vehiculos.map((vehiculo) => (
-                            <VehiculoPreviewCard
-                                key={vehiculo.id}
-                                vehiculo={vehiculo}
-                                onEdit={handleEditar}
-                                onDelete={handleEliminar}
-                                onAsignar={handleAsignar}
-                                asignacion={asignaciones[vehiculo.id]}
-                                onDevolver={handleDevolver}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <InventoryFilterBar
+                            search={busqueda}
+                            onSearchChange={setBusqueda}
+                            searchPlaceholder="Buscar por placa, modelo, marca o línea..."
+                            total={vehiculos.length}
+                            shown={vehiculosFiltrados.length}
+                            onClear={limpiarFiltros}
+                            filters={[
+                                {
+                                    key: 'marca',
+                                    label: 'Marca',
+                                    value: filtroMarca,
+                                    onChange: setFiltroMarca,
+                                    options: opciones.marcas,
+                                },
+                                {
+                                    key: 'linea',
+                                    label: 'Línea',
+                                    value: filtroLinea,
+                                    onChange: setFiltroLinea,
+                                    options: opciones.lineas,
+                                },
+                                {
+                                    key: 'tipo',
+                                    label: 'Tipo',
+                                    value: filtroTipo,
+                                    onChange: setFiltroTipo,
+                                    options: opciones.tipos,
+                                },
+                                {
+                                    key: 'combustible',
+                                    label: 'Combustible',
+                                    value: filtroCombustible,
+                                    onChange: setFiltroCombustible,
+                                    options: opciones.combustibles,
+                                },
+                                {
+                                    key: 'estado',
+                                    label: 'Estado',
+                                    value: filtroEstado,
+                                    onChange: setFiltroEstado,
+                                    options: [
+                                        { value: 'activo', label: 'Activos' },
+                                        { value: 'inactivo', label: 'Inactivos' },
+                                    ],
+                                },
+                                {
+                                    key: 'disponibilidad',
+                                    label: 'Disponibilidad',
+                                    value: filtroDisponibilidad,
+                                    onChange: setFiltroDisponibilidad,
+                                    options: [
+                                        { value: 'disponible', label: 'Disponibles' },
+                                        { value: 'asignado', label: 'Asignados' },
+                                    ],
+                                },
+                                {
+                                    key: 'soat',
+                                    label: 'SOAT',
+                                    value: filtroSoat,
+                                    onChange: setFiltroSoat,
+                                    options: [
+                                        { value: 'vigente', label: 'Vigente' },
+                                        { value: 'por_vencer', label: 'Por vencer (≤ 30 días)' },
+                                        { value: 'vencido', label: 'Vencido' },
+                                    ],
+                                },
+                            ]}
+                        />
+                        {vehiculosFiltrados.length === 0 ? (
+                            <p className="text-gray-500 text-sm">
+                                No hay vehículos que coincidan con la búsqueda o los filtros.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {vehiculosFiltrados.map((vehiculo) => (
+                                    <VehiculoPreviewCard
+                                        key={vehiculo.id}
+                                        vehiculo={vehiculo}
+                                        onEdit={handleEditar}
+                                        onDelete={handleEliminar}
+                                        onAsignar={handleAsignar}
+                                        asignacion={asignaciones[vehiculo.id]}
+                                        onDevolver={handleDevolver}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </>
