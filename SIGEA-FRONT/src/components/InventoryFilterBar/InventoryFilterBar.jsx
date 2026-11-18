@@ -15,8 +15,8 @@ export default function InventoryFilterBar({
 
     return (
         <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:p-4">
-            <div className="flex flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-end">
-                <div className="min-w-0 flex-1 basis-64">
+            <div className="flex flex-wrap items-end gap-3">
+                <div className="w-full min-w-0 lg:w-auto lg:flex-1 lg:basis-64">
                     <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Buscar
                     </label>
@@ -36,7 +36,10 @@ export default function InventoryFilterBar({
                 </div>
 
                 {filters.map((filtro) => (
-                    <div key={filtro.key} className="min-w-[9.5rem] flex-1 sm:flex-none">
+                    <div
+                        key={filtro.key}
+                        className="w-full min-w-0 sm:w-[calc(50%-0.375rem)] lg:w-auto lg:min-w-[9.5rem] lg:flex-1 xl:w-[11rem] xl:flex-none"
+                    >
                         <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                             {filtro.label}
                         </label>
@@ -55,7 +58,7 @@ export default function InventoryFilterBar({
                     </div>
                 ))}
 
-                <div className="flex items-center justify-between gap-2 xl:ml-auto">
+                <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:ml-auto">
                     <span className="whitespace-nowrap text-xs text-gray-500">
                         {shown} de {total}
                     </span>

@@ -30,6 +30,21 @@ export const getUPs = async () => {
     return response.data;
 }
 
+export const getUP = async (upId) => {
+    const response = await api.get(`/UPs/UPs/${upId}/`);
+    return response.data;
+}
+
+export const getProductores = async () => {
+    const response = await api.get('/usuarios/productores/');
+    return response.data;
+}
+
+export const getProductorDetalle = async (productorId) => {
+    const response = await api.get(`/usuarios/productores/${productorId}/detalle/`);
+    return response.data;
+}
+
 export const getEventos = async () => {
     const response = await api.get('/UPs/eventosUP/');
     return response.data;
@@ -115,8 +130,8 @@ export const enviarFormularioRecibo = async (data) => {
     return response.data;
 }
 
-export const getVisitas = async () => {
-    const response = await api.get('/visitas/visitas/');
+export const getVisitas = async (params = {}) => {
+    const response = await api.get('/visitas/visitas/', { params });
     return response.data;
 }
 
@@ -427,4 +442,21 @@ export const descargarArchivoUP = async (archivoId) => {
     const disposition = response.headers['content-disposition'] || ''
     const match = disposition.match(/filename="?([^"]+)"?/)
     return { blob: response.data, nombreArchivo: match ? match[1] : `archivo_${archivoId}` }
+}
+
+export const getArchivosUP = async (upId) => {
+    const response = await api.get('/UPs/archivosUP/', { params: { UP: upId } });
+    return response.data;
+}
+
+export const descargarCaracterizacionUP = async (upId) => {
+    const response = await api.get(`/documentos/up/${upId}/caracterizacion/`, {
+        responseType: 'blob',
+    });
+    const disposition = response.headers?.['content-disposition'] ?? ''
+    const match = disposition.match(/filename="?([^";]+)"?/)
+    return {
+        blob: response.data,
+        nombreArchivo: match ? match[1] : `caracterizacion_up_${upId}.pdf`,
+    }
 }

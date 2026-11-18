@@ -5,8 +5,9 @@ import InterestsIcon from '@mui/icons-material/Interests';
 
 export default function InventaryContentAdmin(){
     return(
-        <>
-             <MenuCard 
+        <div className="grid w-full max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <InterestsIcon sx={{fontSize: 40}}/>
                 } 
@@ -16,7 +17,8 @@ export default function InventaryContentAdmin(){
                 colorLogo={'#3e9a8a'}
             />
 
-            <MenuCard 
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <HandymanIcon sx={{fontSize: 40}}/>
                 } 
@@ -26,7 +28,8 @@ export default function InventaryContentAdmin(){
                 colorLogo={'#3e9a8a'}
             />
 
-            <MenuCard 
+            <MenuCard
+                className="w-full h-full m-0"
                 componentLogo={
                     <DriveEtaIcon sx={{fontSize: 40}}/>
                 } 
@@ -34,6 +37,6 @@ export default function InventaryContentAdmin(){
                 message={'Gestiona los vehiculos'} 
                 path={'/administrador/inventario/vehiculos'} 
                 colorLogo={'#3e9a8a'}/>
-        </>
+        </div>
     )
 }

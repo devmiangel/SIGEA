@@ -341,7 +341,7 @@ export default function InvVehicleContentAdmin() {
                                 No hay vehículos que coincidan con la búsqueda o los filtros.
                             </p>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
                                 {vehiculosFiltrados.map((vehiculo) => (
                                     <VehiculoPreviewCard
                                         key={vehiculo.id}

@@ -65,3 +65,44 @@ def generar_documento_visita(request, visita_id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
     return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generar_caracterizacion_up(request, up_id):
+    """Genera el PDF de caracterizacion de la ultima visita de caracterizacion de una UP."""
+    from UPs.models import UP
+
+    up = get_object_or_404(UP, id=up_id)
+    es_admin = request.user.is_superuser or usuario_en_grupo(request.user, 'Administradores')
+    es_dueno = up.Productor.usuario_id == request.user.id
+    if not (es_admin or es_dueno):
+        return Response(
+            {'error': 'No tienes permisos para descargar este documento'},
+            status=403,
+        )
+
+    visitas = (
+        Visitas.objects.filter(Solicitud__UP=up)
+        .select_related('TipoVisita', 'Solicitud')
+        .order_by('-FechaYHoraVisita', '-id')
+    )
+    visita = next((v for v in visitas if es_caracterizacion(v)), None)
+    if visita is None:
+        return Response(
+            {'error': 'No hay visita de caracterizacion para esta UP'},
+            status=404,
+        )
+
+    try:
+        pdf_bytes = generar_documento_caracterizacion_bytes(visita.id)
+    except Exception:
+        logger.exception("Error generando la caracterizacion de la UP %s", up_id)
+        return Response(
+            {'error': 'No se pudo generar el documento'},
+            status=500,
+        )
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="caracterizacion_up_{up_id}.pdf"'
+    return response

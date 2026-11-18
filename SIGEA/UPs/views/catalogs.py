@@ -79,6 +79,13 @@ class ArchivosUPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.
     queryset = ArchivosUP.objects.all()
     serializer_class = ArchivosUPSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        up_id = self.request.query_params.get('UP') or self.request.query_params.get('up_id')
+        if up_id and str(up_id).isdigit():
+            queryset = queryset.filter(UP_id=int(up_id))
+        return queryset
+
     @action(detail=True, methods=['get'])
     def descargar(self, request, pk=None):
         # get_object() aplica permisos de modelo + filtro por dueño: un archivo

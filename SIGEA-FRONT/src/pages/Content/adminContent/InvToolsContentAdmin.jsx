@@ -250,7 +250,7 @@ export default function InvToolsContentAdmin() {
                                 No hay herramientas que coincidan con la búsqueda o los filtros.
                             </p>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
                                 {herramientasFiltradas.map((herramienta) => (
                                     <HerramientaPreviewCard
                                         key={herramienta.id}
