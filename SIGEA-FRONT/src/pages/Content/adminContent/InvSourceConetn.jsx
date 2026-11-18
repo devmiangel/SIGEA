@@ -1,10 +1,14 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import InsumoPreviewCard from "../../../components/InsumoPreviewCard/InsumoPreviewCard"
+import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import { useInsumos } from "../../../hooks/useInsumos"
 import { getFuncionarios, asignarInsumoDirecto } from "../../../services/agroService"
+import { getUnidades } from "../../../services/caracterizacionService"
+import { esInsumoActivo } from "../../../utils/insumoHelpers"
 import { abrirModalAsignarInsumoDirecto } from "../../../components/AgroModals/AsignarInsumoDirectoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
@@ -12,6 +16,20 @@ import Swal from 'sweetalert2'
 export default function InvSourceContentAdmin() {
     const { insumos, loading, error, eliminar, refresh } = useInsumos()
     const navigate = useNavigate()
+
+    const [unidades, setUnidades] = useState([])
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroUnidad, setFiltroUnidad] = useState('')
+    const [filtroEstado, setFiltroEstado] = useState('')
+    const [filtroStock, setFiltroStock] = useState('')
+
+    useEffect(() => {
+        let activo = true
+        getUnidades()
+            .then((data) => { if (activo) setUnidades(data ?? []) })
+            .catch(() => {})
+        return () => { activo = false }
+    }, [])
 
     const handleAnadir = () => {
         navigate('/administrador/inventario/insumos/nuevo')
@@ -83,6 +101,35 @@ export default function InvSourceContentAdmin() {
         }
     }
 
+    const opcionesUnidad = useMemo(
+        () => unidades.map((unidad) => ({ value: String(unidad.id), label: unidad.Unidad })),
+        [unidades]
+    )
+
+    const insumosFiltrados = useMemo(() => {
+        const q = busqueda.trim().toLowerCase()
+        return insumos.filter((insumo) => {
+            const texto = `${insumo.Nombre ?? ''} ${insumo.Descripcion ?? ''}`.toLowerCase()
+            const coincideTexto = !q || texto.includes(q)
+            const coincideUnidad = !filtroUnidad || String(insumo.Unidades) === filtroUnidad
+            const activo = esInsumoActivo(insumo)
+            const coincideEstado = !filtroEstado || (filtroEstado === 'activo' ? activo : !activo)
+            const cantidad = Number(insumo.Cantidad ?? 0)
+            let coincideStock = true
+            if (filtroStock === 'con') coincideStock = cantidad > 0
+            else if (filtroStock === 'sin') coincideStock = cantidad <= 0
+            else if (filtroStock === 'bajo') coincideStock = cantidad > 0 && cantidad <= 5
+            return coincideTexto && coincideUnidad && coincideEstado && coincideStock
+        })
+    }, [insumos, busqueda, filtroUnidad, filtroEstado, filtroStock])
+
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setFiltroUnidad('')
+        setFiltroEstado('')
+        setFiltroStock('')
+    }
+
     return (
         <>
             <Header
@@ -120,17 +167,63 @@ export default function InvSourceContentAdmin() {
                 ) : insumos.length === 0 ? (
                     <p className="text-gray-500 text-sm">No hay insumos registrados en el sistema.</p>
                 ) : (
-                    <div className="space-y-3">
-                        {insumos.map((insumo) => (
-                            <InsumoPreviewCard
-                                key={insumo.id}
-                                insumo={insumo}
-                                onEdit={handleEditar}
-                                onDelete={handleEliminar}
-                                onAsignar={handleAsignar}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <InventoryFilterBar
+                            search={busqueda}
+                            onSearchChange={setBusqueda}
+                            searchPlaceholder="Buscar por nombre o descripción..."
+                            total={insumos.length}
+                            shown={insumosFiltrados.length}
+                            onClear={limpiarFiltros}
+                            filters={[
+                                {
+                                    key: 'unidad',
+                                    label: 'Unidad',
+                                    value: filtroUnidad,
+                                    onChange: setFiltroUnidad,
+                                    options: opcionesUnidad,
+                                },
+                                {
+                                    key: 'estado',
+                                    label: 'Estado',
+                                    value: filtroEstado,
+                                    onChange: setFiltroEstado,
+                                    options: [
+                                        { value: 'activo', label: 'Activos' },
+                                        { value: 'inactivo', label: 'Inactivos' },
+                                    ],
+                                },
+                                {
+                                    key: 'stock',
+                                    label: 'Stock',
+                                    value: filtroStock,
+                                    onChange: setFiltroStock,
+                                    options: [
+                                        { value: 'con', label: 'Con stock' },
+                                        { value: 'sin', label: 'Sin stock' },
+                                        { value: 'bajo', label: 'Stock bajo (≤ 5)' },
+                                    ],
+                                },
+                            ]}
+                        />
+                        {insumosFiltrados.length === 0 ? (
+                            <p className="text-gray-500 text-sm">
+                                No hay insumos que coincidan con la búsqueda o los filtros.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {insumosFiltrados.map((insumo) => (
+                                    <InsumoPreviewCard
+                                        key={insumo.id}
+                                        insumo={insumo}
+                                        onEdit={handleEditar}
+                                        onDelete={handleEliminar}
+                                        onAsignar={handleAsignar}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </>

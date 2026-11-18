@@ -5,6 +5,7 @@ from .vehiculos import (
     LineasVehiculosSerializer,
     VehiculosSerializer,
     DetalleVehiculosSerializer,
+    VehiculoCompletoSerializer,
     ConductoresSerializer,
     RegistroAsignacionVehiculosSerializer,
 )

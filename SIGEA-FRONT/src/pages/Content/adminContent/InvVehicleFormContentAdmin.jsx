@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import DriveEtaIcon from '@mui/icons-material/DriveEta'
 import { Header } from "../../../components/Tettles-Buttons/Title"
@@ -12,10 +12,13 @@ import {
     crearLineaVehiculo,
     crearTipoVehiculo,
     crearTipoCombustible,
-    crearRegistroVehiculo,
-    crearDetalleVehiculo,
+    getVehiculo,
+    getRegistroVehiculo,
+    crearVehiculoCompleto,
+    editarVehiculoCompleto,
 } from "../../../services/agroService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage"
 import Swal from 'sweetalert2'
 
 const INICIAL = {
@@ -42,11 +45,16 @@ const REQUERIDOS = [
     { nombre: 'FechaSoat', label: 'Fecha de vencimiento del SOAT' },
 ]
 
+const normalizar = (valor) => String(valor ?? '').trim().toLowerCase()
+
 const resolverId = (lista, valor) =>
-    lista.find((o) => String(o.texto).trim().toLowerCase() === String(valor).trim().toLowerCase())?.id
+    lista.find((o) => normalizar(o.texto) === normalizar(valor))?.id
 
 export default function InvVehicleFormContentAdmin() {
     const navigate = useNavigate()
+    const { vehiculoId } = useParams()
+    const esEdicion = Boolean(vehiculoId)
+
     const [form, setForm] = useState(INICIAL)
     const [marcas, setMarcas] = useState([])
     const [lineas, setLineas] = useState([])
@@ -57,46 +65,119 @@ export default function InvVehicleFormContentAdmin() {
 
     useEffect(() => {
         let activo = true
-        Promise.all([
-            getMarcasVehiculos(),
-            getLineasVehiculos(),
-            getTiposVehiculos(),
-            getTiposCombustibles(),
-        ])
-            .then(([marcasData, lineasData, tiposData, combustiblesData]) => {
+        const cargar = async () => {
+            try {
+                const [marcasData, lineasData, tiposData, combustiblesData] = await Promise.all([
+                    getMarcasVehiculos(),
+                    getLineasVehiculos(),
+                    getTiposVehiculos(),
+                    getTiposCombustibles(),
+                ])
                 if (!activo) return
+
                 setMarcas(marcasData.map((m) => ({ id: m.id, texto: m.MarcaVehiculo })))
-                setLineas(lineasData.map((l) => ({ id: l.id, texto: l.LineaVehiculo })))
+                setLineas(lineasData.map((l) => ({
+                    id: l.id,
+                    texto: l.LineaVehiculo,
+                    marcaId: l.MarcaVehiculo,
+                })))
                 setTiposVehiculos(tiposData.map((t) => ({ id: t.id, texto: t.TipoVehiculo })))
                 setTiposCombustibles(combustiblesData.map((c) => ({ id: c.id, texto: c.TipoCombustible })))
-            })
-            .catch(() => {
+
+                if (esEdicion) {
+                    const detalle = await getVehiculo(vehiculoId)
+                    const registro = await getRegistroVehiculo(detalle.Vehiculo)
+                    if (!activo) return
+
+                    const linea = lineasData.find((l) => l.id === registro.LineaVehiculo)
+                    const marca = marcasData.find((m) => m.id === linea?.MarcaVehiculo)
+
+                    setForm({
+                        Placa: detalle.Placa ?? '',
+                        Modelo: detalle.Modelo ?? '',
+                        TipoVehiculo: tiposData.find(
+                            (t) => t.id === registro.TipoVehiculo
+                        )?.TipoVehiculo ?? '',
+                        TipoCombustible: combustiblesData.find(
+                            (c) => c.id === registro.TipoCombustible
+                        )?.TipoCombustible ?? '',
+                        Marca: marca?.MarcaVehiculo ?? '',
+                        Linea: linea?.LineaVehiculo ?? '',
+                        FechaTecno: detalle.FechaTecno ?? '',
+                        FechaSoat: detalle.FechaSoat ?? '',
+                        Descripcion: detalle.Descripcion ?? '',
+                        Estado: detalle.Estado ?? true,
+                    })
+                }
+            } catch (e) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'No se pudieron cargar los catálogos de vehículos. Intenta de nuevo.',
+                    text: getApiErrorMessage(
+                        e,
+                        esEdicion
+                            ? 'No se pudieron cargar los datos del vehículo.'
+                            : 'No se pudieron cargar los catálogos de vehículos.'
+                    ),
                     confirmButtonColor: AGRO_COLORS.primary,
                 })
-            })
-            .finally(() => { if (activo) setCargando(false) })
+            } finally {
+                if (activo) setCargando(false)
+            }
+        }
+        cargar()
         return () => { activo = false }
-    }, [])
+    }, [esEdicion, vehiculoId])
 
-    const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
+    const onChange = (name, value) => {
+        setForm((f) => {
+            if (name === 'Marca') {
+                const marcaId = resolverId(marcas, value)
+                const lineaActual = lineas.find((l) => normalizar(l.texto) === normalizar(f.Linea))
+                const lineaValida = lineaActual && lineaActual.marcaId === marcaId
+                return { ...f, Marca: value, Linea: lineaValida ? f.Linea : '' }
+            }
+            return { ...f, [name]: value }
+        })
+    }
 
     const handleCrearMarca = async (valor) => {
-        const registro = await crearMarcaVehiculo(valor)
-        setMarcas((prev) => [...prev, { id: registro.id, texto: registro.MarcaVehiculo }])
+        const texto = String(valor ?? '').trim()
+        const existente = marcas.find((m) => normalizar(m.texto) === normalizar(texto))
+        if (existente) return existente
+        const registro = await crearMarcaVehiculo(texto)
+        setMarcas((prev) => (
+            prev.some((m) => m.id === registro.id)
+                ? prev
+                : [...prev, { id: registro.id, texto: registro.MarcaVehiculo }]
+        ))
+        return registro
     }
 
     const handleCrearTipoVehiculo = async (valor) => {
-        const registro = await crearTipoVehiculo(valor)
-        setTiposVehiculos((prev) => [...prev, { id: registro.id, texto: registro.TipoVehiculo }])
+        const texto = String(valor ?? '').trim()
+        const existente = tiposVehiculos.find((t) => normalizar(t.texto) === normalizar(texto))
+        if (existente) return existente
+        const registro = await crearTipoVehiculo(texto)
+        setTiposVehiculos((prev) => (
+            prev.some((t) => t.id === registro.id)
+                ? prev
+                : [...prev, { id: registro.id, texto: registro.TipoVehiculo }]
+        ))
+        return registro
     }
 
     const handleCrearTipoCombustible = async (valor) => {
-        const registro = await crearTipoCombustible(valor)
-        setTiposCombustibles((prev) => [...prev, { id: registro.id, texto: registro.TipoCombustible }])
+        const texto = String(valor ?? '').trim()
+        const existente = tiposCombustibles.find((c) => normalizar(c.texto) === normalizar(texto))
+        if (existente) return existente
+        const registro = await crearTipoCombustible(texto)
+        setTiposCombustibles((prev) => (
+            prev.some((c) => c.id === registro.id)
+                ? prev
+                : [...prev, { id: registro.id, texto: registro.TipoCombustible }]
+        ))
+        return registro
     }
 
     const handleCrearLinea = async (valor) => {
@@ -110,9 +191,28 @@ export default function InvVehicleFormContentAdmin() {
             })
             return
         }
-        const registro = await crearLineaVehiculo(valor, marcaId)
-        setLineas((prev) => [...prev, { id: registro.id, texto: registro.LineaVehiculo }])
+        const texto = String(valor ?? '').trim()
+        const existente = lineas.find(
+            (l) => normalizar(l.texto) === normalizar(texto) && l.marcaId === marcaId
+        )
+        if (existente) return existente
+        const registro = await crearLineaVehiculo(texto, marcaId)
+        setLineas((prev) => (
+            prev.some((l) => l.id === registro.id)
+                ? prev
+                : [...prev, {
+                    id: registro.id,
+                    texto: registro.LineaVehiculo,
+                    marcaId,
+                }]
+        ))
+        return registro
     }
+
+    const marcaId = resolverId(marcas, form.Marca)
+    const lineasDisponibles = marcaId
+        ? lineas.filter((l) => l.marcaId === marcaId)
+        : lineas
 
     const guardar = async () => {
         const faltantes = REQUERIDOS
@@ -130,8 +230,9 @@ export default function InvVehicleFormContentAdmin() {
 
         const tipoVehiculoId = resolverId(tiposVehiculos, form.TipoVehiculo)
         const tipoCombustibleId = resolverId(tiposCombustibles, form.TipoCombustible)
-        const marcaId = resolverId(marcas, form.Marca)
-        const lineaId = resolverId(lineas, form.Linea)
+        const lineaId = lineas.find(
+            (l) => normalizar(l.texto) === normalizar(form.Linea) && l.marcaId === marcaId
+        )?.id
 
         const invalidos = []
         if (!tipoVehiculoId) invalidos.push('tipo de vehículo')
@@ -148,36 +249,46 @@ export default function InvVehicleFormContentAdmin() {
             return
         }
 
+        const payload = {
+            Placa: String(form.Placa).trim(),
+            Modelo: String(form.Modelo).trim(),
+            FechaTecno: form.FechaTecno,
+            FechaSoat: form.FechaSoat,
+            Descripcion: String(form.Descripcion ?? '').trim(),
+            Estado: Boolean(form.Estado),
+            LineaVehiculo: lineaId,
+            TipoCombustible: tipoCombustibleId,
+            TipoVehiculo: tipoVehiculoId,
+        }
+
         setGuardando(true)
         try {
-            const registro = await crearRegistroVehiculo({
-                LineaVehiculo: lineaId,
-                TipoCombustible: tipoCombustibleId,
-                TipoVehiculo: tipoVehiculoId,
-            })
-            await crearDetalleVehiculo({
-                Vehiculo: registro.id,
-                Placa: form.Placa,
-                Modelo: form.Modelo,
-                FechaTecno: form.FechaTecno,
-                FechaSoat: form.FechaSoat,
-                Descripcion: form.Descripcion,
-                Estado: form.Estado,
-            })
+            if (esEdicion) {
+                await editarVehiculoCompleto(vehiculoId, payload)
+            } else {
+                await crearVehiculoCompleto(payload)
+            }
             Swal.fire({
                 icon: 'success',
-                title: 'Vehículo creado',
-                text: 'El vehículo fue registrado correctamente en el sistema.',
+                title: esEdicion ? 'Vehículo actualizado' : 'Vehículo creado',
+                text: esEdicion
+                    ? 'Los cambios se guardaron correctamente.'
+                    : 'El vehículo fue registrado correctamente en el sistema.',
                 confirmButtonColor: AGRO_COLORS.success,
                 timer: 2000,
                 timerProgressBar: true,
                 showConfirmButton: false,
             }).then(() => navigate('/administrador/inventario/vehiculos'))
-        } catch {
+        } catch (e) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo crear el vehículo. Intenta de nuevo.',
+                text: getApiErrorMessage(
+                    e,
+                    esEdicion
+                        ? 'No se pudo actualizar el vehículo.'
+                        : 'No se pudo crear el vehículo.'
+                ),
                 confirmButtonColor: AGRO_COLORS.primary,
             })
         } finally {
@@ -193,14 +304,18 @@ export default function InvVehicleFormContentAdmin() {
                         sx={{ fontSize: 40, color: "ActiveCaption" }}
                     />
                 }
-                headerText={'Registro de vehículo'}
-                message={'Ingresa un nuevo vehículo con su información técnica al sistema'}
+                headerText={esEdicion ? 'Edición de vehículo' : 'Registro de vehículo'}
+                message={esEdicion
+                    ? 'Actualiza la información técnica del vehículo'
+                    : 'Ingresa un nuevo vehículo con su información técnica al sistema'}
                 colorLogo={AGRO_COLORS.primaryLight}
             />
 
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4">
                 <div className="mb-4">
-                    <h3 className="text-base font-semibold text-gray-900">Nuevo vehículo</h3>
+                    <h3 className="text-base font-semibold text-gray-900">
+                        {esEdicion ? 'Editar vehículo' : 'Nuevo vehículo'}
+                    </h3>
                     <p className="text-xs text-gray-500">
                         Diligencia la información del vehículo. Los campos marcados con * son obligatorios.
                         Si el tipo de vehículo, combustible, marca o línea no existe, podrás crearlo directamente desde el campo.
@@ -208,7 +323,7 @@ export default function InvVehicleFormContentAdmin() {
                 </div>
 
                 {cargando ? (
-                    <p className="text-gray-500 text-sm">Cargando catálogos de vehículos...</p>
+                    <p className="text-gray-500 text-sm">Cargando información del vehículo...</p>
                 ) : (
                     <div className="flex flex-col gap-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -257,7 +372,7 @@ export default function InvVehicleFormContentAdmin() {
                                 name="Linea"
                                 label="Línea del vehículo *"
                                 value={form.Linea}
-                                options={lineas.map((l) => l.texto)}
+                                options={lineasDisponibles.map((l) => l.texto)}
                                 onCrear={handleCrearLinea}
                                 onChange={onChange}
                                 placeholder="Escriba o seleccione..."
@@ -309,7 +424,9 @@ export default function InvVehicleFormContentAdmin() {
                                 disabled={guardando}
                                 className="w-full sm:w-auto px-6 py-2 rounded-lg bg-[#015d3b] text-white text-sm font-semibold hover:bg-[#004d2f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {guardando ? 'Guardando...' : 'Registrar vehículo'}
+                                {guardando
+                                    ? 'Guardando...'
+                                    : esEdicion ? 'Actualizar vehículo' : 'Registrar vehículo'}
                             </button>
                         </div>
                     </div>
