@@ -47,20 +47,20 @@ export default function Sidebar () {
 
       <div
         className={`
-          fixed lg:sticky top-0 left-0 h-screen bg-[#005C39] text-white
+          fixed lg:sticky top-0 left-0 h-dvh max-h-dvh overflow-hidden bg-[#005C39] text-white
           flex flex-col justify-between z-40 w-56 shrink-0
           transition-transform duration-300 items-center
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}
       >
-        <div className="flex flex-col flex-1">
-          <section className="flex items-center justify-center gap-3 py-6 px-4">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <section className="flex shrink-0 items-center justify-center gap-3 px-4 py-6">
             <img src={logo_sigea} alt="Logo SIGEA" className="w-12 h-12 rounded-xl" />
             <p className="text-white font-extrabold text-3xl">SIGEA</p>
           </section>
 
-          <ul className="flex flex-col items-center px-0 overflow-y-auto">
+          <ul className="min-h-0 w-full flex-1 overflow-y-auto overscroll-contain px-0 pb-2">
             {SidebarData
               .filter(item => item.roles.includes(role))
               .map((val) => (
@@ -81,7 +81,7 @@ export default function Sidebar () {
           </ul>
         </div>
 
-        <div className="mb-10 px-4">
+        <div className="mb-4 shrink-0 px-4 pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-center gap-3 text-white no-underline mb-2 px-2">
             <AccountCircleIcon />
             <span className="text-sm truncate" data-cy="user-name">{nombrePersona}</span>

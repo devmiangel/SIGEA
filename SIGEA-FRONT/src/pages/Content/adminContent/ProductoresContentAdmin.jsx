@@ -1,98 +1,79 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import GroupIcon from '@mui/icons-material/Group'
-import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
-import AgricultureIcon from '@mui/icons-material/Agriculture'
 import { Header } from "../../../components/Tettles-Buttons/Title"
-import { DetailCard, DetailField } from "../../../components/DetailCard/DetailCard"
 import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
+import PaginationBar from "../../../components/PaginationBar/PaginationBar"
+import ProductorPreviewCard from "../../../components/ProductorPreviewCard/ProductorPreviewCard"
+import { usePaginatedList } from "../../../hooks/usePaginatedList"
 import { getProductores } from "../../../services/agroService"
-import { getApiErrorMessage } from "../../../utils/getApiErrorMessage"
-import { esRegistroActivo } from "../../../utils/insumoHelpers"
-import { ACTIVO_STYLE, AGRO_COLORS } from "../../../utils/agroConstants"
-import Swal from 'sweetalert2'
+import {
+    getSectores,
+    getTiposDocumentos,
+    getVeredas,
+} from "../../../services/caracterizacionService"
+import { AGRO_COLORS } from "../../../utils/agroConstants"
 
-const nombrePersona = (productor) => {
-    const persona = productor?.persona_info ?? {}
-    const nombre = [
-        persona.primer_nombre,
-        persona.segundo_nombre,
-        persona.primer_apellido,
-        persona.segundo_apellido,
-    ].filter(Boolean).join(' ').trim()
-    return nombre || productor?.email || 'Productor sin nombre'
-}
-
-const documentoPersona = (productor) => {
-    const persona = productor?.persona_info ?? {}
-    const tipo = persona.TipoDocumento_info?.TipoDocumento ?? ''
-    const numero = persona.numero_documento ?? ''
-    return `${tipo} ${numero}`.trim() || 'Sin documento'
-}
+const PAGE_SIZE = 25
 
 export default function ProductoresContentAdmin() {
     const navigate = useNavigate()
-    const [productores, setProductores] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
     const [busqueda, setBusqueda] = useState('')
     const [filtroEstado, setFiltroEstado] = useState('')
     const [filtroUps, setFiltroUps] = useState('')
+    const [filtroTipoDocumento, setFiltroTipoDocumento] = useState('')
+    const [filtroVereda, setFiltroVereda] = useState('')
+    const [filtroSector, setFiltroSector] = useState('')
+    const [tiposDocumento, setTiposDocumento] = useState([])
+    const [veredas, setVeredas] = useState([])
+    const [sectores, setSectores] = useState([])
+
+    const {
+        items: productores,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+    } = usePaginatedList(
+        getProductores,
+        {
+            search: busqueda.trim(),
+            estado: filtroEstado,
+            ups: filtroUps,
+            tipo_documento: filtroTipoDocumento,
+            vereda: filtroVereda,
+            sector: filtroSector,
+        },
+        PAGE_SIZE,
+    )
 
     useEffect(() => {
         let activo = true
-        const cargar = async () => {
-            setLoading(true)
-            try {
-                const data = await getProductores()
+        Promise.all([getTiposDocumentos(), getVeredas(), getSectores()])
+            .then(([tiposData, veredasData, sectoresData]) => {
                 if (!activo) return
-                setProductores(Array.isArray(data) ? data : [])
-                setError(false)
-            } catch (e) {
-                if (!activo) return
-                setError(true)
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: getApiErrorMessage(e, 'No se pudieron cargar los productores.'),
-                    confirmButtonColor: AGRO_COLORS.primary,
-                })
-            } finally {
-                if (activo) setLoading(false)
-            }
-        }
-        cargar()
+                setTiposDocumento(tiposData ?? [])
+                setVeredas(veredasData ?? [])
+                setSectores(sectoresData ?? [])
+            })
+            .catch(() => {})
         return () => { activo = false }
     }, [])
 
-    const productoresFiltrados = useMemo(() => {
-        const q = busqueda.trim().toLowerCase()
-        return productores.filter((productor) => {
-            const persona = productor.persona_info ?? {}
-            const texto = [
-                persona.primer_nombre,
-                persona.segundo_nombre,
-                persona.primer_apellido,
-                persona.segundo_apellido,
-                persona.numero_documento,
-                productor.email,
-            ].filter(Boolean).join(' ').toLowerCase()
-            const coincideTexto = !q || texto.includes(q)
-            const activo = esRegistroActivo(productor)
-            const coincideEstado = !filtroEstado
-                || (filtroEstado === 'activo' ? activo : !activo)
-            const cantidadUps = Number(productor.ups_count ?? 0)
-            const coincideUps = !filtroUps
-                || (filtroUps === 'con' ? cantidadUps > 0 : cantidadUps === 0)
-            return coincideTexto && coincideEstado && coincideUps
-        })
-    }, [productores, busqueda, filtroEstado, filtroUps])
+    const hayFiltros = Boolean(busqueda.trim()) || Boolean(filtroEstado)
+        || Boolean(filtroUps) || Boolean(filtroTipoDocumento)
+        || Boolean(filtroVereda) || Boolean(filtroSector)
 
     const limpiarFiltros = () => {
         setBusqueda('')
         setFiltroEstado('')
         setFiltroUps('')
+        setFiltroTipoDocumento('')
+        setFiltroVereda('')
+        setFiltroSector('')
+        setPage(1)
     }
 
     return (
@@ -107,32 +88,28 @@ export default function ProductoresContentAdmin() {
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Productores del sistema</h3>
-                    <p className="text-xs text-gray-500">
-                        {productores.length} productor(es) registrado(s)
-                    </p>
+                    <p className="text-xs text-gray-500">{count} productor(es) registrado(s)</p>
                 </div>
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando productores...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los productores.</p>
-                ) : productores.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No hay productores registrados en el sistema.</p>
                 ) : (
                     <>
                         <InventoryFilterBar
                             search={busqueda}
-                            onSearchChange={setBusqueda}
+                            onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
                             searchPlaceholder="Buscar por nombre, documento o correo..."
-                            total={productores.length}
-                            shown={productoresFiltrados.length}
+                            total={count}
+                            shown={productores.length}
                             onClear={limpiarFiltros}
                             filters={[
                                 {
                                     key: 'estado',
                                     label: 'Estado',
                                     value: filtroEstado,
-                                    onChange: setFiltroEstado,
+                                    onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
                                     options: [
                                         { value: 'activo', label: 'Activos' },
                                         { value: 'inactivo', label: 'Inactivos' },
@@ -142,52 +119,70 @@ export default function ProductoresContentAdmin() {
                                     key: 'ups',
                                     label: 'Unidades productivas',
                                     value: filtroUps,
-                                    onChange: setFiltroUps,
+                                    onChange: (valor) => { setFiltroUps(valor); setPage(1) },
                                     options: [
                                         { value: 'con', label: 'Con UPs' },
                                         { value: 'sin', label: 'Sin UPs' },
                                     ],
                                 },
+                                {
+                                    key: 'tipo_documento',
+                                    label: 'Tipo de documento',
+                                    value: filtroTipoDocumento,
+                                    onChange: (valor) => { setFiltroTipoDocumento(valor); setPage(1) },
+                                    options: tiposDocumento.map((tipo) => ({
+                                        value: String(tipo.id),
+                                        label: tipo.TipoDocumento,
+                                    })),
+                                },
+                                {
+                                    key: 'vereda',
+                                    label: 'Vereda',
+                                    value: filtroVereda,
+                                    onChange: (valor) => { setFiltroVereda(valor); setPage(1) },
+                                    options: veredas.map((vereda) => ({
+                                        value: String(vereda.id),
+                                        label: vereda.NombreVereda,
+                                    })),
+                                },
+                                {
+                                    key: 'sector',
+                                    label: 'Sector',
+                                    value: filtroSector,
+                                    onChange: (valor) => { setFiltroSector(valor); setPage(1) },
+                                    options: sectores.map((sector) => ({
+                                        value: String(sector.id),
+                                        label: sector.NombreSector,
+                                    })),
+                                },
                             ]}
                         />
 
-                        {productoresFiltrados.length === 0 ? (
+                        {count === 0 ? (
                             <p className="text-gray-500 text-sm">
-                                No hay productores que coincidan con la búsqueda o los filtros.
+                                {hayFiltros
+                                    ? 'No hay productores que coincidan con la búsqueda o los filtros.'
+                                    : 'No hay productores registrados en el sistema.'}
                             </p>
                         ) : (
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                                {productoresFiltrados.map((productor) => {
-                                    const activo = esRegistroActivo(productor)
-                                    return (
-                                        <DetailCard
+                            <>
+                                <div className="space-y-3">
+                                    {productores.map((productor) => (
+                                        <ProductorPreviewCard
                                             key={productor.id}
-                                            icon={<GroupIcon sx={{ fontSize: 22, color: '#fff' }} />}
-                                            title={nombrePersona(productor)}
-                                            badgeClass={activo ? ACTIVO_STYLE.activo : ACTIVO_STYLE.inactivo}
-                                            badgeLabel={activo ? 'Activo' : 'Inactivo'}
-                                            subtitle={productor.email || 'Sin correo'}
+                                            productor={productor}
                                             onClick={() => navigate(`/administrador/productores/${productor.id}`)}
-                                        >
-                                            <DetailField
-                                                icon={<BadgeOutlinedIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}
-                                                label="Documento"
-                                                value={documentoPersona(productor)}
-                                            />
-                                            <DetailField
-                                                icon={<EmailOutlinedIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}
-                                                label="Correo"
-                                                value={productor.email || '—'}
-                                            />
-                                            <DetailField
-                                                icon={<AgricultureIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}
-                                                label="Unidades productivas"
-                                                value={String(productor.ups_count ?? 0)}
-                                            />
-                                        </DetailCard>
-                                    )
-                                })}
-                            </div>
+                                        />
+                                    ))}
+                                </div>
+                                <PaginationBar
+                                    page={page}
+                                    count={count}
+                                    pageSize={pageSize}
+                                    onPageChange={setPage}
+                                    loading={loading}
+                                />
+                            </>
                         )}
                     </>
                 )}

@@ -1,137 +1,67 @@
-import { useState, useMemo } from "react"
+import { useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
-import TabList from "../../../components/TabList/TabList"
-import UserRequest from "../../../components/UserRequest/UserRequest"
+import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import CalendarioVisitas from "../../../components/calendar/CalendarioVisitas"
-import { useTodasSolicitudes } from "../../../hooks/useTodasSolicitudes"
 import { useVisitas } from "../../../hooks/useVisitas"
-import { useCurrentDataUser } from "../../../hooks/currentUserHook"
-import { atenderSolicitud, rechazarSolicitud } from "../../../services/agroService"
-import { abrirModalAtenderSolicitud } from "../../../components/AgroModals/AtenderSolicitudModal"
-import { mostrarInfoSolicitud } from "../../../components/AgroModals/AlertRequestInfoModal"
-import { AGRO_COLORS, ESTADO_SOLICITUD } from "../../../utils/agroConstants"
-import { toDatetimeLocal } from "../../../utils/dateHelpers"
+import { getVisitas } from "../../../services/agroService"
+import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
+import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
     const navigate = useNavigate()
-    const { user } = useCurrentDataUser()
-    const { solicitudes, loading, refresh } = useTodasSolicitudes()
-    const { visitas, refresh: refreshVisitas } = useVisitas()
-    const [activeTab, setActiveTab] = useState('Pendientes')
+    const { visitas, loading: loadingVisitas } = useVisitas()
+    const [diaSeleccionado, setDiaSeleccionado] = useState('')
+    const [visitasDia, setVisitasDia] = useState([])
+    const [cargandoDia, setCargandoDia] = useState(false)
+    const cacheDias = useRef(new Map())
+    const peticionDia = useRef(0)
 
-    const esPendiente = (s) =>
-        s.Estado === ESTADO_SOLICITUD.EN_PROCESO || s.Estado === ESTADO_SOLICITUD.REAGENDADO
-
-    const pendientes = useMemo(() => solicitudes.filter(esPendiente), [solicitudes])
-    const atendidas = useMemo(() => solicitudes.filter(s => !esPendiente(s)), [solicitudes])
-    const visitasCalendario = useMemo(
-        () => visitas.filter(v => v.solicitud_info?.estado_id !== ESTADO_SOLICITUD.REAGENDADO),
-        [visitas]
-    )
-
-    const currentContent = activeTab === 'Pendientes' ? pendientes : atendidas
-
-    const handleVerSolicitud = (s, numero) => {
-        mostrarInfoSolicitud(s, numero, user)
+    const formatearDia = (fecha) => {
+        if (!fecha) return ''
+        const [anio, mes, dia] = fecha.split('-')
+        return `${dia}/${mes}/${anio}`
     }
 
-    const handleAtenderSolicitud = async (s, numero) => {
+    const handleDiaClick = async (fecha) => {
+        setDiaSeleccionado(fecha)
+        if (cacheDias.current.has(fecha)) {
+            setVisitasDia(cacheDias.current.get(fecha))
+            setCargandoDia(false)
+            return
+        }
+        const peticion = peticionDia.current + 1
+        peticionDia.current = peticion
+        setVisitasDia([])
+        setCargandoDia(true)
         try {
-            const visitaPrevia = visitas.find(v => v.Solicitud === s.id)
-            const datosPrevios = s.Estado === ESTADO_SOLICITUD.REAGENDADO && visitaPrevia
-                ? {
-                    fecha_visita: toDatetimeLocal(visitaPrevia.FechaYHoraVisita),
-                    ubicacion: visitaPrevia.Ubicacion,
-                    funcionario_id: visitaPrevia.Funcionario,
-                    funcionario_nombre: visitaPrevia.funcionario_info?.nombre,
-                    tipo_visita_id: visitaPrevia.TipoVisita,
-                    novedad: s.novedad,
-                }
-                : null
-
-            const result = await abrirModalAtenderSolicitud(s, numero, datosPrevios)
-
-            if (result.isConfirmed) {
-                await atenderSolicitud(s.id, result.value)
-                await Promise.all([refresh(), refreshVisitas()])
+            const data = await getVisitas({ desde: fecha, hasta: fecha })
+            if (peticion !== peticionDia.current) return
+            const lista = Array.isArray(data) ? data : (data?.results ?? [])
+            cacheDias.current.set(fecha, lista)
+            setVisitasDia(lista)
+        } catch {
+            if (peticion === peticionDia.current) {
+                setVisitasDia([])
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Visita programada',
-                    text: 'La solicitud fue aceptada y la visita fue creada.',
-                    confirmButtonColor: AGRO_COLORS.success,
-                    timer: 2000,
-                    timerProgressBar: true
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar las visitas de ese día.',
+                    confirmButtonColor: AGRO_COLORS.primary,
                 })
-                return
             }
-
-            if (result.dismiss === Swal.DismissReason.cancel) {
-                await handleRechazarSolicitud(s)
-            }
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo procesar la solicitud. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.primary
-            })
+        } finally {
+            if (peticion === peticionDia.current) setCargandoDia(false)
         }
     }
 
-    const handleRechazarSolicitud = async (s) => {
-        const confirmacion = await Swal.fire({
-            icon: 'warning',
-            title: '¿Rechazar solicitud?',
-            text: 'La solicitud pasará a la lista de atendidas como rechazada. Indica el motivo del rechazo.',
-            input: 'textarea',
-            inputLabel: 'Motivo de rechazo',
-            inputPlaceholder: 'Escribe el motivo del rechazo...',
-            inputAttributes: { maxlength: 255 },
-            showCancelButton: true,
-            confirmButtonText: 'Sí, rechazar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: AGRO_COLORS.danger,
-            inputValidator: (value) => {
-                if (!value || !value.trim()) {
-                    return 'Debes indicar el motivo del rechazo'
-                }
-            }
-        })
-
-        if (!confirmacion.isConfirmed) return
-
-        try {
-            await rechazarSolicitud(s.id, { novedad: confirmacion.value.trim() })
-            await refresh()
-            Swal.fire({
-                icon: 'success',
-                title: 'Solicitud rechazada',
-                text: 'La solicitud fue rechazada correctamente.',
-                confirmButtonColor: AGRO_COLORS.success,
-                timer: 2000,
-                timerProgressBar: true
-            })
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo procesar la solicitud. Intenta de nuevo.',
-                confirmButtonColor: AGRO_COLORS.primary
-            })
-        }
-    }
-
-    const handleClickSolicitud = (s) => {
-        const numero = currentContent.findIndex(x => x.id === s.id) + 1
-        if (activeTab === 'Pendientes') {
-            handleAtenderSolicitud(s, numero)
-        } else {
-            handleVerSolicitud(s, numero)
-        }
+    const cerrarDia = () => {
+        setDiaSeleccionado('')
+        setVisitasDia([])
+        setCargandoDia(false)
     }
 
     return (
@@ -143,7 +73,7 @@ export default function ScheduleContentAdmin(){
                     />
                 }
                 headerText={'Gestion de horarios de visitas'}
-                message={'Gestiona la asignacion de las visitas a productores a los funcionarios correspondientes'}
+                message={'Selecciona un día del calendario para consultar las visitas programadas'}
                 colorLogo={'#55bd85'}
                 firstButton={
                     <ButtonLink buttonText={'Validacion de UPs'}
@@ -156,33 +86,66 @@ export default function ScheduleContentAdmin(){
             />
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-6">
-                    <CalendarioVisitas visitas={visitasCalendario} />
-                </div>
-                <TabList
-                    categories={['Pendientes', 'Atendidas']}
-                    active={activeTab}
-                    onChange={setActiveTab}
-                />
-                <div className="mt-6">
-                    {loading ? (
-                        <p className="text-gray-500 text-sm">Cargando solicitudes...</p>
-                    ) : currentContent.length === 0 ? (
-                        <p className="text-gray-500 text-sm">
-                            No hay solicitudes {activeTab === 'Pendientes' ? 'pendientes' : 'atendidas'} registradas.
-                        </p>
+                    {loadingVisitas ? (
+                        <p className="text-gray-500 text-sm">Cargando calendario de visitas...</p>
                     ) : (
-                        <div className="space-y-3">
-                            {currentContent.map((s, i) => (
-                                <UserRequest
-                                    key={s.id}
-                                    numero={i + 1}
-                                    solicitud={s}
-                                    onClick={() => handleClickSolicitud(s)}
-                                />
-                            ))}
-                        </div>
+                        <CalendarioVisitas
+                            visitas={visitas}
+                            onDayClick={handleDiaClick}
+                        />
+                    )}
+                    {!loadingVisitas && !diaSeleccionado && (
+                        <p className="mt-2 text-xs text-gray-500">
+                            Haz clic en un día del calendario para ver sus visitas en la lista.
+                        </p>
                     )}
                 </div>
+
+                {diaSeleccionado && (
+                    <section className="mb-6 rounded-xl border border-gray-200 bg-[#f4f9f7] p-3 sm:p-4">
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 className="text-sm font-semibold text-[#015d3b]">
+                                    Visitas del día
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                    {formatearDia(diaSeleccionado)}
+                                    {' · '}
+                                    {cargandoDia ? 'cargando...' : `${visitasDia.length} visita(s)`}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={cerrarDia}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+
+                        {cargandoDia ? (
+                            <div className="space-y-2">
+                                <div className="h-16 animate-pulse rounded-xl bg-white" />
+                                <div className="h-16 animate-pulse rounded-xl bg-white" />
+                            </div>
+                        ) : visitasDia.length === 0 ? (
+                            <p className="text-sm text-gray-500">
+                                No hay visitas programadas para este día.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {visitasDia.map((visita, i) => (
+                                    <VisitaInfoCard
+                                        key={visita.id}
+                                        visita={visita}
+                                        numero={i + 1}
+                                        onClick={() => mostrarInfoVisita(visita, i + 1)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
             </div>
         </>
     )

@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 
 from SIGEAsite.permissions import SigeaModelPermissionMixin, SigeaModelPermissions, OwnedQuerysetMixin, IsStaff
+from SIGEAsite.filters import filtrar_texto
 from rest_framework.permissions import IsAuthenticated
 
 from ..models import (
@@ -60,9 +61,39 @@ class EmpresasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mo
 
 class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
     owner_lookup = 'pk'
-    queryset = Usuario.objects.all()
+    queryset = Usuario.objects.select_related('persona').prefetch_related('groups')
     serializer_class = UsuarioSerializer
     ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'email',
+                'persona__primer_nombre',
+                'persona__segundo_nombre',
+                'persona__primer_apellido',
+                'persona__segundo_apellido',
+                'persona__numero_documento',
+            ],
+        )
+        rol = params.get('rol')
+        if rol == 'Administradores':
+            queryset = queryset.filter(administradores__isnull=False)
+        elif rol == 'Funcionarios':
+            queryset = queryset.filter(funcionarios__isnull=False)
+        elif rol == 'Productores':
+            queryset = queryset.filter(productores__isnull=False)
+        elif rol == 'Usuarios':
+            queryset = queryset.exclude(
+                Q(administradores__isnull=False)
+                | Q(funcionarios__isnull=False)
+                | Q(productores__isnull=False)
+            ).filter(groups__name='Usuarios')
+        return queryset.distinct()
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsStaff])
     def buscar(self, request):
@@ -257,6 +288,44 @@ class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
     owner_lookup = 'usuario'
     queryset = Productores.objects.select_related('usuario__persona').prefetch_related('up_set')
     serializer_class = ProductoresSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'usuario__email',
+                'usuario__persona__primer_nombre',
+                'usuario__persona__segundo_nombre',
+                'usuario__persona__primer_apellido',
+                'usuario__persona__segundo_apellido',
+                'usuario__persona__numero_documento',
+            ],
+        )
+        estado = params.get('estado')
+        if estado == 'activo':
+            queryset = queryset.filter(Estado=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(Estado=False)
+        ups = params.get('ups')
+        if ups == 'con':
+            queryset = queryset.filter(up__isnull=False)
+        elif ups == 'sin':
+            queryset = queryset.filter(up__isnull=True)
+        tipo_documento = params.get('tipo_documento')
+        if tipo_documento and str(tipo_documento).isdigit():
+            queryset = queryset.filter(
+                usuario__persona__TipoDocumento_id=int(tipo_documento)
+            )
+        vereda = params.get('vereda')
+        if vereda and str(vereda).isdigit():
+            queryset = queryset.filter(up__Predio__Sector__Vereda_id=int(vereda))
+        sector = params.get('sector')
+        if sector and str(sector).isdigit():
+            queryset = queryset.filter(up__Predio__Sector_id=int(sector))
+        return queryset.distinct()
 
     @action(detail=True, methods=['get'])
     def detalle(self, request, pk=None):

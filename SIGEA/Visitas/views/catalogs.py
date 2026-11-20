@@ -3,6 +3,7 @@ import unicodedata
 from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
+from SIGEAsite.filters import filtrar_texto
 from rest_framework.response import Response
 
 from ..models import (
@@ -88,10 +89,13 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         params = self.request.query_params
         up_id = params.get('up_id')
         productor_id = params.get('productor_id')
+        solicitud_id = params.get('solicitud_id')
         if up_id and str(up_id).isdigit():
             queryset = queryset.filter(Solicitud__UP_id=int(up_id))
         if productor_id and str(productor_id).isdigit():
             queryset = queryset.filter(Solicitud__UP__Productor_id=int(productor_id))
+        if solicitud_id and str(solicitud_id).isdigit():
+            queryset = queryset.filter(Solicitud_id=int(solicitud_id))
 
         desde = parse_date(params.get('desde') or '')
         hasta = parse_date(params.get('hasta') or '')
@@ -99,7 +103,33 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
             queryset = queryset.filter(FechaYHoraVisita__date__gte=desde)
         if hasta:
             queryset = queryset.filter(FechaYHoraVisita__date__lte=hasta)
-        return queryset
+
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'Solicitud__UP__RUEA',
+                'Solicitud__UP__Predio__NombrePredio',
+                'Funcionario__usuario__persona__primer_nombre',
+                'Funcionario__usuario__persona__primer_apellido',
+                'Funcionario__usuario__persona__numero_documento',
+                'Solicitud__Usuario__persona__primer_nombre',
+                'Solicitud__Usuario__persona__primer_apellido',
+                'TipoVisita__TipoVisita',
+            ],
+        )
+        estado = params.get('estado')
+        if estado == 'realizadas':
+            queryset = queryset.filter(estado=True)
+        elif estado == 'no_realizadas':
+            queryset = queryset.filter(estado=False)
+
+        return queryset.select_related(
+            'Solicitud__UP__Predio',
+            'Solicitud__Usuario__persona',
+            'Funcionario__usuario__persona',
+            'TipoVisita',
+        ).distinct()
 
     def update(self, request, *args, **kwargs):
         from UPs.models import EstadosUP

@@ -3,6 +3,7 @@ from datetime import date
 from django.db import transaction
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin
+from SIGEAsite.filters import filtrar_texto
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -20,8 +21,33 @@ from ..serializers import (
 )
 
 class InsumosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-    queryset = Insumos.objects.all()
+    queryset = Insumos.objects.select_related('Unidades')
     serializer_class = InsumosSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            ['Nombre', 'Descripcion'],
+        )
+        unidad = params.get('unidad')
+        if unidad and str(unidad).isdigit():
+            queryset = queryset.filter(Unidades_id=int(unidad))
+        estado = params.get('estado')
+        if estado == 'activo':
+            queryset = queryset.filter(Estado=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(Estado=False)
+        stock = params.get('stock')
+        if stock == 'con':
+            queryset = queryset.filter(Cantidad__gt=0)
+        elif stock == 'sin':
+            queryset = queryset.filter(Cantidad__lte=0)
+        elif stock == 'bajo':
+            queryset = queryset.filter(Cantidad__gt=0, Cantidad__lte=5)
+        return queryset
 
 # Inventario y cardex son de solo lectura: solo cambian por los endpoints de
 # asignacion (que mantienen cuadrados stock, inventario y cardex).

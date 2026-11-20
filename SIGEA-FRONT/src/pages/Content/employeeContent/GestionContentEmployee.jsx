@@ -98,7 +98,10 @@ export default function GestionContentEmployee() {
         getTiposVisitas().then(setTiposVisitas).catch(() => {})
         fetch(`${API_BASE_URL}/usuarios/tiposDocumentos/`)
             .then((res) => res.json())
-            .then((data) => setTiposDocumento(data.map((i) => ({ value: i.id, label: i.TipoDocumento }))))
+            .then((data) => {
+                const lista = Array.isArray(data) ? data : (data.results ?? [])
+                setTiposDocumento(lista.map((i) => ({ value: i.id, label: i.TipoDocumento })))
+            })
             .catch(() => {})
     }, [])
 

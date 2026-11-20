@@ -359,3 +359,49 @@ class CrearSolicitudUPTests(_BaseVisita):
     def test_up_propia_da_201(self):
         resp = self._crear(self._crear_up(self.productor))
         self.assertEqual(resp.status_code, 201, resp.content)
+
+
+class VisitasListadoEstadosTests(_BaseVisita):
+    def test_listado_incluye_realizadas_y_pendientes(self):
+        from django.contrib.auth.models import Permission
+
+        self.visita.estado = True
+        self.visita.save(update_fields=['estado'])
+        Visitas.objects.create(
+            Solicitud=self.solicitud,
+            Funcionario=self.funcionario,
+            TipoVisita=self.tipo_visita,
+            FechaYHoraVisita='2026-09-21T10:00:00Z',
+            estado=False,
+        )
+        self.user_admin.user_permissions.add(
+            Permission.objects.get(codename='view_visitas')
+        )
+        self.client.force_authenticate(self.user_admin)
+        respuesta = self.client.get('/api/visitas/visitas/')
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.data['results'] if isinstance(respuesta.data, dict) else respuesta.data
+        estados = {visita['estado'] for visita in datos}
+        self.assertEqual(estados, {True, False})
+
+
+class VisitasFiltroFechaLocalTests(_BaseVisita):
+    def test_filtro_dia_incluye_visita_nocturna(self):
+        from datetime import datetime
+        from django.contrib.auth.models import Permission
+
+        self.visita.FechaYHoraVisita = timezone.make_aware(
+            datetime(2026, 9, 20, 23, 30),
+            timezone.get_current_timezone(),
+        )
+        self.visita.save(update_fields=['FechaYHoraVisita'])
+        self.user_admin.user_permissions.add(
+            Permission.objects.get(codename='view_visitas')
+        )
+        self.client.force_authenticate(self.user_admin)
+        respuesta = self.client.get(
+            '/api/visitas/visitas/?desde=2026-09-20&hasta=2026-09-20'
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.data['results'] if isinstance(respuesta.data, dict) else respuesta.data
+        self.assertIn(self.visita.id, [visita['id'] for visita in datos])

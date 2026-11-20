@@ -4,13 +4,24 @@ import ScheduleIcon from '@mui/icons-material/Schedule'
 import AssignmentIndOutlinedIcon from '@mui/icons-material/AssignmentIndOutlined'
 import HomeWorkOutlinedIcon from '@mui/icons-material/HomeWorkOutlined'
 import CategoryIcon from '@mui/icons-material/Category'
-import { AGRO_COLORS } from '../../utils/agroConstants'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import { AGRO_COLORS, ESTADO_SOLICITUD_INFO } from '../../utils/agroConstants'
 import { DetailCard, DetailField } from '../DetailCard/DetailCard'
 import { formatFecha } from '../../utils/dateHelpers'
 
-const ESTADO_REALIZACION = {
+const ESTADO_VISITA_INFO = {
     realizada: { class: 'bg-green-100 text-green-700', label: 'Realizada' },
-    no_realizada: { class: 'bg-gray-100 text-gray-600', label: 'No realizada' }
+    pendiente: { class: 'bg-amber-100 text-amber-700', label: 'Pendiente' },
+    reagendada: { class: 'bg-purple-100 text-purple-700', label: 'Reagendada' },
+    rechazada: { class: 'bg-red-100 text-red-700', label: 'Rechazada' }
+}
+
+const estadoDeVisita = (visita) => {
+    const estadoSolicitud = visita?.solicitud_info?.estado_id
+        ?? visita?.solicitud_info?.estado
+    if (estadoSolicitud === 4 || estadoSolicitud === 'Reagendado') return 'reagendada'
+    if (estadoSolicitud === 3 || estadoSolicitud === 'Rechazado') return 'rechazada'
+    return visita?.estado ? 'realizada' : 'pendiente'
 }
 
 export default function VisitaInfoCard({ visita, numero, onClick }) {
@@ -22,9 +33,10 @@ export default function VisitaInfoCard({ visita, numero, onClick }) {
     const tipoVisita = visita?.tipo_visita_label ?? '—'
     const fechaFormateada = formatFecha(visita?.FechaYHoraVisita)
 
-    const { class: badgeClass, label: badgeLabel } = visita?.estado
-        ? ESTADO_REALIZACION.realizada
-        : ESTADO_REALIZACION.no_realizada
+    const estadoVisita = estadoDeVisita(visita)
+    const { class: badgeClass, label: badgeLabel } = ESTADO_VISITA_INFO[estadoVisita]
+    const estadoSolicitud = ESTADO_SOLICITUD_INFO[solInfo?.estado_id]
+        ?? { label: solInfo?.estado ?? '—', class: 'bg-gray-100 text-gray-600' }
 
     const handleActivate = () => onClick?.(visita)
 
@@ -42,6 +54,11 @@ export default function VisitaInfoCard({ visita, numero, onClick }) {
                 icon={<CategoryIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}
                 label="Tipo de visita"
                 value={tipoVisita}
+            />
+            <DetailField
+                icon={<InfoOutlinedIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}
+                label="Estado de la solicitud"
+                value={estadoSolicitud.label}
             />
             <DetailField
                 icon={<ScheduleIcon sx={{ fontSize: 14, color: AGRO_COLORS.primaryLight }} />}

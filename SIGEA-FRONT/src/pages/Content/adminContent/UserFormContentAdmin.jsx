@@ -93,7 +93,8 @@ export default function UserFormContentAdmin() {
             .then((res) => res.json())
             .then((data) => {
                 if (activo) {
-                    setTiposDocumento(data.map((item) => ({ value: item.id, label: item.TipoDocumento })))
+                    const lista = Array.isArray(data) ? data : (data.results ?? [])
+                    setTiposDocumento(lista.map((item) => ({ value: item.id, label: item.TipoDocumento })))
                 }
             })
             .catch(() => {})

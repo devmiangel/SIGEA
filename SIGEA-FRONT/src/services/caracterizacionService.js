@@ -75,6 +75,7 @@ export const getTiposRegistrosICA = () => getCatalogo('/predios/tiposRegistrosIC
 
 export const getNivelesEducativos = () => getCatalogo('/usuarios/tiposNivelesEducativos/')
 export const getSisben = () => getCatalogo('/usuarios/sisben/')
+export const getTiposDocumentos = () => getCatalogo('/usuarios/tiposDocumentos/')
 
 export const crearActividadUP = (nombre) => crearCatalogo('/UPs/actividadesUP/', { Actividad: nombre })
 export const crearUnidad = (nombre) => crearCatalogo('/UPs/unidades/', { Unidad: nombre })

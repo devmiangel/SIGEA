@@ -5,28 +5,14 @@ import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import VehiculoPreviewCard from "../../../components/VehiculoPreviewCard/VehiculoPreviewCard"
 import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
+import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { useVehiculos } from "../../../hooks/useVehiculos"
-import { getFuncionarios, getConductores, asignarVehiculoDirecto, getRegistroAsignacionVehiculos, devolverVehiculo } from "../../../services/agroService"
+import { getFuncionarios, getConductores, asignarVehiculoDirecto, getRegistroAsignacionVehiculos, devolverVehiculo, getMarcasVehiculos, getLineasVehiculos, getTiposVehiculos, getTiposCombustibles } from "../../../services/agroService"
 import { abrirModalAsignarVehiculo } from "../../../components/AgroModals/AsignarVehiculoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
-import { esRegistroActivo } from "../../../utils/insumoHelpers"
 import Swal from 'sweetalert2'
 
-function estadoSoat(fecha) {
-    if (!fecha) return 'sin'
-    const [anio, mes, dia] = String(fecha).split('-').map(Number)
-    if (!anio || !mes || !dia) return 'sin'
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    const vence = new Date(anio, mes - 1, dia)
-    const dias = Math.ceil((vence - hoy) / 86400000)
-    if (dias < 0) return 'vencido'
-    if (dias <= 30) return 'por_vencer'
-    return 'vigente'
-}
-
 export default function InvVehicleContentAdmin() {
-    const { vehiculos, loading, error, eliminar, refresh } = useVehiculos()
     const navigate = useNavigate()
 
     // Asignaciones vigentes (sin devolver), indexadas por vehículo.
@@ -39,6 +25,31 @@ export default function InvVehicleContentAdmin() {
     const [filtroTipo, setFiltroTipo] = useState('')
     const [filtroCombustible, setFiltroCombustible] = useState('')
     const [filtroSoat, setFiltroSoat] = useState('')
+    const [marcas, setMarcas] = useState([])
+    const [lineas, setLineas] = useState([])
+    const [tiposVehiculos, setTiposVehiculos] = useState([])
+    const [tiposCombustibles, setTiposCombustibles] = useState([])
+
+    const {
+        vehiculos,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        eliminar,
+        refresh,
+    } = useVehiculos({
+        search: busqueda.trim(),
+        marca: filtroMarca,
+        linea: filtroLinea,
+        tipo: filtroTipo,
+        combustible: filtroCombustible,
+        estado: filtroEstado,
+        disponibilidad: filtroDisponibilidad,
+        soat: filtroSoat,
+    })
 
     const cargarAsignaciones = useCallback(async () => {
         try {
@@ -58,6 +69,25 @@ export default function InvVehicleContentAdmin() {
         ;(async () => { if (activo) await cargarAsignaciones() })()
         return () => { activo = false }
     }, [cargarAsignaciones])
+
+    useEffect(() => {
+        let activo = true
+        Promise.all([
+            getMarcasVehiculos(),
+            getLineasVehiculos(),
+            getTiposVehiculos(),
+            getTiposCombustibles(),
+        ])
+            .then(([marcasData, lineasData, tiposData, combustiblesData]) => {
+                if (!activo) return
+                setMarcas(marcasData ?? [])
+                setLineas(lineasData ?? [])
+                setTiposVehiculos(tiposData ?? [])
+                setTiposCombustibles(combustiblesData ?? [])
+            })
+            .catch(() => {})
+        return () => { activo = false }
+    }, [])
 
     const handleDevolver = async (vehiculo, asignacion) => {
         const confirmacion = await Swal.fire({
@@ -167,62 +197,15 @@ export default function InvVehicleContentAdmin() {
         }
     }
 
-    const opciones = useMemo(() => {
-        const unicos = (campo) => [...new Set(
-            vehiculos.map((vehiculo) => vehiculo[campo]).filter(Boolean)
-        )].sort((a, b) => String(a).localeCompare(String(b)))
-        const aOpciones = (valores) => valores.map((valor) => ({
-            value: String(valor),
-            label: String(valor),
-        }))
-        return {
-            marcas: aOpciones(unicos('MarcaVehiculo')),
-            lineas: aOpciones(unicos('LineaVehiculo')),
-            tipos: aOpciones(unicos('TipoVehiculo')),
-            combustibles: aOpciones(unicos('TipoCombustible')),
-        }
-    }, [vehiculos])
-
-    const vehiculosFiltrados = useMemo(() => {
-        const q = busqueda.trim().toLowerCase()
-        return vehiculos.filter((vehiculo) => {
-            const texto = [
-                vehiculo.Placa,
-                vehiculo.Modelo,
-                vehiculo.Descripcion,
-                vehiculo.MarcaVehiculo,
-                vehiculo.LineaVehiculo,
-                vehiculo.TipoVehiculo,
-                vehiculo.TipoCombustible,
-            ].filter(Boolean).join(' ').toLowerCase()
-            const coincideTexto = !q || texto.includes(q)
-            const activo = esRegistroActivo(vehiculo)
-            const coincideEstado = !filtroEstado || (filtroEstado === 'activo' ? activo : !activo)
-            const asignado = Boolean(asignaciones[vehiculo.id])
-            const coincideDisponibilidad = !filtroDisponibilidad
-                || (filtroDisponibilidad === 'asignado' ? asignado : !asignado)
-            const coincideMarca = !filtroMarca || vehiculo.MarcaVehiculo === filtroMarca
-            const coincideLinea = !filtroLinea || vehiculo.LineaVehiculo === filtroLinea
-            const coincideTipo = !filtroTipo || vehiculo.TipoVehiculo === filtroTipo
-            const coincideCombustible = !filtroCombustible
-                || vehiculo.TipoCombustible === filtroCombustible
-            const coincideSoat = !filtroSoat || estadoSoat(vehiculo.FechaSoat) === filtroSoat
-            return coincideTexto && coincideEstado && coincideDisponibilidad
-                && coincideMarca && coincideLinea && coincideTipo
-                && coincideCombustible && coincideSoat
-        })
-    }, [
-        vehiculos,
-        busqueda,
-        filtroEstado,
-        filtroDisponibilidad,
-        filtroMarca,
-        filtroLinea,
-        filtroTipo,
-        filtroCombustible,
-        filtroSoat,
-        asignaciones,
-    ])
+    const opciones = useMemo(() => ({
+        marcas: marcas.map((marca) => ({ value: marca.MarcaVehiculo, label: marca.MarcaVehiculo })),
+        lineas: lineas.map((linea) => ({ value: linea.LineaVehiculo, label: linea.LineaVehiculo })),
+        tipos: tiposVehiculos.map((tipo) => ({ value: tipo.TipoVehiculo, label: tipo.TipoVehiculo })),
+        combustibles: tiposCombustibles.map((tipo) => ({
+            value: tipo.TipoCombustible,
+            label: tipo.TipoCombustible,
+        })),
+    }), [marcas, lineas, tiposVehiculos, tiposCombustibles])
 
     const limpiarFiltros = () => {
         setBusqueda('')
@@ -233,7 +216,13 @@ export default function InvVehicleContentAdmin() {
         setFiltroTipo('')
         setFiltroCombustible('')
         setFiltroSoat('')
+        setPage(1)
     }
+
+    const hayFiltros = Boolean(busqueda.trim()) || Boolean(filtroEstado)
+        || Boolean(filtroDisponibilidad) || Boolean(filtroMarca)
+        || Boolean(filtroLinea) || Boolean(filtroTipo)
+        || Boolean(filtroCombustible) || Boolean(filtroSoat)
 
     return (
         <>
@@ -256,58 +245,73 @@ export default function InvVehicleContentAdmin() {
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Vehículos del sistema</h3>
-                    <p className="text-xs text-gray-500">{vehiculos.length} vehículo(s) registrado(s)</p>
+                    <p className="text-xs text-gray-500">{count} vehículo(s) registrado(s)</p>
                 </div>
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando vehículos...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los vehículos. Intenta de nuevo.</p>
-                ) : vehiculos.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No hay vehículos registrados en el sistema.</p>
+                ) : count === 0 ? (
+                    <div className="flex flex-col items-start gap-2">
+                        <p className="text-gray-500 text-sm">
+                            {hayFiltros
+                                ? 'No hay vehículos que coincidan con la búsqueda o los filtros.'
+                                : 'No hay vehículos registrados en el sistema.'}
+                        </p>
+                        {hayFiltros && (
+                            <button
+                                type="button"
+                                onClick={limpiarFiltros}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+                            >
+                                Limpiar filtros
+                            </button>
+                        )}
+                    </div>
                 ) : (
                     <>
                         <InventoryFilterBar
                             search={busqueda}
-                            onSearchChange={setBusqueda}
+                            onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
                             searchPlaceholder="Buscar por placa, modelo, marca o línea..."
-                            total={vehiculos.length}
-                            shown={vehiculosFiltrados.length}
+                            total={count}
+                            shown={vehiculos.length}
                             onClear={limpiarFiltros}
                             filters={[
                                 {
                                     key: 'marca',
                                     label: 'Marca',
                                     value: filtroMarca,
-                                    onChange: setFiltroMarca,
+                                    onChange: (valor) => { setFiltroMarca(valor); setPage(1) },
                                     options: opciones.marcas,
                                 },
                                 {
                                     key: 'linea',
                                     label: 'Línea',
                                     value: filtroLinea,
-                                    onChange: setFiltroLinea,
+                                    onChange: (valor) => { setFiltroLinea(valor); setPage(1) },
                                     options: opciones.lineas,
                                 },
                                 {
                                     key: 'tipo',
                                     label: 'Tipo',
                                     value: filtroTipo,
-                                    onChange: setFiltroTipo,
+                                    onChange: (valor) => { setFiltroTipo(valor); setPage(1) },
                                     options: opciones.tipos,
                                 },
                                 {
                                     key: 'combustible',
                                     label: 'Combustible',
                                     value: filtroCombustible,
-                                    onChange: setFiltroCombustible,
+                                    onChange: (valor) => { setFiltroCombustible(valor); setPage(1) },
                                     options: opciones.combustibles,
                                 },
                                 {
                                     key: 'estado',
                                     label: 'Estado',
                                     value: filtroEstado,
-                                    onChange: setFiltroEstado,
+                                    onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
                                     options: [
                                         { value: 'activo', label: 'Activos' },
                                         { value: 'inactivo', label: 'Inactivos' },
@@ -317,7 +321,7 @@ export default function InvVehicleContentAdmin() {
                                     key: 'disponibilidad',
                                     label: 'Disponibilidad',
                                     value: filtroDisponibilidad,
-                                    onChange: setFiltroDisponibilidad,
+                                    onChange: (valor) => { setFiltroDisponibilidad(valor); setPage(1) },
                                     options: [
                                         { value: 'disponible', label: 'Disponibles' },
                                         { value: 'asignado', label: 'Asignados' },
@@ -327,7 +331,7 @@ export default function InvVehicleContentAdmin() {
                                     key: 'soat',
                                     label: 'SOAT',
                                     value: filtroSoat,
-                                    onChange: setFiltroSoat,
+                                    onChange: (valor) => { setFiltroSoat(valor); setPage(1) },
                                     options: [
                                         { value: 'vigente', label: 'Vigente' },
                                         { value: 'por_vencer', label: 'Por vencer (≤ 30 días)' },
@@ -336,25 +340,26 @@ export default function InvVehicleContentAdmin() {
                                 },
                             ]}
                         />
-                        {vehiculosFiltrados.length === 0 ? (
-                            <p className="text-gray-500 text-sm">
-                                No hay vehículos que coincidan con la búsqueda o los filtros.
-                            </p>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
-                                {vehiculosFiltrados.map((vehiculo) => (
-                                    <VehiculoPreviewCard
-                                        key={vehiculo.id}
-                                        vehiculo={vehiculo}
-                                        onEdit={handleEditar}
-                                        onDelete={handleEliminar}
-                                        onAsignar={handleAsignar}
-                                        asignacion={asignaciones[vehiculo.id]}
-                                        onDevolver={handleDevolver}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
+                            {vehiculos.map((vehiculo) => (
+                                <VehiculoPreviewCard
+                                    key={vehiculo.id}
+                                    vehiculo={vehiculo}
+                                    onEdit={handleEditar}
+                                    onDelete={handleEliminar}
+                                    onAsignar={handleAsignar}
+                                    asignacion={asignaciones[vehiculo.id]}
+                                    onDevolver={handleDevolver}
+                                />
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={page}
+                            count={count}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            loading={loading}
+                        />
                     </>
                 )}
             </div>

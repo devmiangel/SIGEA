@@ -78,6 +78,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_RENDERER_CLASSES': tuple(DEFAULT_RENDERER_CLASSES),
+    'DEFAULT_PAGINATION_CLASS': 'SIGEAsite.pagination.SigeaPagination',
+    'PAGE_SIZE': 50,
     # Límite de peticiones (anti fuerza bruta / abuso). El caché por defecto es en
     # memoria por proceso de Gunicorn: suficiente con pocos workers.
     'DEFAULT_THROTTLE_CLASSES': (

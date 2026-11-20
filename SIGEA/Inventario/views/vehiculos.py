@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import transaction
 from rest_framework import viewsets
@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from SIGEAsite.permissions import SigeaModelPermissionMixin
+from SIGEAsite.filters import filtrar_texto
 from ..validators import normalizar_placa
 
 from ..models import (
@@ -103,6 +104,68 @@ class DetalleVehiculosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
         'Vehiculo__TipoCombustible',
     )
     serializer_class = DetalleVehiculosSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'Placa',
+                'Modelo',
+                'Descripcion',
+                'Vehiculo__LineaVehiculo__LineaVehiculo',
+                'Vehiculo__LineaVehiculo__MarcaVehiculo__MarcaVehiculo',
+                'Vehiculo__TipoVehiculo__TipoVehiculo',
+                'Vehiculo__TipoCombustible__TipoCombustible',
+            ],
+        )
+        marca = params.get('marca')
+        if marca:
+            queryset = queryset.filter(
+                Vehiculo__LineaVehiculo__MarcaVehiculo__MarcaVehiculo__iexact=marca
+            )
+        linea = params.get('linea')
+        if linea:
+            queryset = queryset.filter(
+                Vehiculo__LineaVehiculo__LineaVehiculo__iexact=linea
+            )
+        tipo = params.get('tipo')
+        if tipo:
+            queryset = queryset.filter(
+                Vehiculo__TipoVehiculo__TipoVehiculo__iexact=tipo
+            )
+        combustible = params.get('combustible')
+        if combustible:
+            queryset = queryset.filter(
+                Vehiculo__TipoCombustible__TipoCombustible__iexact=combustible
+            )
+        estado = params.get('estado')
+        if estado == 'activo':
+            queryset = queryset.filter(Estado=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(Estado=False)
+        disponibilidad = params.get('disponibilidad')
+        if disponibilidad == 'asignado':
+            queryset = queryset.filter(
+                registroasignacionvehiculos__Entregado=False
+            )
+        elif disponibilidad == 'disponible':
+            queryset = queryset.exclude(
+                registroasignacionvehiculos__Entregado=False
+            )
+        soat = params.get('soat')
+        hoy = date.today()
+        if soat == 'vencido':
+            queryset = queryset.filter(FechaSoat__lt=hoy)
+        elif soat == 'por_vencer':
+            queryset = queryset.filter(
+                FechaSoat__gte=hoy, FechaSoat__lte=hoy + timedelta(days=30)
+            )
+        elif soat == 'vigente':
+            queryset = queryset.filter(FechaSoat__gt=hoy + timedelta(days=30))
+        return queryset.distinct()
 
     @staticmethod
     def _exigir_permisos(request, codigos):

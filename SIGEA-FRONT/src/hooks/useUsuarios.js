@@ -1,45 +1,49 @@
-import { useState, useEffect, useCallback } from "react"
-import { getUsuarios, actualizarUsuario, eliminarUsuario } from "../services/agroService"
+import { useCallback } from 'react'
+import { getUsuarios, actualizarUsuario, eliminarUsuario } from '../services/agroService'
+import { usePaginatedList } from './usePaginatedList'
 
-export function useUsuarios() {
-    const [usuarios, setUsuarios] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    const cargar = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getUsuarios()
-            setUsuarios(data)
-            setError(null)
-        } catch (e) {
-            setError(e)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargar() }, [cargar])
+export function useUsuarios(filtros = {}) {
+    const {
+        items: usuarios,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        refresh,
+    } = usePaginatedList(getUsuarios, filtros)
 
     const actualizar = useCallback(async (id, data) => {
         try {
             await actualizarUsuario(id, data)
-            await cargar()
+            await refresh()
             return { ok: true }
         } catch (e) {
             return { ok: false, error: e }
         }
-    }, [cargar])
+    }, [refresh])
 
     const eliminar = useCallback(async (id) => {
         try {
             await eliminarUsuario(id)
-            await cargar()
+            await refresh()
             return { ok: true }
         } catch (e) {
             return { ok: false, error: e }
         }
-    }, [cargar])
+    }, [refresh])
 
-    return { usuarios, loading, error, refresh: cargar, actualizar, eliminar }
+    return {
+        usuarios,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        refresh,
+        actualizar,
+        eliminar,
+    }
 }
