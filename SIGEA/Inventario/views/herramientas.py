@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from ..models import TiposHerramientas, Herramientas, AsignacionHerramientas
 
+from SIGEAsite.filters import filtrar_texto
 from .utils import (
     CatalogoUnicoMixin,
     Conflicto,
@@ -30,8 +31,31 @@ class TiposHerramientasViewSet(CatalogoUnicoMixin, SigeaModelPermissionMixin, vi
     prefijo_clave = 'tipo_herramienta'
 
 class HerramientasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-    queryset = Herramientas.objects.all()
+    queryset = Herramientas.objects.select_related('TipoHerramienta')
     serializer_class = HerramientasSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            ['Herramienta', 'Descripcion'],
+        )
+        tipo = params.get('tipo')
+        if tipo and str(tipo).isdigit():
+            queryset = queryset.filter(TipoHerramienta_id=int(tipo))
+        estado = params.get('estado')
+        if estado == 'activo':
+            queryset = queryset.filter(Estado=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(Estado=False)
+        disponibilidad = params.get('disponibilidad')
+        if disponibilidad == 'asignada':
+            queryset = queryset.filter(asignacionherramientas__Entregado=False)
+        elif disponibilidad == 'disponible':
+            queryset = queryset.exclude(asignacionherramientas__Entregado=False)
+        return queryset.distinct()
 
     def perform_update(self, serializer):
         with transaction.atomic():

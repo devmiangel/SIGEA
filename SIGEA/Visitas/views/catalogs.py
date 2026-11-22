@@ -3,6 +3,7 @@ import unicodedata
 from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
+from SIGEAsite.filters import filtrar_texto
 from rest_framework.response import Response
 
 from ..models import (
@@ -49,6 +50,42 @@ class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
     queryset = Solicitudes.objects.all()
     serializer_class = SolicitudesSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+
+        # El modulo de Solicitudes solo muestra las que aun no tienen visita
+        # asignada: En Proceso (1) y Reagendado (4).
+        estado = params.get('estado')
+        if estado == 'pendientes':
+            queryset = queryset.filter(Estado_id__in=(1, 4))
+        elif estado == 'asignadas':
+            queryset = queryset.filter(Estado_id=2)
+        elif estado == 'rechazadas':
+            queryset = queryset.filter(Estado_id=3)
+
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'Observacion',
+                'Direccion',
+                'Usuario__email',
+                'Usuario__persona__primer_nombre',
+                'Usuario__persona__primer_apellido',
+                'Usuario__persona__numero_documento',
+                'UP__RUEA',
+                'UP__Predio__NombrePredio',
+            ],
+        )
+
+        return queryset.select_related(
+            'Usuario__persona',
+            'UP__TipoUP',
+            'MotivoSolicitud',
+            'Estado',
+        ).order_by('-FechaSolicitud', '-id')
+
     def perform_create(self, serializer):
         # Un productor/usuario solo puede crear solicitudes a su propio nombre,
         # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.
@@ -88,10 +125,13 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         params = self.request.query_params
         up_id = params.get('up_id')
         productor_id = params.get('productor_id')
+        solicitud_id = params.get('solicitud_id')
         if up_id and str(up_id).isdigit():
             queryset = queryset.filter(Solicitud__UP_id=int(up_id))
         if productor_id and str(productor_id).isdigit():
             queryset = queryset.filter(Solicitud__UP__Productor_id=int(productor_id))
+        if solicitud_id and str(solicitud_id).isdigit():
+            queryset = queryset.filter(Solicitud_id=int(solicitud_id))
 
         desde = parse_date(params.get('desde') or '')
         hasta = parse_date(params.get('hasta') or '')
@@ -99,7 +139,33 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
             queryset = queryset.filter(FechaYHoraVisita__date__gte=desde)
         if hasta:
             queryset = queryset.filter(FechaYHoraVisita__date__lte=hasta)
-        return queryset
+
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'Solicitud__UP__RUEA',
+                'Solicitud__UP__Predio__NombrePredio',
+                'Funcionario__usuario__persona__primer_nombre',
+                'Funcionario__usuario__persona__primer_apellido',
+                'Funcionario__usuario__persona__numero_documento',
+                'Solicitud__Usuario__persona__primer_nombre',
+                'Solicitud__Usuario__persona__primer_apellido',
+                'TipoVisita__TipoVisita',
+            ],
+        )
+        estado = params.get('estado')
+        if estado == 'realizadas':
+            queryset = queryset.filter(estado=True)
+        elif estado == 'no_realizadas':
+            queryset = queryset.filter(estado=False)
+
+        return queryset.select_related(
+            'Solicitud__UP__Predio',
+            'Solicitud__Usuario__persona',
+            'Funcionario__usuario__persona',
+            'TipoVisita',
+        ).distinct()
 
     def update(self, request, *args, **kwargs):
         from UPs.models import EstadosUP

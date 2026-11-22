@@ -18,6 +18,7 @@ import UsersContentAdmin from "../pages/Content/adminContent/UsersContentAdmin";
 import UserFormContentAdmin from "../pages/Content/adminContent/UserFormContentAdmin";
 import UpValidationAdmin from "../pages/Content/adminContent/UpValidationAdmin";
 import VisitasContentAdmin from "../pages/Content/adminContent/VisitasContentAdmin";
+import SolicitudesContentAdmin from "../pages/Content/adminContent/SolicitudesContentAdmin";
 import EventosContentAdmin from "../pages/Content/adminContent/EventosContentAdmin";
 import EventoFormContentAdmin from "../pages/Content/adminContent/EventoFormContentAdmin";
 import ProductoresContentAdmin from "../pages/Content/adminContent/ProductoresContentAdmin";
@@ -60,7 +61,8 @@ export default function SigeaRoutes(){
                 <Route index element={<DashboardContentAdmin/>}/>
                 <Route path="reportes" element={<ReportContentAdmin/>}/>
                 <Route path="inventario" element={<InventaryContentAdmin/>}/>
-                <Route path="horarios" element={<ScheduleContentAdmin/>}/>
+                <Route path="horarios" element={<ScheduleContentAdmin/>}/> 
+                <Route path="solicitudes" element={<SolicitudesContentAdmin/>}/> 
                 <Route path="usuarios" element={<UsersContentAdmin/>}/> 
                 <Route path="usuarios/nuevo" element={<UserFormContentAdmin/>}/> 
                 <Route path="usuarios/editar/:usuarioId" element={<UserFormContentAdmin/>}/> 

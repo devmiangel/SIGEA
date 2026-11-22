@@ -42,8 +42,36 @@ const clearStoredSession = () => {
     localStorage.removeItem('user')
 }
 
+const esRespuestaPaginada = (data) =>
+    data && !Array.isArray(data) && Array.isArray(data.results) && typeof data.count === 'number'
+
+const desenvloverPaginacion = async (response) => {
+    if (!esRespuestaPaginada(response.data)) return response
+
+    const config = response.config ?? {}
+    const params = config.params ?? {}
+    if (config.__rawPaginated || params.page !== undefined || params.page_size !== undefined) {
+        return response
+    }
+
+    let resultados = [...response.data.results]
+    let siguiente = response.data.next
+
+    while (siguiente) {
+        const url = new URL(siguiente, window.location.origin)
+        url.searchParams.set('page_size', '200')
+        const pagina = await api.get(url.toString(), { __rawPaginated: true })
+        const datos = pagina.data
+        resultados = resultados.concat(datos.results ?? [])
+        siguiente = datos.next
+    }
+
+    response.data = resultados
+    return response
+}
+
 api.interceptors.response.use(
-    (response) => response,
+    (response) => desenvloverPaginacion(response),
     async (error) => {
         const { response, config } = error
 

@@ -1,8 +1,20 @@
 import { ESTADO_SOLICITUD_INFO } from '../../utils/agroConstants'
 import { formatFecha } from '../../utils/dateHelpers'
 
-export default function UserRequest({ solicitud, numero, onClick }) {
+const formatearFechaSolicitud = (fecha) => {
+  if (!fecha) return '—'
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    const [anio, mes, dia] = fecha.split('-')
+    return `${dia}/${mes}/${anio}`
+  }
+  return formatFecha(fecha)
+}
+
+export default function UserRequest({ solicitud, numero, onClick, mostrarSolicitante = false }) {
   const { label, class: badgeClass } = ESTADO_SOLICITUD_INFO[solicitud?.Estado] ?? { label: 'Desconocido', class: 'bg-gray-100 text-gray-800' }
+  const solicitante = solicitud?.solicitante ?? {}
+  const nombreSolicitante = [solicitante.primer_nombre, solicitante.primer_apellido]
+    .filter(Boolean).join(' ').trim()
 
   const handleActivate = () => onClick?.(solicitud)
 
@@ -23,8 +35,14 @@ export default function UserRequest({ solicitud, numero, onClick }) {
           {solicitud?.Observacion ?? 'Sin descripción'}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">
-          {formatFecha(solicitud?.FechaSolicitud)}
+          {formatearFechaSolicitud(solicitud?.FechaSolicitud)}
         </p>
+        {mostrarSolicitante && (
+          <p className="text-xs text-gray-500 mt-0.5 truncate">
+            {nombreSolicitante || 'Sin nombre'}
+            {solicitante.email ? ` · ${solicitante.email}` : ''}
+          </p>
+        )}
         {solicitud?.novedad && (
           <p className="text-xs text-[#015d3b] mt-0.5 truncate">
             Novedad: {solicitud.novedad}

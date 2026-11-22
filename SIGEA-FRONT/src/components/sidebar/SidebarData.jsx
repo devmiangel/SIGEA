@@ -45,6 +45,12 @@ export const SidebarData = [
         link: '/administrador/horarios', 
         roles: ['Administradores']
     }, 
+    {
+        title: 'Solicitudes',
+        icon: <AssignmentIcon/>,
+        link: '/administrador/solicitudes',
+        roles: ['Administradores']
+    }, 
      {
         title: 'Usuarios',
         icon: <GroupIcon/>,

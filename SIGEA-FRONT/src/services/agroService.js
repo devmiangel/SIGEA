@@ -10,8 +10,8 @@ export const crearSolicitud = async (data) => {
     return response.data;
 }
 
-export const getSolicitudes = async () => {
-    const response = await api.get('/visitas/solicitudes/');
+export const getSolicitudes = async (params = {}) => {
+    const response = await api.get('/visitas/solicitudes/', { params });
     return response.data;
 }
 
@@ -35,8 +35,8 @@ export const getUP = async (upId) => {
     return response.data;
 }
 
-export const getProductores = async () => {
-    const response = await api.get('/usuarios/productores/');
+export const getProductores = async (params = {}) => {
+    const response = await api.get('/usuarios/productores/', { params });
     return response.data;
 }
 
@@ -80,8 +80,8 @@ export const getFuncionarios = async () => {
     return response.data;
 }
 
-export const getUsuarios = async () => {
-    const response = await api.get('/usuarios/usuarios/');
+export const getUsuarios = async (params = {}) => {
+    const response = await api.get('/usuarios/usuarios/', { params });
     return response.data;
 }
 
@@ -193,8 +193,8 @@ export const generarInformeVisita = async (visitaId) => {
     return { blob: response.data, nombreArchivo }
 }
 
-export const getInsumos = async () => {
-    const response = await api.get('/inventario/insumos/');
+export const getInsumos = async (params = {}) => {
+    const response = await api.get('/inventario/insumos/', { params });
     return response.data;
 }
 
@@ -228,8 +228,8 @@ export const crearTipoHerramienta = async (nombre) => {
     return response.data;
 }
 
-export const getHerramientas = async () => {
-    const response = await api.get('/inventario/herramientas/');
+export const getHerramientas = async (params = {}) => {
+    const response = await api.get('/inventario/herramientas/', { params });
     return response.data;
 }
 
@@ -293,8 +293,8 @@ export const crearTipoCombustible = async (nombre) => {
     return response.data;
 }
 
-export const getVehiculos = async () => {
-    const response = await api.get('/inventario/detalleVehiculos/');
+export const getVehiculos = async (params = {}) => {
+    const response = await api.get('/inventario/detalleVehiculos/', { params });
     return response.data;
 }
 

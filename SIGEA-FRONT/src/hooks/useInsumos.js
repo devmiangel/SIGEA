@@ -1,35 +1,38 @@
-import { useState, useEffect, useCallback } from "react"
-import { getInsumos, eliminarInsumo } from "../services/agroService"
+import { useCallback } from 'react'
+import { getInsumos, eliminarInsumo } from '../services/agroService'
+import { usePaginatedList } from './usePaginatedList'
 
-export function useInsumos() {
-    const [insumos, setInsumos] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    const cargar = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getInsumos()
-            setInsumos(data)
-            setError(null)
-        } catch (e) {
-            setError(e)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargar() }, [cargar])
+export function useInsumos(filtros = {}) {
+    const {
+        items: insumos,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        refresh,
+    } = usePaginatedList(getInsumos, filtros)
 
     const eliminar = useCallback(async (id) => {
         try {
             await eliminarInsumo(id)
-            await cargar()
+            await refresh()
             return { ok: true }
         } catch (e) {
             return { ok: false, error: e }
         }
-    }, [cargar])
+    }, [refresh])
 
-    return { insumos, loading, error, refresh: cargar, eliminar }
+    return {
+        insumos,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        refresh,
+        eliminar,
+    }
 }

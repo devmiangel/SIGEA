@@ -1,31 +1,42 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import GroupIcon from '@mui/icons-material/Group'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import UserPreviewCard from "../../../components/UserPreviewCard/UserPreviewCard"
 import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
+import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { mostrarInfoUsuario } from "../../../components/AgroModals/UsuarioInfoModal"
 import { useUsuarios } from "../../../hooks/useUsuarios"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
-import { getNombreCompleto, getCorreo } from "../../../utils/userDisplay"
 import Swal from 'sweetalert2'
 
 export default function UsersContentAdmin(){
     const navigate = useNavigate()
-    const { usuarios, loading, error, eliminar } = useUsuarios()
     const [busqueda, setBusqueda] = useState("")
     const [rolFiltro, setRolFiltro] = useState("")
 
-    const usuariosFiltrados = useMemo(() => {
-        const q = busqueda.trim().toLowerCase()
-        return usuarios.filter((user) => {
-            if (rolFiltro && user?.rol !== rolFiltro) return false
-            if (!q) return true
-            const texto = `${getNombreCompleto(user)} ${getCorreo(user)}`.toLowerCase()
-            return texto.includes(q)
-        })
-    }, [usuarios, busqueda, rolFiltro])
+    const {
+        usuarios,
+        count,
+        page,
+        setPage,
+        pageSize,
+        loading,
+        error,
+        eliminar,
+    } = useUsuarios({
+        search: busqueda.trim(),
+        rol: rolFiltro,
+    })
+
+    const hayFiltros = Boolean(busqueda.trim()) || Boolean(rolFiltro)
+
+    const limpiarFiltros = () => {
+        setBusqueda('')
+        setRolFiltro('')
+        setPage(1)
+    }
 
     const handleEditar = (user) => {
         navigate(`/administrador/usuarios/editar/${user.id}`)
@@ -84,56 +95,63 @@ export default function UsersContentAdmin(){
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Usuarios del sistema</h3>
-                    <p className="text-xs text-gray-500">{usuarios.length} usuario(s) registrado(s)</p>
+                    <p className="text-xs text-gray-500">{count} usuario(s) registrado(s)</p>
                 </div>
 
-                {!loading && !error && usuarios.length > 0 && (
-                    <InventoryFilterBar
-                        search={busqueda}
-                        onSearchChange={setBusqueda}
-                        searchPlaceholder="Buscar por nombre o correo..."
-                        total={usuarios.length}
-                        shown={usuariosFiltrados.length}
-                        onClear={() => { setBusqueda(''); setRolFiltro('') }}
-                        filters={[
-                            {
-                                key: 'rol',
-                                label: 'Rol',
-                                value: rolFiltro,
-                                onChange: setRolFiltro,
-                                options: [
-                                    { value: 'Administradores', label: 'Administradores' },
-                                    { value: 'Funcionarios', label: 'Funcionarios' },
-                                    { value: 'Productores', label: 'Productores' },
-                                    { value: 'Usuarios', label: 'Usuarios' },
-                                ],
-                            },
-                        ]}
-                    />
-                )}
+                <InventoryFilterBar
+                    search={busqueda}
+                    onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
+                    searchPlaceholder="Buscar por nombre o correo..."
+                    total={count}
+                    shown={usuarios.length}
+                    onClear={limpiarFiltros}
+                    filters={[
+                        {
+                            key: 'rol',
+                            label: 'Rol',
+                            value: rolFiltro,
+                            onChange: (valor) => { setRolFiltro(valor); setPage(1) },
+                            options: [
+                                { value: 'Administradores', label: 'Administradores' },
+                                { value: 'Funcionarios', label: 'Funcionarios' },
+                                { value: 'Productores', label: 'Productores' },
+                                { value: 'Usuarios', label: 'Usuarios' },
+                            ],
+                        },
+                    ]}
+                />
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando usuarios...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los usuarios. Intenta de nuevo.</p>
-                ) : usuariosFiltrados.length === 0 ? (
+                ) : count === 0 ? (
                     <p className="text-gray-500 text-sm">
-                        {usuarios.length === 0
-                            ? 'No hay usuarios registrados en el sistema.'
-                            : 'No se encontraron usuarios con los filtros aplicados.'}
+                        {hayFiltros
+                            ? 'No se encontraron usuarios con los filtros aplicados.'
+                            : 'No hay usuarios registrados en el sistema.'}
                     </p>
                 ) : (
-                    <div className="space-y-3">
-                        {usuariosFiltrados.map((user) => (
-                            <UserPreviewCard
-                                key={user.id}
-                                user={user}
-                                onCardClick={mostrarInfoUsuario}
-                                onEdit={handleEditar}
-                                onDelete={handleEliminar}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="space-y-3">
+                            {usuarios.map((user) => (
+                                <UserPreviewCard
+                                    key={user.id}
+                                    user={user}
+                                    onCardClick={mostrarInfoUsuario}
+                                    onEdit={handleEditar}
+                                    onDelete={handleEliminar}
+                                />
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={page}
+                            count={count}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            loading={loading}
+                        />
+                    </>
                 )}
             </div>
         </>

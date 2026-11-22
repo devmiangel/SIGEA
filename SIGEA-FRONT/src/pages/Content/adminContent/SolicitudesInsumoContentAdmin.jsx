@@ -122,33 +122,31 @@ export default function SolicitudesInsumoContentAdmin() {
                     <p className="text-xs text-gray-500">{solicitudes.length} solicitud(es) registrada(s)</p>
                 </div>
 
-                {!loading && !error && solicitudes.length > 0 && (
-                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <div className="relative flex-1">
-                            <SearchIcon
-                                fontSize="small"
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            />
-                            <input
-                                type="text"
-                                value={busqueda}
-                                onChange={(e) => setBusqueda(e.target.value)}
-                                placeholder="Buscar por insumo o funcionario..."
-                                className="w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
-                            />
-                        </div>
-                        <select
-                            value={filtroEstado}
-                            onChange={(e) => setFiltroEstado(e.target.value)}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-52"
-                        >
-                            <option value="">Todos los estados</option>
-                            <option value={ESTADO_SOLICITUD_INSUMO.PENDIENTE}>Pendiente</option>
-                            <option value={ESTADO_SOLICITUD_INSUMO.RESUELTA}>Resuelta</option>
-                            <option value={ESTADO_SOLICITUD_INSUMO.RECHAZADA}>Rechazada</option>
-                        </select>
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                        <SearchIcon
+                            fontSize="small"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                        <input
+                            type="text"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            placeholder="Buscar por insumo o funcionario..."
+                            className="w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
+                        />
                     </div>
-                )}
+                    <select
+                        value={filtroEstado}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-52"
+                    >
+                        <option value="">Todos los estados</option>
+                        <option value={ESTADO_SOLICITUD_INSUMO.PENDIENTE}>Pendiente</option>
+                        <option value={ESTADO_SOLICITUD_INSUMO.RESUELTA}>Resuelta</option>
+                        <option value={ESTADO_SOLICITUD_INSUMO.RECHAZADA}>Rechazada</option>
+                    </select>
+                </div>
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando solicitudes...</p>

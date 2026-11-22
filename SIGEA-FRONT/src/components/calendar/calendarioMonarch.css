@@ -8,3 +8,74 @@
     --fc-monarch-selected: #015d3b;
     --fc-monarch-outline: #3e9a8a;
 }
+
+.fc .fc-daygrid-day-frame,
+.fc .fc-daygrid-day-events,
+.fc .fc-daygrid-event-harness,
+.fc .fc-daygrid-event {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.fc .fc-daygrid-event {
+    white-space: normal;
+    word-break: break-word;
+}
+
+.fc .fc-daygrid-event .fc-event-main,
+.fc .fc-daygrid-event .fc-event-main-frame,
+.fc .fc-daygrid-event .fc-event-title-container,
+.fc .fc-daygrid-event .fc-event-title {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.fc .fc-daygrid-event .fc-event-title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fc .fc-daygrid-event-dot {
+    flex-shrink: 0;
+}
+
+.fc .fc-daygrid-more-link {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fc .fc-event.sigea-evento-realizada {
+    background-color: #229e14 !important;
+    border-color: #229e14 !important;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.sigea-evento-pendiente {
+    background-color: #f59e0b !important;
+    border-color: #f59e0b !important;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.sigea-evento-reagendada {
+    background-color: #7c3aed !important;
+    border-color: #7c3aed !important;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.sigea-evento-rechazada {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+[style*="--fc-event-color"] {
+    color: #ffffff !important;
+}
+
+[style*="--fc-event-color"] * {
+    color: #ffffff !important;
+}
