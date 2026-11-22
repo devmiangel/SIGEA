@@ -1,11 +1,10 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import CalendarioVisitas from "../../../components/calendar/CalendarioVisitas"
-import { useVisitas } from "../../../hooks/useVisitas"
 import { getVisitas } from "../../../services/agroService"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
@@ -13,12 +12,61 @@ import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
     const navigate = useNavigate()
-    const { visitas, loading: loadingVisitas } = useVisitas()
+    const [visitasCalendario, setVisitasCalendario] = useState([])
+    const [loadingCalendario, setLoadingCalendario] = useState(true)
+    const [errorCalendario, setErrorCalendario] = useState(false)
     const [diaSeleccionado, setDiaSeleccionado] = useState('')
     const [visitasDia, setVisitasDia] = useState([])
     const [cargandoDia, setCargandoDia] = useState(false)
+    const cacheRangos = useRef(new Map())
+    const peticionRango = useRef(0)
+    const rangoEnCurso = useRef('')
     const cacheDias = useRef(new Map())
     const peticionDia = useRef(0)
+
+    const handleRangoCalendario = useCallback(async (desde, hasta) => {
+        const clave = `${desde}|${hasta}`
+        if (cacheRangos.current.has(clave)) {
+            setVisitasCalendario(cacheRangos.current.get(clave))
+            setLoadingCalendario(false)
+            setErrorCalendario(false)
+            return
+        }
+
+        // FullCalendar puede disparar datesSet más de una vez para el mismo
+        // rango; evita lanzar peticiones duplicadas mientras una está en curso.
+        if (rangoEnCurso.current === clave) return
+        rangoEnCurso.current = clave
+
+        // Nuevo rango: cierra el panel del día anterior. Se usan actualizadores
+        // funcionales para no crear estados nuevos cuando ya están vacíos.
+        setDiaSeleccionado((prev) => (prev ? '' : prev))
+        setVisitasDia((prev) => (prev.length ? [] : prev))
+        setCargandoDia((prev) => (prev ? false : prev))
+
+        const peticion = peticionRango.current + 1
+        peticionRango.current = peticion
+        setVisitasCalendario((prev) => (prev.length ? [] : prev))
+        setLoadingCalendario(true)
+        setErrorCalendario(false)
+        try {
+            const data = await getVisitas({ desde, hasta })
+            if (peticion !== peticionRango.current) return
+            const lista = Array.isArray(data) ? data : (data?.results ?? [])
+            cacheRangos.current.set(clave, lista)
+            setVisitasCalendario(lista)
+        } catch {
+            if (peticion === peticionRango.current) {
+                setVisitasCalendario([])
+                setErrorCalendario(true)
+            }
+        } finally {
+            if (peticion === peticionRango.current) {
+                rangoEnCurso.current = ''
+                setLoadingCalendario(false)
+            }
+        }
+    }, [])
 
     const formatearDia = (fecha) => {
         if (!fecha) return ''
@@ -86,15 +134,22 @@ export default function ScheduleContentAdmin(){
             />
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-6">
-                    {loadingVisitas ? (
-                        <p className="text-gray-500 text-sm">Cargando calendario de visitas...</p>
-                    ) : (
-                        <CalendarioVisitas
-                            visitas={visitas}
-                            onDayClick={handleDiaClick}
-                        />
+                    <CalendarioVisitas
+                        visitas={visitasCalendario}
+                        onDayClick={handleDiaClick}
+                        onRangeChange={handleRangoCalendario}
+                    />
+                    {loadingCalendario && (
+                        <p className="mt-2 text-xs text-gray-500">
+                            Cargando visitas del mes...
+                        </p>
                     )}
-                    {!loadingVisitas && !diaSeleccionado && (
+                    {errorCalendario && (
+                        <p className="mt-2 text-xs text-red-600">
+                            No se pudieron cargar las visitas del mes.
+                        </p>
+                    )}
+                    {!loadingCalendario && !errorCalendario && !diaSeleccionado && (
                         <p className="mt-2 text-xs text-gray-500">
                             Haz clic en un día del calendario para ver sus visitas en la lista.
                         </p>

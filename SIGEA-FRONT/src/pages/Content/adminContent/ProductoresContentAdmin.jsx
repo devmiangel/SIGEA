@@ -91,99 +91,95 @@ export default function ProductoresContentAdmin() {
                     <p className="text-xs text-gray-500">{count} productor(es) registrado(s)</p>
                 </div>
 
+                <InventoryFilterBar
+                    search={busqueda}
+                    onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
+                    searchPlaceholder="Buscar por nombre, documento o correo..."
+                    total={count}
+                    shown={productores.length}
+                    onClear={limpiarFiltros}
+                    filters={[
+                        {
+                            key: 'estado',
+                            label: 'Estado',
+                            value: filtroEstado,
+                            onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
+                            options: [
+                                { value: 'activo', label: 'Activos' },
+                                { value: 'inactivo', label: 'Inactivos' },
+                            ],
+                        },
+                        {
+                            key: 'ups',
+                            label: 'Unidades productivas',
+                            value: filtroUps,
+                            onChange: (valor) => { setFiltroUps(valor); setPage(1) },
+                            options: [
+                                { value: 'con', label: 'Con UPs' },
+                                { value: 'sin', label: 'Sin UPs' },
+                            ],
+                        },
+                        {
+                            key: 'tipo_documento',
+                            label: 'Tipo de documento',
+                            value: filtroTipoDocumento,
+                            onChange: (valor) => { setFiltroTipoDocumento(valor); setPage(1) },
+                            options: tiposDocumento.map((tipo) => ({
+                                value: String(tipo.id),
+                                label: tipo.TipoDocumento,
+                            })),
+                        },
+                        {
+                            key: 'vereda',
+                            label: 'Vereda',
+                            value: filtroVereda,
+                            onChange: (valor) => { setFiltroVereda(valor); setPage(1) },
+                            options: veredas.map((vereda) => ({
+                                value: String(vereda.id),
+                                label: vereda.NombreVereda,
+                            })),
+                        },
+                        {
+                            key: 'sector',
+                            label: 'Sector',
+                            value: filtroSector,
+                            onChange: (valor) => { setFiltroSector(valor); setPage(1) },
+                            options: sectores.map((sector) => ({
+                                value: String(sector.id),
+                                label: sector.NombreSector,
+                            })),
+                        },
+                    ]}
+                />
+
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando productores...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los productores.</p>
+                ) : count === 0 ? (
+                    <p className="text-gray-500 text-sm">
+                        {hayFiltros
+                            ? 'No hay productores que coincidan con la búsqueda o los filtros.'
+                            : 'No hay productores registrados en el sistema.'}
+                    </p>
                 ) : (
                     <>
-                        <InventoryFilterBar
-                            search={busqueda}
-                            onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
-                            searchPlaceholder="Buscar por nombre, documento o correo..."
-                            total={count}
-                            shown={productores.length}
-                            onClear={limpiarFiltros}
-                            filters={[
-                                {
-                                    key: 'estado',
-                                    label: 'Estado',
-                                    value: filtroEstado,
-                                    onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
-                                    options: [
-                                        { value: 'activo', label: 'Activos' },
-                                        { value: 'inactivo', label: 'Inactivos' },
-                                    ],
-                                },
-                                {
-                                    key: 'ups',
-                                    label: 'Unidades productivas',
-                                    value: filtroUps,
-                                    onChange: (valor) => { setFiltroUps(valor); setPage(1) },
-                                    options: [
-                                        { value: 'con', label: 'Con UPs' },
-                                        { value: 'sin', label: 'Sin UPs' },
-                                    ],
-                                },
-                                {
-                                    key: 'tipo_documento',
-                                    label: 'Tipo de documento',
-                                    value: filtroTipoDocumento,
-                                    onChange: (valor) => { setFiltroTipoDocumento(valor); setPage(1) },
-                                    options: tiposDocumento.map((tipo) => ({
-                                        value: String(tipo.id),
-                                        label: tipo.TipoDocumento,
-                                    })),
-                                },
-                                {
-                                    key: 'vereda',
-                                    label: 'Vereda',
-                                    value: filtroVereda,
-                                    onChange: (valor) => { setFiltroVereda(valor); setPage(1) },
-                                    options: veredas.map((vereda) => ({
-                                        value: String(vereda.id),
-                                        label: vereda.NombreVereda,
-                                    })),
-                                },
-                                {
-                                    key: 'sector',
-                                    label: 'Sector',
-                                    value: filtroSector,
-                                    onChange: (valor) => { setFiltroSector(valor); setPage(1) },
-                                    options: sectores.map((sector) => ({
-                                        value: String(sector.id),
-                                        label: sector.NombreSector,
-                                    })),
-                                },
-                            ]}
-                        />
-
-                        {count === 0 ? (
-                            <p className="text-gray-500 text-sm">
-                                {hayFiltros
-                                    ? 'No hay productores que coincidan con la búsqueda o los filtros.'
-                                    : 'No hay productores registrados en el sistema.'}
-                            </p>
-                        ) : (
-                            <>
-                                <div className="space-y-3">
-                                    {productores.map((productor) => (
-                                        <ProductorPreviewCard
-                                            key={productor.id}
-                                            productor={productor}
-                                            onClick={() => navigate(`/administrador/productores/${productor.id}`)}
-                                        />
-                                    ))}
-                                </div>
-                                <PaginationBar
-                                    page={page}
-                                    count={count}
-                                    pageSize={pageSize}
-                                    onPageChange={setPage}
-                                    loading={loading}
+                        <div className="space-y-3">
+                            {productores.map((productor) => (
+                                <ProductorPreviewCard
+                                    key={productor.id}
+                                    productor={productor}
+                                    onClick={() => navigate(`/administrador/productores/${productor.id}`)}
                                 />
-                            </>
-                        )}
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={page}
+                            count={count}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            loading={loading}
+                        />
                     </>
                 )}
             </div>

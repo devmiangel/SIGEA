@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search'
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
 
@@ -10,7 +11,37 @@ export default function InventoryFilterBar({
     total = 0,
     shown = 0,
 }) {
-    const hayFiltros = Boolean(String(search ?? '').trim())
+    const [texto, setTexto] = useState(search ?? '')
+    const temporizador = useRef(null)
+    const onSearchChangeRef = useRef(onSearchChange)
+
+    useEffect(() => {
+        onSearchChangeRef.current = onSearchChange
+    }, [onSearchChange])
+
+    useEffect(() => () => {
+        if (temporizador.current) clearTimeout(temporizador.current)
+    }, [])
+
+    const handleSearch = (valor) => {
+        setTexto(valor)
+        if (temporizador.current) clearTimeout(temporizador.current)
+        temporizador.current = setTimeout(() => {
+            temporizador.current = null
+            onSearchChangeRef.current?.(valor)
+        }, 300)
+    }
+
+    const handleClear = () => {
+        if (temporizador.current) {
+            clearTimeout(temporizador.current)
+            temporizador.current = null
+        }
+        setTexto('')
+        onClear?.()
+    }
+
+    const hayFiltros = Boolean(String(texto ?? '').trim())
         || filters.some((filtro) => filtro.value !== '' && filtro.value != null)
 
     return (
@@ -27,8 +58,8 @@ export default function InventoryFilterBar({
                         />
                         <input
                             type="text"
-                            value={search}
-                            onChange={(e) => onSearchChange(e.target.value)}
+                            value={texto}
+                            onChange={(e) => handleSearch(e.target.value)}
                             placeholder={searchPlaceholder}
                             className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-[#015d3b] focus:ring-2 focus:ring-[#015d3b]/20"
                         />
@@ -64,7 +95,7 @@ export default function InventoryFilterBar({
                     </span>
                     <button
                         type="button"
-                        onClick={onClear}
+                        onClick={handleClear}
                         disabled={!hayFiltros}
                         className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                     >

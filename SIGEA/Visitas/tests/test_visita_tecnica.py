@@ -405,3 +405,36 @@ class VisitasFiltroFechaLocalTests(_BaseVisita):
         self.assertEqual(respuesta.status_code, 200)
         datos = respuesta.data['results'] if isinstance(respuesta.data, dict) else respuesta.data
         self.assertIn(self.visita.id, [visita['id'] for visita in datos])
+
+
+class SolicitudesPendientesTests(_BaseVisita):
+    def test_filtro_pendientes_excluye_asignadas_y_rechazadas(self):
+        from django.contrib.auth.models import Permission
+
+        Estados.objects.create(id=2, Estado='Aprobado')
+        Estados.objects.create(id=3, Estado='Rechazado')
+        reagendado = Estados.objects.create(id=4, Estado='Reagendado')
+        aprobado = Estados.objects.get(id=2)
+        rechazado = Estados.objects.get(id=3)
+        for estado, texto in ((reagendado, 'Reagendada'), (aprobado, 'Asignada'), (rechazado, 'Rechazada')):
+            Solicitudes.objects.create(
+                MotivoSolicitud=self.motivo,
+                Observacion=texto,
+                Direccion='Km 1',
+                Estado=estado,
+                Usuario=self.user_prod,
+            )
+        self.user_admin.user_permissions.add(
+            Permission.objects.get(codename='view_solicitudes')
+        )
+        self.client.force_authenticate(self.user_admin)
+        respuesta = self.client.get('/api/visitas/solicitudes/?estado=pendientes')
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.data['results'] if isinstance(respuesta.data, dict) else respuesta.data
+        ids = {solicitud['id'] for solicitud in datos}
+        estados = {solicitud['Estado'] for solicitud in datos}
+        self.assertIn(self.solicitud.id, ids)
+        self.assertTrue({1, 4}.issubset(estados))
+        self.assertNotIn(2, estados)
+        self.assertNotIn(3, estados)
+        self.assertEqual(len(datos), 2)

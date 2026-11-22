@@ -54,21 +54,33 @@ const buildEvents = (visitas) => (visitas || []).map(v => {
     }
 })
 
-export default function CalendarioVisitas({ visitas, onDayClick }) {
+export default function CalendarioVisitas({ visitas, onDayClick, onRangeChange }) {
     const calendarRef = useRef(null)
     const [height, setHeight] = useState(520)
     const onDayClickRef = useRef(onDayClick)
+    const onRangeChangeRef = useRef(onRangeChange)
     const ultimoClic = useRef(0)
 
     useEffect(() => {
         onDayClickRef.current = onDayClick
     }, [onDayClick])
 
+    useEffect(() => {
+        onRangeChangeRef.current = onRangeChange
+    }, [onRangeChange])
+
     const fechaLocal = (date) => [
         date.getFullYear(),
         String(date.getMonth() + 1).padStart(2, '0'),
         String(date.getDate()).padStart(2, '0'),
     ].join('-')
+
+    const restarUnDia = (fechaISO) => {
+        const [anio, mes, dia] = fechaISO.split('-').map(Number)
+        const fecha = new Date(anio, mes - 1, dia)
+        fecha.setDate(fecha.getDate() - 1)
+        return fechaLocal(fecha)
+    }
 
     const emitirDia = (fecha) => {
         const ahora = Date.now()
@@ -79,6 +91,14 @@ export default function CalendarioVisitas({ visitas, onDayClick }) {
 
     const handleDatesSet = (arg) => {
         setHeight(arg.view.type.startsWith('list') ? 'auto' : 520)
+
+        if (!onRangeChangeRef.current) return
+
+        // FullCalendar entrega un rango con el final exclusivo: se resta un día
+        // para que el backend reciba "hasta" como fecha inclusiva.
+        const desde = arg.startStr.slice(0, 10)
+        const hasta = restarUnDia(arg.endStr.slice(0, 10))
+        onRangeChangeRef.current(desde, hasta)
     }
 
     const conteos = ESTADOS_CALENDARIO.map((estado) => ({

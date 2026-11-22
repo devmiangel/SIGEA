@@ -98,30 +98,28 @@ export default function UsersContentAdmin(){
                     <p className="text-xs text-gray-500">{count} usuario(s) registrado(s)</p>
                 </div>
 
-                {!loading && !error && (
-                    <InventoryFilterBar
-                        search={busqueda}
-                        onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
-                        searchPlaceholder="Buscar por nombre o correo..."
-                        total={count}
-                        shown={usuarios.length}
-                        onClear={limpiarFiltros}
-                        filters={[
-                            {
-                                key: 'rol',
-                                label: 'Rol',
-                                value: rolFiltro,
-                                onChange: (valor) => { setRolFiltro(valor); setPage(1) },
-                                options: [
-                                    { value: 'Administradores', label: 'Administradores' },
-                                    { value: 'Funcionarios', label: 'Funcionarios' },
-                                    { value: 'Productores', label: 'Productores' },
-                                    { value: 'Usuarios', label: 'Usuarios' },
-                                ],
-                            },
-                        ]}
-                    />
-                )}
+                <InventoryFilterBar
+                    search={busqueda}
+                    onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
+                    searchPlaceholder="Buscar por nombre o correo..."
+                    total={count}
+                    shown={usuarios.length}
+                    onClear={limpiarFiltros}
+                    filters={[
+                        {
+                            key: 'rol',
+                            label: 'Rol',
+                            value: rolFiltro,
+                            onChange: (valor) => { setRolFiltro(valor); setPage(1) },
+                            options: [
+                                { value: 'Administradores', label: 'Administradores' },
+                                { value: 'Funcionarios', label: 'Funcionarios' },
+                                { value: 'Productores', label: 'Productores' },
+                                { value: 'Usuarios', label: 'Usuarios' },
+                            ],
+                        },
+                    ]}
+                />
 
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando usuarios...</p>

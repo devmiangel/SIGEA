@@ -248,98 +248,88 @@ export default function InvVehicleContentAdmin() {
                     <p className="text-xs text-gray-500">{count} vehículo(s) registrado(s)</p>
                 </div>
 
+                <InventoryFilterBar
+                    search={busqueda}
+                    onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
+                    searchPlaceholder="Buscar por placa, modelo, marca o línea..."
+                    total={count}
+                    shown={vehiculos.length}
+                    onClear={limpiarFiltros}
+                    filters={[
+                        {
+                            key: 'marca',
+                            label: 'Marca',
+                            value: filtroMarca,
+                            onChange: (valor) => { setFiltroMarca(valor); setPage(1) },
+                            options: opciones.marcas,
+                        },
+                        {
+                            key: 'linea',
+                            label: 'Línea',
+                            value: filtroLinea,
+                            onChange: (valor) => { setFiltroLinea(valor); setPage(1) },
+                            options: opciones.lineas,
+                        },
+                        {
+                            key: 'tipo',
+                            label: 'Tipo',
+                            value: filtroTipo,
+                            onChange: (valor) => { setFiltroTipo(valor); setPage(1) },
+                            options: opciones.tipos,
+                        },
+                        {
+                            key: 'combustible',
+                            label: 'Combustible',
+                            value: filtroCombustible,
+                            onChange: (valor) => { setFiltroCombustible(valor); setPage(1) },
+                            options: opciones.combustibles,
+                        },
+                        {
+                            key: 'estado',
+                            label: 'Estado',
+                            value: filtroEstado,
+                            onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
+                            options: [
+                                { value: 'activo', label: 'Activos' },
+                                { value: 'inactivo', label: 'Inactivos' },
+                            ],
+                        },
+                        {
+                            key: 'disponibilidad',
+                            label: 'Disponibilidad',
+                            value: filtroDisponibilidad,
+                            onChange: (valor) => { setFiltroDisponibilidad(valor); setPage(1) },
+                            options: [
+                                { value: 'disponible', label: 'Disponibles' },
+                                { value: 'asignado', label: 'Asignados' },
+                            ],
+                        },
+                        {
+                            key: 'soat',
+                            label: 'SOAT',
+                            value: filtroSoat,
+                            onChange: (valor) => { setFiltroSoat(valor); setPage(1) },
+                            options: [
+                                { value: 'vigente', label: 'Vigente' },
+                                { value: 'por_vencer', label: 'Por vencer (≤ 30 días)' },
+                                { value: 'vencido', label: 'Vencido' },
+                            ],
+                        },
+                    ]}
+                />
+
                 {loading ? (
                     <p className="text-gray-500 text-sm">Cargando vehículos...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los vehículos. Intenta de nuevo.</p>
                 ) : count === 0 ? (
-                    <div className="flex flex-col items-start gap-2">
-                        <p className="text-gray-500 text-sm">
-                            {hayFiltros
-                                ? 'No hay vehículos que coincidan con la búsqueda o los filtros.'
-                                : 'No hay vehículos registrados en el sistema.'}
-                        </p>
-                        {hayFiltros && (
-                            <button
-                                type="button"
-                                onClick={limpiarFiltros}
-                                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
-                            >
-                                Limpiar filtros
-                            </button>
-                        )}
-                    </div>
+                    <p className="text-gray-500 text-sm">
+                        {hayFiltros
+                            ? 'No hay vehículos que coincidan con la búsqueda o los filtros.'
+                            : 'No hay vehículos registrados en el sistema.'}
+                    </p>
                 ) : (
                     <>
-                        <InventoryFilterBar
-                            search={busqueda}
-                            onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
-                            searchPlaceholder="Buscar por placa, modelo, marca o línea..."
-                            total={count}
-                            shown={vehiculos.length}
-                            onClear={limpiarFiltros}
-                            filters={[
-                                {
-                                    key: 'marca',
-                                    label: 'Marca',
-                                    value: filtroMarca,
-                                    onChange: (valor) => { setFiltroMarca(valor); setPage(1) },
-                                    options: opciones.marcas,
-                                },
-                                {
-                                    key: 'linea',
-                                    label: 'Línea',
-                                    value: filtroLinea,
-                                    onChange: (valor) => { setFiltroLinea(valor); setPage(1) },
-                                    options: opciones.lineas,
-                                },
-                                {
-                                    key: 'tipo',
-                                    label: 'Tipo',
-                                    value: filtroTipo,
-                                    onChange: (valor) => { setFiltroTipo(valor); setPage(1) },
-                                    options: opciones.tipos,
-                                },
-                                {
-                                    key: 'combustible',
-                                    label: 'Combustible',
-                                    value: filtroCombustible,
-                                    onChange: (valor) => { setFiltroCombustible(valor); setPage(1) },
-                                    options: opciones.combustibles,
-                                },
-                                {
-                                    key: 'estado',
-                                    label: 'Estado',
-                                    value: filtroEstado,
-                                    onChange: (valor) => { setFiltroEstado(valor); setPage(1) },
-                                    options: [
-                                        { value: 'activo', label: 'Activos' },
-                                        { value: 'inactivo', label: 'Inactivos' },
-                                    ],
-                                },
-                                {
-                                    key: 'disponibilidad',
-                                    label: 'Disponibilidad',
-                                    value: filtroDisponibilidad,
-                                    onChange: (valor) => { setFiltroDisponibilidad(valor); setPage(1) },
-                                    options: [
-                                        { value: 'disponible', label: 'Disponibles' },
-                                        { value: 'asignado', label: 'Asignados' },
-                                    ],
-                                },
-                                {
-                                    key: 'soat',
-                                    label: 'SOAT',
-                                    value: filtroSoat,
-                                    onChange: (valor) => { setFiltroSoat(valor); setPage(1) },
-                                    options: [
-                                        { value: 'vigente', label: 'Vigente' },
-                                        { value: 'por_vencer', label: 'Por vencer (≤ 30 días)' },
-                                        { value: 'vencido', label: 'Vencido' },
-                                    ],
-                                },
-                            ]}
-                        />
                         <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
                             {vehiculos.map((vehiculo) => (
                                 <VehiculoPreviewCard

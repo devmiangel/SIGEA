@@ -50,6 +50,42 @@ class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
     queryset = Solicitudes.objects.all()
     serializer_class = SolicitudesSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        params = self.request.query_params
+
+        # El modulo de Solicitudes solo muestra las que aun no tienen visita
+        # asignada: En Proceso (1) y Reagendado (4).
+        estado = params.get('estado')
+        if estado == 'pendientes':
+            queryset = queryset.filter(Estado_id__in=(1, 4))
+        elif estado == 'asignadas':
+            queryset = queryset.filter(Estado_id=2)
+        elif estado == 'rechazadas':
+            queryset = queryset.filter(Estado_id=3)
+
+        queryset = filtrar_texto(
+            queryset,
+            params.get('search'),
+            [
+                'Observacion',
+                'Direccion',
+                'Usuario__email',
+                'Usuario__persona__primer_nombre',
+                'Usuario__persona__primer_apellido',
+                'Usuario__persona__numero_documento',
+                'UP__RUEA',
+                'UP__Predio__NombrePredio',
+            ],
+        )
+
+        return queryset.select_related(
+            'Usuario__persona',
+            'UP__TipoUP',
+            'MotivoSolicitud',
+            'Estado',
+        ).order_by('-FechaSolicitud', '-id')
+
     def perform_create(self, serializer):
         # Un productor/usuario solo puede crear solicitudes a su propio nombre,
         # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.

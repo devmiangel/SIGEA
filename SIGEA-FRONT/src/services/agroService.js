@@ -10,8 +10,8 @@ export const crearSolicitud = async (data) => {
     return response.data;
 }
 
-export const getSolicitudes = async () => {
-    const response = await api.get('/visitas/solicitudes/');
+export const getSolicitudes = async (params = {}) => {
+    const response = await api.get('/visitas/solicitudes/', { params });
     return response.data;
 }
 
