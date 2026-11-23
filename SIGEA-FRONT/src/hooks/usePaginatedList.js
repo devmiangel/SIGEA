@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { useCargarAlMontar } from './useCargarAlMontar'
 
 export function usePaginatedList(fetcher, filtros = {}, pageSize = 50) {
     const [items, setItems] = useState([])
@@ -33,13 +34,7 @@ export function usePaginatedList(fetcher, filtros = {}, pageSize = 50) {
         }
     }, [fetcher, page, pageSize, filtrosKey])
 
-    useEffect(() => {
-        let activo = true
-        Promise.resolve().then(() => {
-            if (activo) cargar()
-        })
-        return () => { activo = false }
-    }, [cargar])
+    useCargarAlMontar(cargar)
 
     return {
         items,

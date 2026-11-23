@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AssignmentLateOutlinedIcon from '@mui/icons-material/AssignmentLateOutlined'
 import SearchIcon from '@mui/icons-material/Search'
@@ -6,7 +6,9 @@ import Swal from 'sweetalert2'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import SolicitudInsumoCard from "../../../components/SolicitudInsumoCard/SolicitudInsumoCard"
+import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { useSolicitudesInsumo } from "../../../hooks/useSolicitudesInsumo"
+import { useValorDiferido } from "../../../hooks/useValorDiferido"
 import { mostrarInfoSolicitudInsumo } from "../../../components/AgroModals/SolicitudInsumoInfoModal"
 import { abrirModalAsignarInsumo } from "../../../components/AgroModals/AsignarInsumoModal"
 import { abrirModalRechazarInsumo } from "../../../components/AgroModals/RechazarInsumoModal"
@@ -16,34 +18,15 @@ import {
 } from "../../../services/inventarioService"
 import { AGRO_COLORS, ESTADO_SOLICITUD_INSUMO } from "../../../utils/agroConstants"
 
-const normalizarTexto = (valor) =>
-    String(valor ?? '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim()
-
 export default function SolicitudesInsumoContentAdmin() {
     const navigate = useNavigate()
-    const { solicitudes, loading, error, refresh } = useSolicitudesInsumo()
     const [busqueda, setBusqueda] = useState('')
     const [filtroEstado, setFiltroEstado] = useState('')
-
-    const solicitudesFiltradas = useMemo(() => {
-        const termino = normalizarTexto(busqueda)
-
-        return solicitudes.filter((s) => {
-            if (filtroEstado && s.Estado !== filtroEstado) return false
-
-            if (!termino) return true
-
-            const insumo = normalizarTexto(s.insumo_nombre)
-            const funcionario = normalizarTexto(s.funcionario_nombre)
-            const email = normalizarTexto(s.funcionario_email)
-
-            return insumo.includes(termino) || funcionario.includes(termino) || email.includes(termino)
-        })
-    }, [solicitudes, busqueda, filtroEstado])
+    const busquedaDiferida = useValorDiferido(busqueda.trim())
+    const {
+        solicitudes, count, page, setPage, pageSize, loading, error, refresh,
+    } = useSolicitudesInsumo({ search: busquedaDiferida, estado: filtroEstado })
+    const hayFiltros = Boolean(busquedaDiferida) || Boolean(filtroEstado)
 
     const handleVolver = () => {
         navigate('/administrador/inventario/insumos')
@@ -122,7 +105,9 @@ export default function SolicitudesInsumoContentAdmin() {
             <div className="bg-white min-h-screen rounded-xl my-3 p-3 w-full max-w-full min-w-0 sm:p-4 overflow-y-hidden">
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Solicitudes generadas</h3>
-                    <p className="text-xs text-gray-500">{solicitudes.length} solicitud(es) registrada(s)</p>
+                    <p className="text-xs text-gray-500">
+                        {count} solicitud(es) {hayFiltros ? 'encontrada(s)' : 'registrada(s)'}
+                    </p>
                 </div>
 
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -134,14 +119,14 @@ export default function SolicitudesInsumoContentAdmin() {
                         <input
                             type="text"
                             value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            placeholder="Buscar por insumo o funcionario..."
+                            onChange={(e) => { setBusqueda(e.target.value); setPage(1) }}
+                            placeholder="Buscar por insumo, funcionario o correo..."
                             className="w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
                         />
                     </div>
                     <select
                         value={filtroEstado}
-                        onChange={(e) => setFiltroEstado(e.target.value)}
+                        onChange={(e) => { setFiltroEstado(e.target.value); setPage(1) }}
                         className="w-full px-3 py-2 rounded-md border border-gray-300 outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white sm:w-52"
                     >
                         <option value="">Todos los estados</option>
@@ -155,23 +140,34 @@ export default function SolicitudesInsumoContentAdmin() {
                     <p className="text-gray-500 text-sm">Cargando solicitudes...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar las solicitudes. Intenta de nuevo.</p>
-                ) : solicitudes.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No hay solicitudes de insumo registradas.</p>
-                ) : solicitudesFiltradas.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No se encontraron solicitudes con los filtros aplicados.</p>
+                ) : count === 0 ? (
+                    <p className="text-gray-500 text-sm">
+                        {hayFiltros
+                            ? 'No se encontraron solicitudes con los filtros aplicados.'
+                            : 'No hay solicitudes de insumo registradas.'}
+                    </p>
                 ) : (
-                    <div className="space-y-3">
-                        {solicitudesFiltradas.map((s, i) => (
-                            <SolicitudInsumoCard
-                                key={s.id}
-                                solicitud={s}
-                                numero={i + 1}
-                                onCardClick={() => handleClick(s, i + 1)}
-                                onAsignar={handleAsignar}
-                                onRechazar={handleRechazar}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="space-y-3">
+                            {solicitudes.map((s) => (
+                                <SolicitudInsumoCard
+                                    key={s.id}
+                                    solicitud={s}
+                                    numero={s.id}
+                                    onCardClick={() => handleClick(s, s.id)}
+                                    onAsignar={handleAsignar}
+                                    onRechazar={handleRechazar}
+                                />
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={page}
+                            count={count}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            loading={loading}
+                        />
+                    </>
                 )}
             </div>
         </>

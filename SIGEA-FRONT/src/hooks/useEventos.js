@@ -1,35 +1,28 @@
-import { useState, useEffect, useCallback } from "react"
+import { useCallback } from "react"
 import { getEventos, eliminarEvento } from "../services/upsService"
+import { usePaginatedList } from "./usePaginatedList"
 
-export function useEventos() {
-    const [eventos, setEventos] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    const cargar = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getEventos()
-            setEventos(data)
-            setError(null)
-        } catch (e) {
-            setError(e)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargar() }, [cargar])
+// Eventos paginados en el servidor. `filtros`: { search }.
+export function useEventos(filtros = {}, pageSize = 20) {
+    const {
+        items: eventos,
+        count,
+        page,
+        setPage,
+        loading,
+        error,
+        refresh,
+    } = usePaginatedList(getEventos, filtros, pageSize)
 
     const eliminar = useCallback(async (id) => {
         try {
             await eliminarEvento(id)
-            await cargar()
+            await refresh()
             return { ok: true }
         } catch (e) {
             return { ok: false, error: e }
         }
-    }, [cargar])
+    }, [refresh])
 
-    return { eventos, loading, error, refresh: cargar, eliminar }
+    return { eventos, count, page, setPage, pageSize, loading, error, refresh, eliminar }
 }

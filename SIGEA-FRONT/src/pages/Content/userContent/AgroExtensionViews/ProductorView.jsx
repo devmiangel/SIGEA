@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import TabList from "../../../../components/TabList/TabList"
 import { Header } from "../../../../components/Tettles-Buttons/Title"
@@ -12,6 +12,7 @@ import { useSolicitudes } from "../../../../hooks/useSolicitudes"
 import { abrirModalNuevaSolicitud } from "../../../../components/AgroModals/NuevaSolicitudModal"
 import { mostrarInfoSolicitud } from "../../../../components/AgroModals/AlertRequestInfoModal"
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
+import { useCargarAlMontar } from '../../../../hooks/useCargarAlMontar'
 
 export default function ProductorView(){
     const navigate = useNavigate()
@@ -38,7 +39,7 @@ export default function ProductorView(){
         }
     }, [])
 
-    useEffect(() => { cargarUps() }, [cargarUps])
+    useCargarAlMontar(cargarUps)
 
     const handleAgregarUnidad = async () => {
         try {

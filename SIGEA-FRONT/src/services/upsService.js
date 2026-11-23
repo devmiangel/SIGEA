@@ -11,7 +11,7 @@ export const buscarUPPorRUEA = (ruea) => leer('/UPs/buscar-por-ruea/', { ruea })
 export const validarUP = (upId, aprobada, motivo = '') => crear(`/UPs/validar-ups/${upId}/`, { aprobada, motivo })
 
 // --- Eventos ---
-export const getEventos = () => leer('/UPs/eventosUP/')
+export const getEventos = (params = {}) => leer('/UPs/eventosUP/', params)
 export const getEvento = (eventoId) => leer(`/UPs/eventosUP/${eventoId}/`)
 export const crearEvento = (data) => crear('/UPs/eventosUP/', data)
 export const actualizarEvento = (eventoId, data) => modificar(`/UPs/eventosUP/${eventoId}/`, data)

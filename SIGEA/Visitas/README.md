@@ -139,6 +139,17 @@ Rutas registradas en `urls.py`, bajo el prefijo `/api/visitas/`.
 | `/api/visitas/formulario-visita/` | `FormularioVisitaTecnicaView` | GET/POST |
 | `/api/visitas/formulario-recibo/` | `FormularioReciboPagoView` | POST |
 
+### Parámetros de los listados
+
+La paginación es opcional: solo se aplica si la petición trae `?page=` o `?page_size=` (máx. 200) y entonces la respuesta es `{count, next, previous, results}`. Sin esos parámetros se devuelve la lista completa.
+
+| Endpoint | Parámetros |
+|---|---|
+| `/api/visitas/visitas/` | `search`; `estado=realizadas` o `estado=no_realizadas`; `desde`/`hasta` (YYYY-MM-DD, incluidos); `up_id`, `productor_id`, `solicitud_id`; `validacion_up=pendientes` o `validacion_up=validadas`: caracterizaciones realizadas, solo la más reciente de cada UP, separadas por estado de la UP (Aceptada/Rechazada = validadas). Orden: más reciente primero. |
+| `/api/visitas/mis-visitas/` | `estado=pendientes` o `estado=realizadas` (pendientes: la más próxima primero; realizadas: la más reciente primero); `desde`/`hasta`. Solo las visitas del funcionario autenticado. |
+
+Los filtros de visitas están en `views/consultas.py` (`filtrar_rango_fechas`, `filtrar_validacion_up`), y `VISITAS_RELACIONADAS` es la lista de `select_related` que usan todos los listados para no hacer consultas por cada visita.
+
 ---
 
 ## Admin

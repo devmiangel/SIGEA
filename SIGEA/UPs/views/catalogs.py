@@ -1,8 +1,10 @@
+from django.db.models import Prefetch
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from UPs.serializers.catalogs import EventosUPSerializer
+from SIGEAsite.filters import filtrar_texto
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin
 
 from ..models import (
@@ -217,3 +219,23 @@ class EventosUPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.M
     owner_lookup = 'UP__Productor__usuario'
     queryset = EventosUP.objects.all()
     serializer_class = EventosUPSerializer
+
+    def get_queryset(self):
+        from ..models import UP
+
+        queryset = filtrar_texto(
+            super().get_queryset(),
+            self.request.query_params.get('search'),
+            ['Titulo', 'Lugar', 'Descripcion'],
+        )
+        # Cada evento incluye sus UPs con UPSerializer: se precargan con lo que ese
+        # serializer lee para no consultar por cada UP.
+        ups = UP.objects.select_related(
+            'idEstado', 'TipoUP', 'Predio', 'Productor__usuario__persona', 'ValidadoPor__usuario__persona',
+        )
+        # distinct(): el filtro por dueño cruza la relación muchos-a-muchos con UP.
+        return (
+            queryset.prefetch_related(Prefetch('UP', queryset=ups))
+            .distinct()
+            .order_by('-Fecha', '-id')
+        )

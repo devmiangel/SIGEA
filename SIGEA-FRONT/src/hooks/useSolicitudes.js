@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { getSolicitudes, crearSolicitud } from "../services/visitasService"
+import { useCargarAlMontar } from './useCargarAlMontar'
 
 export function useSolicitudes(user) {
     const [solicitudes, setSolicitudes] = useState([])
@@ -20,7 +21,7 @@ export function useSolicitudes(user) {
         }
     }, [user])
 
-    useEffect(() => { cargar() }, [cargar])
+    useCargarAlMontar(cargar)
 
     const crear = useCallback(async (payload) => {
         setCreando(true)

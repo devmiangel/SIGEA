@@ -60,7 +60,7 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 
 **Frontend**
 - React 19 · Vite 7 · React Router 7
-- MUI 7 (iconos y selector de fecha) · Tailwind CSS 4 · FullCalendar 7
+- MUI 7 (iconos) · Tailwind CSS 4 · FullCalendar 7
 - Axios · react-hook-form · react-signature-canvas · SweetAlert2
 
 ## Estructura del repositorio
@@ -107,8 +107,8 @@ Base de datos **PostgreSQL** (configurada en `SIGEAsite/settings.py`): base `SIG
 
 ```bash
 cd SIGEA-FRONT
-pnpm install       # o npm install
-pnpm dev           # http://localhost:5173
+npm install       # usa package-lock.json
+npm run dev       # http://localhost:5173
 ```
 
 El frontend consume la API en `http://localhost:5173` (CORS habilitado para el backend en local).

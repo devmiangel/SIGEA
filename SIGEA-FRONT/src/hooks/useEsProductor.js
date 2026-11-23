@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { checkEsProductor } from "../services/usuariosService"
+import { useCargarAlMontar } from './useCargarAlMontar'
 
 export function useEsProductor() {
     const [esProductor, setEsProductor] = useState(null)
@@ -17,7 +18,7 @@ export function useEsProductor() {
         }
     }, [])
 
-    useEffect(() => { cargar() }, [cargar])
+    useCargarAlMontar(cargar)
 
     return { esProductor, loading, setEsProductor, refresh: cargar }
 }

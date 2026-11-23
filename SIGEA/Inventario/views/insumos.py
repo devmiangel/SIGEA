@@ -4,6 +4,7 @@ from django.db import transaction
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin
 from SIGEAsite.filters import filtrar_texto
+from SIGEAsite.pagination import SigeaPagination
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -107,9 +108,29 @@ def listar_solicitudes_insumo(request):
     if funcionario is not None:
         queryset = queryset.filter(Funcionario=funcionario)
 
+    params = request.query_params
+    estado = (params.get('estado') or '').strip()
+    if estado:
+        queryset = queryset.filter(Estado__iexact=estado)
+    queryset = filtrar_texto(
+        queryset,
+        params.get('search'),
+        [
+            'Insumo__Nombre',
+            'Funcionario__usuario__persona__primer_nombre',
+            'Funcionario__usuario__persona__primer_apellido',
+            'Funcionario__usuario__email',
+        ],
+    )
+
     solicitudes = queryset.order_by('-FechaSolicitud', '-id')
-    serializer = SolicitudInsumoSerializer(solicitudes, many=True)
-    return Response(serializer.data)
+
+    # Paginación opcional: solo con ?page= o ?page_size= (MisSolicitudesModal pide la lista completa).
+    paginador = SigeaPagination()
+    pagina = paginador.paginate_queryset(solicitudes, request)
+    if pagina is not None:
+        return paginador.get_paginated_response(SolicitudInsumoSerializer(pagina, many=True).data)
+    return Response(SolicitudInsumoSerializer(solicitudes, many=True).data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

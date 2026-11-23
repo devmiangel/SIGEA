@@ -11,7 +11,7 @@ export const rechazarSolicitud = (solicitudId, data = {}) => crear(`/visitas/sol
 
 // --- Visitas ---
 export const getVisitas = (params = {}) => leer('/visitas/visitas/', params)
-export const getMisVisitas = () => leer('/visitas/mis-visitas/')
+export const getMisVisitas = (params = {}) => leer('/visitas/mis-visitas/', params)
 export const marcarVisitaRealizada = (visitaId) => modificar(`/visitas/visitas/${visitaId}/`, { estado: true })
 
 export const guardarFirmasVisita = (visitaId, firmaProductor, firmaFuncionario, autorizacion = null) => {

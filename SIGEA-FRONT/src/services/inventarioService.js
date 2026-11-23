@@ -15,7 +15,7 @@ export const getInventarioFuncionario = () => leer('/inventario/inventarioFuncio
 export const getCardexInsumoFuncionario = () => leer('/inventario/cardexInsumoFuncionario/')
 
 // --- Solicitudes de insumo ---
-export const getSolicitudesInsumo = () => leer('/inventario/solicitudInsumo/')
+export const getSolicitudesInsumo = (params = {}) => leer('/inventario/solicitudInsumo/', params)
 export const crearSolicitudInsumo = (data) => crear('/inventario/solicitudInsumo/crear/', data)
 export const asignarSolicitudInsumo = (solicitudId, data) => crear(`/inventario/solicitudInsumo/${solicitudId}/asignar/`, data)
 export const rechazarSolicitudInsumo = (solicitudId, data) => crear(`/inventario/solicitudInsumo/${solicitudId}/rechazar/`, data)

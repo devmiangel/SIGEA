@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 
 from SIGEAsite.permissions import SigeaModelPermissionMixin, SigeaModelPermissions, OwnedQuerysetMixin, IsStaff
 from SIGEAsite.filters import filtrar_texto
@@ -36,6 +36,24 @@ from ..serializers import (
     SisbenSerializer,
     ContactosSerializer,
 )
+from ..serializers.usuarios import rol_de_usuario
+
+
+def _usuarios_con_rol(queryset):
+    """Precarga lo que UsuarioSerializer lee de cada usuario (persona, rol y conductor)
+    para que listar N usuarios cueste un número fijo de consultas y no ~6 por usuario."""
+    from Inventario.models import Conductores
+    return queryset.select_related(
+        'persona__TipoDocumento', 'administradores', 'funcionarios', 'productores',
+    ).prefetch_related(
+        'groups',
+        Prefetch(
+            'funcionarios__conductores_set',
+            queryset=Conductores.objects.filter(Estado=True),
+            to_attr='conductores_activos',
+        ),
+    )
+
 
 class TiposDocumentosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposDocumentos.objects.all()
@@ -61,12 +79,12 @@ class EmpresasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mo
 
 class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
     owner_lookup = 'pk'
-    queryset = Usuario.objects.select_related('persona').prefetch_related('groups')
+    queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     ##permission_classes = [IsAuthenticated]  ###activar cuando se tenga el login funcionando
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = _usuarios_con_rol(super().get_queryset())
         params = self.request.query_params
         queryset = filtrar_texto(
             queryset,
@@ -99,7 +117,7 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
     def buscar(self, request):
         q = (request.query_params.get('q') or '').strip()
 
-        usuarios = Usuario.objects.exclude(
+        usuarios = _usuarios_con_rol(Usuario.objects.all()).exclude(
             Q(administradores__isnull=False) | Q(funcionarios__isnull=False)
         )
 
@@ -150,7 +168,7 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         # 3. Reasignar rol si cambió
         rol = data.get('rol')
         if rol:
-            rol_actual = UsuarioSerializer().get_rol(instance)
+            rol_actual = rol_de_usuario(instance)
             if rol != rol_actual:
                 for model in (Administradores, Funcionarios, Productores):
                     model.objects.filter(usuario=instance).delete()
@@ -189,7 +207,10 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
             else:
                 Conductores.objects.filter(Funcionario=funcionario).update(Estado=False)
 
-        return Response(UsuarioSerializer(usuario).data)
+        # Se relee el usuario: el objeto en memoria conserva el rol y el conductor
+        # que tenía antes de los cambios de los pasos 3 y 4.
+        actualizado = _usuarios_con_rol(Usuario.objects.all()).get(pk=usuario.pk)
+        return Response(UsuarioSerializer(actualizado).data)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -213,7 +234,7 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         from Inventario.models import InventarioFuncionario, CardexInsumoFuncionario, AsignacionHerramientas, RegistroAsignacionVehiculos
 
         instance = self.get_object()
-        rol = UsuarioSerializer().get_rol(instance)
+        rol = rol_de_usuario(instance)
         data = {
             'usuario': UsuarioSerializer(instance).data,
             'rol': rol,

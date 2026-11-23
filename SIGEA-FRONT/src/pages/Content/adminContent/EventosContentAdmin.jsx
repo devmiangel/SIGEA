@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import EventIcon from '@mui/icons-material/Event'
 import SearchIcon from '@mui/icons-material/Search'
@@ -6,23 +6,21 @@ import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import EventoPreviewCard from "../../../components/EventoPreviewCard/EventoPreviewCard"
 import RegistrarUPEventoModal from "../../../components/EventoUPsModal/RegistrarUPEventoModal"
+import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { useEventos } from "../../../hooks/useEventos"
+import { useValorDiferido } from "../../../hooks/useValorDiferido"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function EventosContentAdmin() {
     const navigate = useNavigate()
-    const { eventos, loading, error, eliminar, refresh } = useEventos()
     const [busqueda, setBusqueda] = useState("")
+    const busquedaDiferida = useValorDiferido(busqueda.trim())
+    const {
+        eventos, count, page, setPage, pageSize, loading, error, eliminar, refresh,
+    } = useEventos({ search: busquedaDiferida })
     const [eventoSeleccionado, setEventoSeleccionado] = useState(null)
-
-    const filtrados = useMemo(() => {
-        const q = busqueda.trim().toLowerCase()
-        if (!q) return eventos
-        return eventos.filter((evento) =>
-            `${evento.Titulo} ${evento.Lugar} ${evento.Descripcion}`.toLowerCase().includes(q)
-        )
-    }, [eventos, busqueda])
+    const hayBusqueda = Boolean(busquedaDiferida)
 
     const handleEditar = (evento) => {
         navigate(`/administrador/eventos/editar/${evento.id}`)
@@ -82,9 +80,9 @@ export default function EventosContentAdmin() {
                 <div className="mb-4">
                     <h3 className="text-base font-semibold text-gray-900">Eventos del sistema</h3>
                     <p className="text-xs text-gray-500">
-                        {busqueda.trim()
-                            ? `${filtrados.length} de ${eventos.length} evento(s)`
-                            : `${eventos.length} evento(s) registrado(s)`}
+                        {hayBusqueda
+                            ? `${count} evento(s) encontrado(s)`
+                            : `${count} evento(s) registrado(s)`}
                     </p>
                 </div>
 
@@ -96,8 +94,8 @@ export default function EventosContentAdmin() {
                     <input
                         type="text"
                         value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                        placeholder="Buscar por titulo o lugar..."
+                        onChange={(e) => { setBusqueda(e.target.value); setPage(1) }}
+                        placeholder="Buscar por título, lugar o descripción..."
                         className="w-full px-3 py-2 pl-9 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
                     />
                 </div>
@@ -106,24 +104,33 @@ export default function EventosContentAdmin() {
                     <p className="text-gray-500 text-sm">Cargando eventos...</p>
                 ) : error ? (
                     <p className="text-red-600 text-sm">No se pudieron cargar los eventos. Intenta de nuevo.</p>
-                ) : filtrados.length === 0 ? (
+                ) : count === 0 ? (
                     <p className="text-gray-500 text-sm">
-                        {eventos.length === 0
-                            ? 'No hay eventos registrados en el sistema.'
-                            : 'No se encontraron eventos con los filtros aplicados.'}
+                        {hayBusqueda
+                            ? 'No se encontraron eventos con los filtros aplicados.'
+                            : 'No hay eventos registrados en el sistema.'}
                     </p>
                 ) : (
-                    <div className="space-y-2">
-                        {filtrados.map((evento) => (
-                            <EventoPreviewCard
-                                key={evento.id}
-                                evento={evento}
-                                onEdit={handleEditar}
-                                onDelete={handleEliminar}
-                                onOpen={setEventoSeleccionado}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="space-y-2">
+                            {eventos.map((evento) => (
+                                <EventoPreviewCard
+                                    key={evento.id}
+                                    evento={evento}
+                                    onEdit={handleEditar}
+                                    onDelete={handleEliminar}
+                                    onOpen={setEventoSeleccionado}
+                                />
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={page}
+                            count={count}
+                            pageSize={pageSize}
+                            onPageChange={setPage}
+                            loading={loading}
+                        />
+                    </>
                 )}
             </div>
 

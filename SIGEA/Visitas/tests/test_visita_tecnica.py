@@ -438,3 +438,41 @@ class SolicitudesPendientesTests(_BaseVisita):
         self.assertNotIn(2, estados)
         self.assertNotIn(3, estados)
         self.assertEqual(len(datos), 2)
+
+
+class VisitasOrdenTests(_BaseVisita):
+    """El listado de visitas sale de la más reciente a la más antigua, con o sin paginación."""
+
+    def setUp(self):
+        from django.contrib.auth.models import Permission
+
+        super().setUp()
+        # Se crean fuera de orden cronológico para que el orden no dependa del id.
+        crear = lambda fecha: Visitas.objects.create(
+            Solicitud=self.solicitud, Funcionario=self.funcionario,
+            TipoVisita=self.tipo_visita, FechaYHoraVisita=fecha,
+        )
+        self.reciente = crear('2026-09-25T08:00:00Z')
+        self.antigua = crear('2026-09-15T08:00:00Z')
+        # Misma fecha y hora que `reciente`: desempata el id más alto primero.
+        self.reciente_empate = crear('2026-09-25T08:00:00Z')
+        # self.visita (de _BaseVisita) es del 2026-09-20.
+        self.esperado = [
+            self.reciente_empate.id, self.reciente.id, self.visita.id, self.antigua.id,
+        ]
+
+        self.user_admin.user_permissions.add(Permission.objects.get(codename='view_visitas'))
+        self.client.force_authenticate(self.user_admin)
+
+    def test_listado_completo_mas_reciente_primero(self):
+        respuesta = self.client.get('/api/visitas/visitas/')
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual([v['id'] for v in respuesta.data], self.esperado)
+
+    def test_paginas_conservan_el_orden(self):
+        pagina1 = self.client.get('/api/visitas/visitas/?page=1&page_size=2')
+        pagina2 = self.client.get('/api/visitas/visitas/?page=2&page_size=2')
+        self.assertEqual(pagina1.status_code, 200)
+        self.assertEqual(pagina2.status_code, 200)
+        ids = [v['id'] for v in pagina1.data['results'] + pagina2.data['results']]
+        self.assertEqual(ids, self.esperado)

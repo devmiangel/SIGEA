@@ -74,7 +74,7 @@ export default function VisitaForm() {
     const solicitudId = solicitud.id
     const upId = solicitud.up_id
 
-    const [active, setActive] = useState(SECCIONES[0].nombre)
+    const [seccionElegida, setActive] = useState(SECCIONES[0].nombre)
     const [form, setForm] = useState(INICIAL)
     const [productor, setProductor] = useState(null)
     const [up, setUp] = useState(null)
@@ -87,11 +87,11 @@ export default function VisitaForm() {
         [form]
     )
 
-    useEffect(() => {
-        if (!seccionesVisibles.some((s) => s.nombre === active)) {
-            setActive(seccionesVisibles[0]?.nombre ?? SECCIONES[0].nombre)
-        }
-    }, [seccionesVisibles, active])
+    // Si la sección elegida deja de estar visible (cambió el formulario), se muestra
+    // la primera visible. Se calcula al renderizar, sin un efecto que corrija el estado.
+    const active = seccionesVisibles.some((s) => s.nombre === seccionElegida)
+        ? seccionElegida
+        : (seccionesVisibles[0]?.nombre ?? SECCIONES[0].nombre)
 
     useEffect(() => {
         if (!visita || prefillRef.current) return

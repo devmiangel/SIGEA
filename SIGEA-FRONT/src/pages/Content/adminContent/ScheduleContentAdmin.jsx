@@ -6,67 +6,33 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import CalendarioVisitas from "../../../components/calendar/CalendarioVisitas"
 import { getVisitas } from "../../../services/visitasService"
+import { useVisitasCalendario } from "../../../hooks/useVisitasCalendario"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
 export default function ScheduleContentAdmin(){
     const navigate = useNavigate()
-    const [visitasCalendario, setVisitasCalendario] = useState([])
-    const [loadingCalendario, setLoadingCalendario] = useState(true)
-    const [errorCalendario, setErrorCalendario] = useState(false)
     const [diaSeleccionado, setDiaSeleccionado] = useState('')
     const [visitasDia, setVisitasDia] = useState([])
     const [cargandoDia, setCargandoDia] = useState(false)
-    const cacheRangos = useRef(new Map())
-    const peticionRango = useRef(0)
-    const rangoEnCurso = useRef('')
     const cacheDias = useRef(new Map())
     const peticionDia = useRef(0)
 
-    const handleRangoCalendario = useCallback(async (desde, hasta) => {
-        const clave = `${desde}|${hasta}`
-        if (cacheRangos.current.has(clave)) {
-            setVisitasCalendario(cacheRangos.current.get(clave))
-            setLoadingCalendario(false)
-            setErrorCalendario(false)
-            return
-        }
-
-        // FullCalendar puede disparar datesSet más de una vez para el mismo
-        // rango; evita lanzar peticiones duplicadas mientras una está en curso.
-        if (rangoEnCurso.current === clave) return
-        rangoEnCurso.current = clave
-
-        // Nuevo rango: cierra el panel del día anterior. Se usan actualizadores
-        // funcionales para no crear estados nuevos cuando ya están vacíos.
+    // Nuevo rango en el calendario: cierra el panel del día anterior. Se usan
+    // actualizadores funcionales para no crear estados nuevos cuando ya están vacíos.
+    const cerrarPanelDia = useCallback(() => {
         setDiaSeleccionado((prev) => (prev ? '' : prev))
         setVisitasDia((prev) => (prev.length ? [] : prev))
         setCargandoDia((prev) => (prev ? false : prev))
-
-        const peticion = peticionRango.current + 1
-        peticionRango.current = peticion
-        setVisitasCalendario((prev) => (prev.length ? [] : prev))
-        setLoadingCalendario(true)
-        setErrorCalendario(false)
-        try {
-            const data = await getVisitas({ desde, hasta })
-            if (peticion !== peticionRango.current) return
-            const lista = Array.isArray(data) ? data : (data?.results ?? [])
-            cacheRangos.current.set(clave, lista)
-            setVisitasCalendario(lista)
-        } catch {
-            if (peticion === peticionRango.current) {
-                setVisitasCalendario([])
-                setErrorCalendario(true)
-            }
-        } finally {
-            if (peticion === peticionRango.current) {
-                rangoEnCurso.current = ''
-                setLoadingCalendario(false)
-            }
-        }
     }, [])
+
+    const {
+        visitas: visitasCalendario,
+        loading: loadingCalendario,
+        error: errorCalendario,
+        onRangeChange: handleRangoCalendario,
+    } = useVisitasCalendario(getVisitas, cerrarPanelDia)
 
     const formatearDia = (fecha) => {
         if (!fecha) return ''
@@ -89,8 +55,13 @@ export default function ScheduleContentAdmin(){
             const data = await getVisitas({ desde: fecha, hasta: fecha })
             if (peticion !== peticionDia.current) return
             const lista = Array.isArray(data) ? data : (data?.results ?? [])
-            cacheDias.current.set(fecha, lista)
-            setVisitasDia(lista)
+            // La API entrega las visitas de la más reciente a la más antigua;
+            // la agenda de un día se lee en orden de hora (mañana → tarde).
+            const ordenada = [...lista].sort(
+                (a, b) => new Date(a.FechaYHoraVisita) - new Date(b.FechaYHoraVisita)
+            )
+            cacheDias.current.set(fecha, ordenada)
+            setVisitasDia(ordenada)
         } catch {
             if (peticion === peticionDia.current) {
                 setVisitasDia([])
@@ -189,12 +160,11 @@ export default function ScheduleContentAdmin(){
                             </p>
                         ) : (
                             <div className="space-y-3">
-                                {visitasDia.map((visita, i) => (
+                                {visitasDia.map((visita) => (
                                     <VisitaInfoCard
                                         key={visita.id}
                                         visita={visita}
-                                        numero={i + 1}
-                                        onClick={() => mostrarInfoVisita(visita, i + 1)}
+                                        onClick={() => mostrarInfoVisita(visita)}
                                     />
                                 ))}
                             </div>

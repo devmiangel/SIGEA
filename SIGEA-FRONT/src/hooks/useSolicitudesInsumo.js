@@ -1,25 +1,17 @@
-import { useState, useEffect, useCallback } from "react"
 import { getSolicitudesInsumo } from "../services/inventarioService"
+import { usePaginatedList } from "./usePaginatedList"
 
-export function useSolicitudesInsumo() {
-    const [solicitudes, setSolicitudes] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
+// Solicitudes de insumo paginadas en el servidor. `filtros`: { search, estado }.
+export function useSolicitudesInsumo(filtros = {}, pageSize = 20) {
+    const {
+        items: solicitudes,
+        count,
+        page,
+        setPage,
+        loading,
+        error,
+        refresh,
+    } = usePaginatedList(getSolicitudesInsumo, filtros, pageSize)
 
-    const cargar = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getSolicitudesInsumo()
-            setSolicitudes(data)
-            setError(null)
-        } catch (e) {
-            setError(e)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargar() }, [cargar])
-
-    return { solicitudes, loading, error, refresh: cargar }
+    return { solicitudes, count, page, setPage, pageSize, loading, error, refresh }
 }

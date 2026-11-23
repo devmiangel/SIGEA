@@ -13,7 +13,7 @@ Documento corto para arrancar el proyecto en local. La arquitectura son **dos pr
 
 - **Python 3.11+**
 - **PostgreSQL 14+** (servidor corriendo en `127.0.0.1:5432`)
-- **Node.js 18+** y **pnpm** (o `npm`)
+- **Node.js 18+** y **npm** (el proyecto usa `package-lock.json`; no usar pnpm ni yarn)
 
 ## 2. Crear la base de datos
 
@@ -85,8 +85,8 @@ python manage.py seed_permisos
 ```bash
 cd SIGEA-FRONT
 
-pnpm install        # o npm install
-pnpm dev            # http://localhost:5173
+npm install        # usa package-lock.json
+npm run dev        # http://localhost:5173
 ```
 
 - La URL de la API sale de `VITE_API_BASE_URL`: en desarrollo `.env.development` → `http://127.0.0.1:8000/api`; el build de producción usa `/api` (mismo dominio).

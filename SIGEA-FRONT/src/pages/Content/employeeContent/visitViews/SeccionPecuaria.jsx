@@ -208,10 +208,6 @@ const SeccionPecuaria = forwardRef(({ userId, solicitudId }, ref) => {
         return () => { activo = false }
     }, [userId, solicitudId, cargarSeccion])
 
-    const updateItem = (idx, campo, value) => {
-        setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
-    }
-
     const updateDetalleAve = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) =>
             i === idx ? { ...it, Detalles: { ...(it.Detalles || {}), [campo]: value } } : it))

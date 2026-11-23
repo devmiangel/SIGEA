@@ -429,12 +429,11 @@ export default function UPAdminDetailContentAdmin() {
                                     <p className="text-sm text-gray-500">No hay visitas en el rango de fechas seleccionado.</p>
                                 ) : (
                                     <div className="space-y-3">
-                                        {visitasFiltradas.map((visita, i) => (
+                                        {visitasFiltradas.map((visita) => (
                                             <VisitaInfoCard
                                                 key={visita.id}
                                                 visita={visita}
-                                                numero={i + 1}
-                                                onClick={() => mostrarInfoVisita(visita, i + 1)}
+                                                onClick={() => mostrarInfoVisita(visita)}
                                             />
                                         ))}
                                     </div>

@@ -3,12 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from SIGEAsite.pagination import SigeaPagination
 from SIGEAsite.permissions import IsInGroup, ROLES_STAFF, usuario_en_grupo
 
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
 from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
 from ..serializers import SolicitudesSerializer, VisitasSerializer
+from .consultas import VISITAS_RELACIONADAS, filtrar_rango_fechas
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -274,21 +276,30 @@ def mis_visitas(request):
     funcionario = getattr(request.user, 'funcionarios', None)
     if not funcionario:
         return Response({'error': 'El usuario autenticado no es un funcionario'}, status=403)
+    params = request.query_params
     visitas = (
         Visitas.objects
-        .select_related(
-            'Solicitud__MotivoSolicitud',
-            'Solicitud__Usuario__persona',
-            'Funcionario__usuario__persona',
-            'Administrador__usuario__persona',
-            'TipoVisita'
-        )
+        .select_related(*VISITAS_RELACIONADAS)
         .filter(Funcionario=funcionario)
         .exclude(Solicitud__Estado_id=4)
-        .order_by('FechaYHoraVisita')
     )
-    serializer = VisitasSerializer(visitas, many=True)
-    return Response(serializer.data)
+    visitas = filtrar_rango_fechas(visitas, params)
+
+    # Pendientes: la más próxima primero. Realizadas: la más reciente primero.
+    estado = params.get('estado')
+    if estado == 'pendientes':
+        visitas = visitas.filter(estado=False).order_by('FechaYHoraVisita', 'id')
+    elif estado == 'realizadas':
+        visitas = visitas.filter(estado=True).order_by('-FechaYHoraVisita', '-id')
+    else:
+        visitas = visitas.order_by('FechaYHoraVisita', 'id')
+
+    # Paginación opcional: solo con ?page= o ?page_size= (el calendario pide la lista completa del rango).
+    paginador = SigeaPagination()
+    pagina = paginador.paginate_queryset(visitas, request)
+    if pagina is not None:
+        return paginador.get_paginated_response(VisitasSerializer(pagina, many=True).data)
+    return Response(VisitasSerializer(visitas, many=True).data)
 
 
 @api_view(['GET'])
@@ -300,12 +311,7 @@ def mis_ordenes(request):
 
     visitas = (
         Visitas.objects
-        .select_related(
-            'Solicitud__MotivoSolicitud',
-            'Solicitud__Usuario__persona',
-            'Funcionario__usuario__persona',
-            'TipoVisita'
-        )
+        .select_related(*VISITAS_RELACIONADAS)
         .filter(Funcionario=funcionario, Administrador__isnull=True)
         .order_by('-FechaYHoraVisita')
     )

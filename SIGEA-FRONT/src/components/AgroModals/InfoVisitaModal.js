@@ -34,7 +34,7 @@ async function descargarInforme(visita) {
     }
 }
 
-export function mostrarInfoVisita(visita, numero) {
+export function mostrarInfoVisita(visita) {
     if (!visita) return
 
     const solInfo = visita.solicitud_info ?? {}
@@ -77,7 +77,7 @@ export function mostrarInfoVisita(visita, numero) {
                     <div style="min-width:0;">
                         <p style="margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Información de la visita</p>
                         <h2 style="margin:2px 0 0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreUP}</h2>
-                        <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${numero} · ${tipoVisita} · <strong style="color:#1f2937;">${estado}</strong></p>
+                        <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${visita.id} · ${tipoVisita} · <strong style="color:#1f2937;">${estado}</strong></p>
                     </div>
                 </div>
                 <div style="display:grid; gap:12px; padding:14px 0;">

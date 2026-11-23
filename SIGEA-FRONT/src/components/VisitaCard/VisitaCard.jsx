@@ -9,7 +9,7 @@ import { AGRO_COLORS } from '../../utils/agroConstants'
 import { getNombreCompleto } from '../../utils/userDisplay'
 import { formatFecha } from '../../utils/dateHelpers'
 
-export default function VisitaCard({ visita, numero, onClick }) {
+export default function VisitaCard({ visita, onClick }) {
     const solicitud = visita?.solicitud_info ?? {}
     const solicitante = solicitud?.solicitante ?? {}
     const nombreSolicitante = getNombreCompleto(solicitante) || 'Productor'
@@ -39,7 +39,7 @@ export default function VisitaCard({ visita, numero, onClick }) {
                         <EstadoVisita estado={visita?.estado} />
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
-                        Visita #{numero} · Solicitud #{solicitud?.id ?? '—'}
+                        Visita #{visita.id} · Solicitud #{solicitud?.id ?? '—'}
                     </p>
                 </div>
                 <ChevronRightIcon sx={{ color: '#9ca3af' }} className="shrink-0" />

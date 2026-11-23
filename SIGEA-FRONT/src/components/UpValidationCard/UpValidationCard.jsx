@@ -8,7 +8,7 @@ import { DetailCard, DetailField } from '../DetailCard/DetailCard'
 import { formatFecha } from '../../utils/dateHelpers'
 import QRButton from '../QRButton/QRButton'
 
-export default function UpValidationCard({ visita, numero, estado, onClick }) {
+export default function UpValidationCard({ visita, estado, onClick }) {
     const solInfo = visita?.solicitud_info ?? {}
     const nombreUP = solInfo?.up ?? 'Unidad productiva'
     const predio = solInfo?.predio ?? solInfo?.up ?? '—'
@@ -28,7 +28,7 @@ export default function UpValidationCard({ visita, numero, estado, onClick }) {
             title={nombreUP}
             badgeClass={badgeClass}
             badgeLabel={badgeLabel}
-            subtitle={`Visita #${numero} · ${fechaFormateada}`}
+            subtitle={`Visita #${visita.id} · ${fechaFormateada}`}
             onClick={handleActivate}
             detailClassName="flex gap-3 mt-4 flex-wrap sm:flex-nowrap"
         >
