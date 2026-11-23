@@ -184,6 +184,12 @@ export default function CalendarioVisitas({ visitas, onDayClick, onRangeChange }
                     arg.el.addEventListener('click', () => emitirDia(fechaLocal(arg.date)))
                 }}
                 views={VISTAS}
+                dayHeaderDidMount={(arg) => {
+                    // Semana: el encabezado de cada día también selecciona el día.
+                    if (!arg.view.type.startsWith('timeGrid')) return
+                    arg.el.style.cursor = 'pointer'
+                    arg.el.addEventListener('click', () => emitirDia(fechaLocal(arg.date)))
+                }}
                 headerToolbar={{
                     left: 'prev,next today',
                     center: 'title',

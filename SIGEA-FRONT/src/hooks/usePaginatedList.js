@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export function usePaginatedList(fetcher, filtros = {}, pageSize = 50) {
     const [items, setItems] = useState([])
@@ -8,22 +8,28 @@ export function usePaginatedList(fetcher, filtros = {}, pageSize = 50) {
     const [error, setError] = useState(null)
     const filtrosKey = JSON.stringify(filtros)
 
+    const ultimaPeticion = useRef(0)
+
     const cargar = useCallback(async () => {
+        const idPeticion = ++ultimaPeticion.current
+        const esVigente = () => idPeticion === ultimaPeticion.current
         setLoading(true)
         try {
             const data = await fetcher({ page, page_size: pageSize, ...JSON.parse(filtrosKey) })
+            if (!esVigente()) return
             const lista = Array.isArray(data) ? data : (data?.results ?? [])
             setItems(lista)
             setCount(Array.isArray(data) ? lista.length : (data?.count ?? 0))
             setError(null)
         } catch (e) {
+            if (!esVigente()) return
             if (e?.response?.status === 404 && page > 1) {
                 setPage(page - 1)
             } else {
                 setError(e)
             }
         } finally {
-            setLoading(false)
+            if (esVigente()) setLoading(false)
         }
     }, [fetcher, page, pageSize, filtrosKey])
 
