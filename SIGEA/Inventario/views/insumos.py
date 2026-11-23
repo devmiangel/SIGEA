@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin
 from SIGEAsite.filters import filtrar_texto
-from SIGEAsite.pagination import SigeaPagination
+from SIGEAsite.pagination import respuesta_paginada
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -125,12 +125,9 @@ def listar_solicitudes_insumo(request):
 
     solicitudes = queryset.order_by('-FechaSolicitud', '-id')
 
-    # Paginación opcional: solo con ?page= o ?page_size= (MisSolicitudesModal pide la lista completa).
-    paginador = SigeaPagination()
-    pagina = paginador.paginate_queryset(solicitudes, request)
-    if pagina is not None:
-        return paginador.get_paginated_response(SolicitudInsumoSerializer(pagina, many=True).data)
-    return Response(SolicitudInsumoSerializer(solicitudes, many=True).data)
+    # Siempre paginado (sin ?page= las páginas son de 200); MisSolicitudesModal recibe
+    # la lista completa porque api.js recorre las páginas.
+    return respuesta_paginada(request, solicitudes, SolicitudInsumoSerializer)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

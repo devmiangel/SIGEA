@@ -14,6 +14,17 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Solo caché (límites de intentos): sin persistencia en disco.
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build:
       context: ./SIGEA
@@ -29,6 +40,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en tu archivo .env}
       DB_HOST: db
       DB_PORT: 5432
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       KNOX_TOKEN_TTL_MINUTES: ${KNOX_TOKEN_TTL_MINUTES:-600}
       THROTTLE_ANON: ${THROTTLE_ANON:-60/min}
       THROTTLE_USER: ${THROTTLE_USER:-600/min}
@@ -53,6 +65,8 @@ services:
       - static_data:/app/staticfiles
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   frontend:

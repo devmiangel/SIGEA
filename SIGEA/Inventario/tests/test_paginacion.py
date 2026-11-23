@@ -20,11 +20,27 @@ class PaginacionTests(APITestCase):
                 TipoHerramienta=tipo,
             )
 
-    def test_sin_page_devuelve_lista_completa(self):
+    def test_sin_page_devuelve_pagina_de_200(self):
         respuesta = self.client.get('/api/inventario/herramientas/')
         self.assertEqual(respuesta.status_code, 200)
-        self.assertIsInstance(respuesta.data, list)
-        self.assertEqual(len(respuesta.data), 3)
+        self.assertEqual(respuesta.data['count'], 3)
+        self.assertEqual(len(respuesta.data['results']), 3)
+        self.assertIsNone(respuesta.data['next'])
+
+    def test_sin_page_nunca_devuelve_mas_de_200(self):
+        tipo = TiposHerramientas.objects.first()
+        Herramientas.objects.bulk_create(
+            Herramientas(Herramienta=f'Masiva {indice}', TipoHerramienta=tipo) for indice in range(200)
+        )
+        primera = self.client.get('/api/inventario/herramientas/')
+        self.assertEqual(primera.data['count'], 203)
+        self.assertEqual(len(primera.data['results']), 200)
+        # El enlace siguiente conserva el tamaño de página: no se salta filas.
+        self.assertIn('page_size=200', primera.data['next'])
+        segunda = self.client.get(primera.data['next'])
+        self.assertEqual(len(segunda.data['results']), 3)
+        ids = [h['id'] for h in primera.data['results'] + segunda.data['results']]
+        self.assertEqual(len(set(ids)), 203)
 
     def test_con_page_devuelve_paginado(self):
         respuesta = self.client.get('/api/inventario/herramientas/?page=1&page_size=2')

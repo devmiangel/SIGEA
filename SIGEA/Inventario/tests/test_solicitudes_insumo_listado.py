@@ -57,10 +57,12 @@ class SolicitudesInsumoListadoTests(APITestCase):
         self.assertEqual(self._ids(self.admin, search='abono'), {self.s2.id, self.s3.id})
         self.assertEqual(self._ids(self.admin, search='luis'), {self.s3.id})
 
-    def test_paginado_y_sin_page_lista_completa(self):
+    def test_paginado_y_sin_page_trae_todo_en_una_pagina(self):
         self.client.force_authenticate(self.admin)
         completo = self.client.get(URL)
-        self.assertIsInstance(completo.data, list)
+        self.assertEqual(completo.data['count'], 3)
+        self.assertEqual(len(completo.data['results']), 3)
+        self.assertIsNone(completo.data['next'])
         paginado = self.client.get(URL, {'page': 1, 'page_size': 2})
         self.assertEqual(paginado.data['count'], 3)
         self.assertEqual(len(paginado.data['results']), 2)

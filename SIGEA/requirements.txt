@@ -21,6 +21,9 @@ python-dotenv==1.1.1
 # Servidor WSGI (producción)
 gunicorn==23.0.0
 
+# Caché compartida para el throttling (con REDIS_URL)
+redis==8.2.0
+
 # Documentos (PDF / imágenes / QR)
 reportlab==5.0.0
 Pillow==12.3.0

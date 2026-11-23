@@ -37,6 +37,7 @@ from ..models import (
 )
 
 from ..serializers import (
+    UP_RELACIONADAS,
     TipoUPSerializer,
     ActividadUPSerializer,
     UnidadesSerializer,
@@ -230,9 +231,7 @@ class EventosUPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.M
         )
         # Cada evento incluye sus UPs con UPSerializer: se precargan con lo que ese
         # serializer lee para no consultar por cada UP.
-        ups = UP.objects.select_related(
-            'idEstado', 'TipoUP', 'Predio', 'Productor__usuario__persona', 'ValidadoPor__usuario__persona',
-        )
+        ups = UP.objects.select_related(*UP_RELACIONADAS)
         # distinct(): el filtro por dueño cruza la relación muchos-a-muchos con UP.
         return (
             queryset.prefetch_related(Prefetch('UP', queryset=ups))

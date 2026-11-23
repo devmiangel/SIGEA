@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from SIGEAsite.pagination import SigeaPagination
+from SIGEAsite.pagination import respuesta_paginada
 from SIGEAsite.permissions import IsInGroup, ROLES_STAFF, usuario_en_grupo
 
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
@@ -294,12 +294,9 @@ def mis_visitas(request):
     else:
         visitas = visitas.order_by('FechaYHoraVisita', 'id')
 
-    # Paginación opcional: solo con ?page= o ?page_size= (el calendario pide la lista completa del rango).
-    paginador = SigeaPagination()
-    pagina = paginador.paginate_queryset(visitas, request)
-    if pagina is not None:
-        return paginador.get_paginated_response(VisitasSerializer(pagina, many=True).data)
-    return Response(VisitasSerializer(visitas, many=True).data)
+    # Siempre paginado (sin ?page= las páginas son de 200); el calendario recibe el
+    # rango completo porque api.js recorre las páginas.
+    return respuesta_paginada(request, visitas, VisitasSerializer)
 
 
 @api_view(['GET'])
@@ -313,7 +310,6 @@ def mis_ordenes(request):
         Visitas.objects
         .select_related(*VISITAS_RELACIONADAS)
         .filter(Funcionario=funcionario, Administrador__isnull=True)
-        .order_by('-FechaYHoraVisita')
+        .order_by('-FechaYHoraVisita', '-id')
     )
-    serializer = VisitasSerializer(visitas, many=True)
-    return Response(serializer.data)
+    return respuesta_paginada(request, visitas, VisitasSerializer)

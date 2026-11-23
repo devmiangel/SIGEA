@@ -4,6 +4,8 @@ from unittest import mock
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Inventario.models import (
     AsignacionHerramientas,
     Conductores,
@@ -271,10 +273,11 @@ class VehiculosEdicionTests(_BaseEdicionInventario):
         self.client.force_authenticate(self.admin_user)
         respuesta = self.client.get('/api/inventario/detalleVehiculos/')
         self.assertEqual(respuesta.status_code, 200)
-        self.assertEqual(respuesta.data[0]['MarcaVehiculo'], 'Toyota')
-        self.assertEqual(respuesta.data[0]['LineaVehiculo'], 'Hilux')
-        self.assertEqual(respuesta.data[0]['TipoVehiculo'], 'Camioneta')
-        self.assertEqual(respuesta.data[0]['TipoCombustible'], 'Diesel')
+        primero = filas(respuesta)[0]
+        self.assertEqual(primero['MarcaVehiculo'], 'Toyota')
+        self.assertEqual(primero['LineaVehiculo'], 'Hilux')
+        self.assertEqual(primero['TipoVehiculo'], 'Camioneta')
+        self.assertEqual(primero['TipoCombustible'], 'Diesel')
 
     def test_endpoint_spec_no_permite_crear_ni_editar_directo(self):
         self.client.force_authenticate(self.admin_user)

@@ -54,12 +54,18 @@ const desenvloverPaginacion = async (response) => {
         return response
     }
 
+    // El backend pagina todos los listados (páginas de 200 cuando no se pide página).
+    // Si la llamada no pidió página, se recorren los enlaces `next` y se devuelve la
+    // lista completa. El `page_size` no se cambia: el backend ya lo incluye en `next`,
+    // y alterarlo desalinearía las páginas (se saltarían filas).
     let resultados = [...response.data.results]
     let siguiente = response.data.next
 
     while (siguiente) {
         const url = new URL(siguiente, window.location.origin)
-        url.searchParams.set('page_size', '200')
+        if (!url.searchParams.has('page_size')) {
+            url.searchParams.set('page_size', String(response.data.results.length))
+        }
         const pagina = await api.get(url.toString(), { __rawPaginated: true })
         const datos = pagina.data
         resultados = resultados.concat(datos.results ?? [])

@@ -141,7 +141,7 @@ Rutas registradas en `urls.py`, bajo el prefijo `/api/visitas/`.
 
 ### Parámetros de los listados
 
-La paginación es opcional: solo se aplica si la petición trae `?page=` o `?page_size=` (máx. 200) y entonces la respuesta es `{count, next, previous, results}`. Sin esos parámetros se devuelve la lista completa.
+La respuesta siempre es paginada (`{count, next, previous, results}`): con `?page=`/`?page_size=` usa páginas de 50 (máx. 200); sin esos parámetros, páginas de 200. Los enlaces `next`/`previous` llevan `page_size`. El frontend recorre las páginas cuando necesita la lista completa.
 
 | Endpoint | Parámetros |
 |---|---|

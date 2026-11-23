@@ -25,7 +25,7 @@ from .catalogs import (
     DetallePecesSerializer,
     DetalleApicolasSerializer,
 )
-from .up import UPSerializer
+from .up import UPSerializer, UP_RELACIONADAS
 from .info_personal import InfoPersonalCaracterizacionSerializer
 from .info_predio import InfoPredioCaracterizacionSerializer
 from .info_up import InfoUPCaracterizacionSerializer

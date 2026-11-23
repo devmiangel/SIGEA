@@ -136,8 +136,8 @@ class MisVisitasTests(_BaseListados):
 
     def test_sin_parametros_lista_completa_y_solo_propias(self):
         resp = self.client.get(URL_MIS_VISITAS)
-        self.assertIsInstance(resp.data, list)
-        ids = [v['id'] for v in resp.data]
+        self.assertIsNone(resp.data['next'])
+        ids = [v['id'] for v in _datos(resp)]
         self.assertNotIn(self.ajena.id, ids)
         self.assertTrue({self.p1.id, self.p2.id, self.r1.id, self.r2.id} <= set(ids))
 

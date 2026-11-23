@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ..models import UP
-from ..serializers import UPSerializer
+from ..serializers import UPSerializer, UP_RELACIONADAS
 from ..services.archivos_service import ArchivoInvalido, guardar_archivo
 
 
@@ -30,7 +30,7 @@ def _sin_permiso_up():
 
 class UPViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
     owner_lookup = 'Productor__usuario'
-    queryset = UP.objects.all()
+    queryset = UP.objects.select_related(*UP_RELACIONADAS).order_by('id')
     serializer_class = UPSerializer
 
 ESTADO_EN_REVISION = 'En revision'
@@ -119,7 +119,7 @@ def mis_ups(request):
     productor = getattr(request.user, 'productores', None)
     if not productor:
         return Response([])
-    ups = UP.objects.filter(Productor=productor)
+    ups = UP.objects.filter(Productor=productor).select_related(*UP_RELACIONADAS).order_by('id')
     serializer = UPSerializer(ups, many=True)
     return Response(serializer.data)
 

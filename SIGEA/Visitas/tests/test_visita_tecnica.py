@@ -3,6 +3,8 @@ import base64
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Inventario.models import Insumos, InventarioFuncionario
 from Predios.models import Predios, TiposTenencias
 from UPs.models import UP, TipoUP, Unidades
@@ -467,7 +469,7 @@ class VisitasOrdenTests(_BaseVisita):
     def test_listado_completo_mas_reciente_primero(self):
         respuesta = self.client.get('/api/visitas/visitas/')
         self.assertEqual(respuesta.status_code, 200)
-        self.assertEqual([v['id'] for v in respuesta.data], self.esperado)
+        self.assertEqual([v['id'] for v in filas(respuesta)], self.esperado)
 
     def test_paginas_conservan_el_orden(self):
         pagina1 = self.client.get('/api/visitas/visitas/?page=1&page_size=2')

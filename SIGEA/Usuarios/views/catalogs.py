@@ -131,8 +131,9 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
                 Q(persona__numero_documento__icontains=q)
             ).distinct()
 
-        serializer = UsuarioSerializer(usuarios, many=True)
-        return Response(serializer.data)
+        # Sin `q` devuelve todos los usuarios no staff: se pagina como cualquier listado.
+        pagina = self.paginate_queryset(usuarios.order_by('id'))
+        return self.get_paginated_response(UsuarioSerializer(pagina, many=True).data)
 
     def _actualizar_usuario(self, instance, data):
         # 1. Actualizar datos de la persona
@@ -230,7 +231,7 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
     @action(detail=True, methods=['get'])
     def detalle(self, request, pk=None):
         from UPs.models import UP
-        from UPs.serializers import UPSerializer
+        from UPs.serializers import UPSerializer, UP_RELACIONADAS
         from Inventario.models import InventarioFuncionario, CardexInsumoFuncionario, AsignacionHerramientas, RegistroAsignacionVehiculos
 
         instance = self.get_object()
@@ -242,7 +243,10 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
 
         if rol == 'Productores':
             productor = getattr(instance, 'productores', None)
-            ups = UP.objects.filter(Productor=productor) if productor else UP.objects.none()
+            ups = (
+                UP.objects.filter(Productor=productor).select_related(*UP_RELACIONADAS)
+                if productor else UP.objects.none()
+            )
             data['ups'] = UPSerializer(ups, many=True).data
         elif rol == 'Funcionarios':
             funcionario = getattr(instance, 'funcionarios', None)
@@ -352,7 +356,7 @@ class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
     def detalle(self, request, pk=None):
         """Productor + persona + contactos + UPs asociadas (solo staff)."""
         from UPs.models import UP
-        from UPs.serializers import UPSerializer
+        from UPs.serializers import UPSerializer, UP_RELACIONADAS
         from ..serializers import PersonaBasicaSerializer
 
         productor = self.get_object()
@@ -364,9 +368,7 @@ class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
             if persona else []
         )
         data['ups'] = UPSerializer(
-            UP.objects.filter(Productor=productor).select_related(
-                'Predio', 'idEstado', 'TipoUP'
-            ),
+            UP.objects.filter(Productor=productor).select_related(*UP_RELACIONADAS),
             many=True,
         ).data
         return Response(data)

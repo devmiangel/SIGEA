@@ -185,7 +185,7 @@ Las rutas se registran con `DefaultRouter` en `urls.py`, bajo el prefijo `/api/i
 
 ### Parámetros del listado de solicitudes de insumo
 
-`GET /api/inventario/solicitudInsumo/` acepta `estado` (Pendiente, Resuelta, Rechazada) y `search` (insumo, nombre o correo del funcionario). La paginación es opcional: solo se aplica si la petición trae `?page=` o `?page_size=` (máx. 200) y entonces la respuesta es `{count, next, previous, results}`. Sin esos parámetros se devuelve la lista completa.
+`GET /api/inventario/solicitudInsumo/` acepta `estado` (Pendiente, Resuelta, Rechazada) y `search` (insumo, nombre o correo del funcionario). La respuesta siempre es paginada (`{count, next, previous, results}`): con `?page=`/`?page_size=` usa páginas de 50 (máx. 200); sin esos parámetros, páginas de 200. Los enlaces `next`/`previous` llevan `page_size`. El frontend recorre las páginas cuando necesita la lista completa.
 
 ---
 

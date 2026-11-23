@@ -2,6 +2,8 @@
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from UPs.models import EventosUP
 from Usuarios.models import Usuario
 
@@ -20,12 +22,12 @@ class EventosListadoTests(APITestCase):
     def test_sin_page_lista_completa_mas_reciente_primero(self):
         resp = self.client.get(URL)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual([e['id'] for e in resp.data], [self.taller.id, self.jornada.id, self.feria.id])
+        self.assertEqual([e['id'] for e in filas(resp)], [self.taller.id, self.jornada.id, self.feria.id])
 
     def test_busqueda_en_titulo_lugar_y_descripcion(self):
         for termino, esperado in (('feria', self.feria), ('vereda', self.taller), ('bovina', self.jornada)):
             resp = self.client.get(URL, {'search': termino})
-            self.assertEqual([e['id'] for e in resp.data], [esperado.id], termino)
+            self.assertEqual([e['id'] for e in filas(resp)], [esperado.id], termino)
 
     def test_paginado(self):
         resp = self.client.get(URL, {'page': 1, 'page_size': 2})

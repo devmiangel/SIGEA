@@ -107,7 +107,9 @@ npm run dev        # http://localhost:5173
 
 - **Login**: usa **email + contraseña**; genera token (Knox) que expira tras `KNOX_TOKEN_TTL_MINUTES` de inactividad. Todas las rutas del backend exigen autenticación, salvo `/api/register/`, `/api/usuarios/login/` y los catálogos del registro.
 - **Registro público**: siempre crea el rol `Usuarios`; solo un administrador autenticado puede crear usuarios con otro rol.
-- **Archivos subidos**: el backend guarda uploads en `SIGEA/media/` (`MEDIA_ROOT`).
+- **Archivos subidos**: los adjuntos de las UPs son privados y se guardan en `PRIVATE_MEDIA_ROOT` (por defecto `SIGEA/private_media/`); solo se descargan por `GET /api/UPs/archivosUP/<id>/descargar/`. En `SIGEA/media/` (`MEDIA_ROOT`) solo quedan los QR de las UPs (`qr_up/`).
+- **Pruebas**: backend con `pytest` (desde `SIGEA/`, con PostgreSQL corriendo); frontend con Cypress (`npm run test:e2e`, con backend y `npm run dev` levantados y los seeders aplicados).
+- **Datos masivos**: `python manage.py seed_masivo` crea ~20.000 registros de prueba (`@sigea.test`); acepta `--registros N`, `--dry-run` y `--limpiar`.
 - **Panel de Django admin**: `http://127.0.0.1:8000/admin/`.
 
 ## 8. Notas de seguridad para el despliegue (Nginx)
@@ -134,7 +136,8 @@ client_max_body_size 6m;                      # >= MAX_UPLOAD_MB
 add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'" always;
 ```
 
-- En `.env` de producción: `USE_X_ACCEL_REDIRECT=True`, `NUM_PROXIES=1` y `PRIVATE_MEDIA_ROOT`.
+- En `.env` de producción: `REDIS_URL` (caché compartida: sin ella los límites de intentos se cuentan por separado en cada worker de gunicorn; Docker Compose ya incluye Redis), `USE_X_ACCEL_REDIRECT=True`, `NUM_PROXIES` y `PRIVATE_MEDIA_ROOT`. `NUM_PROXIES` es el número de proxies delante de Django: `1` con un solo Nginx; `2` (valor por defecto de `docker-compose.yml`) cuando el Nginx del contenedor está detrás de otro proxy que termina TLS.
+- Ojo: el `SIGEA-FRONT/nginx.conf` del contenedor todavía **no** incluye `location /media/archivos_up/ { deny all; }` ni la cabecera CSP, y usa `client_max_body_size 25m`. Agrégalos allí o en el proxy externo.
 - Limitar o proteger `/admin/` (por IP o con `limit_req`), ya que es público por defecto.
 - Tras desplegar, ejecutar `python manage.py seed_permisos` para aplicar los permisos por rol actualizados.
 
