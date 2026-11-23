@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Permission
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Inventario.models import (
     AsignacionHerramientas,
     CardexInsumoFuncionario,
@@ -152,10 +154,10 @@ class AsignacionInsumosTests(_BaseInventario):
         self._asignar(4)
         self._asignar(3, funcionario=self.funcionario2)
         self.client.force_authenticate(user=self.user_func)
-        filas = self.client.get("/api/inventario/inventarioFuncionario/").data
-        self.assertEqual([f["Funcionario"] for f in filas], [self.funcionario.id])
+        inventario = filas(self.client.get("/api/inventario/inventarioFuncionario/"))
+        self.assertEqual([f["Funcionario"] for f in inventario], [self.funcionario.id])
         self.client.force_authenticate(user=self.user_admin)
-        self.assertEqual(len(self.client.get("/api/inventario/inventarioFuncionario/").data), 2)
+        self.assertEqual(len(filas(self.client.get("/api/inventario/inventarioFuncionario/"))), 2)
 
 
 class AsignacionHerramientasVehiculosTests(_BaseInventario):
@@ -213,8 +215,8 @@ class AsignacionHerramientasVehiculosTests(_BaseInventario):
         self._asignar_h()
         self._asignar_v()
         self.client.force_authenticate(user=self.user_func2)
-        self.assertEqual(self.client.get("/api/inventario/asignacionHerramientas/").data, [])
-        self.assertEqual(self.client.get("/api/inventario/registroAsignacionVehiculos/").data, [])
+        self.assertEqual(filas(self.client.get("/api/inventario/asignacionHerramientas/")), [])
+        self.assertEqual(filas(self.client.get("/api/inventario/registroAsignacionVehiculos/")), [])
         self.client.force_authenticate(user=self.user_func)
-        self.assertEqual(len(self.client.get("/api/inventario/asignacionHerramientas/").data), 1)
-        self.assertEqual(len(self.client.get("/api/inventario/registroAsignacionVehiculos/").data), 1)
+        self.assertEqual(len(filas(self.client.get("/api/inventario/asignacionHerramientas/"))), 1)
+        self.assertEqual(len(filas(self.client.get("/api/inventario/registroAsignacionVehiculos/"))), 1)

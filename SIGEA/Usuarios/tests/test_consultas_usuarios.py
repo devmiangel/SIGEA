@@ -9,6 +9,8 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Inventario.models import Conductores
 from Usuarios.models import Administradores, Funcionarios, Personas, Productores, TiposDocumentos, Usuario
 
@@ -77,7 +79,7 @@ class ConsultasListadoUsuariosTests(APITestCase):
         productor = self._crear("Productores")
         usuario = self._crear("Usuarios")
         self.client.force_authenticate(self.admin)
-        datos = {u["id"]: u for u in self.client.get(URL).data}
+        datos = {u["id"]: u for u in filas(self.client.get(URL))}
 
         self.assertEqual(datos[self.admin.id]["rol"], "Administradores")
         self.assertEqual(datos[conductor.id]["rol"], "Funcionarios")
@@ -92,7 +94,7 @@ class ConsultasListadoUsuariosTests(APITestCase):
         user = self._crear("Funcionarios", licencia="C1-9")
         Conductores.objects.filter(Funcionario=user.funcionarios).update(Estado=False)
         self.client.force_authenticate(self.admin)
-        datos = {u["id"]: u for u in self.client.get(URL).data}
+        datos = {u["id"]: u for u in filas(self.client.get(URL))}
         self.assertFalse(datos[user.id]["es_conductor"])
 
     def test_cambio_de_rol_se_refleja_en_la_respuesta(self):
