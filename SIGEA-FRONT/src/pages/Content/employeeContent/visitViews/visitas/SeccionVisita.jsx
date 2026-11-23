@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Swal from 'sweetalert2'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import { crearSolicitud } from '../../../../../services/agroService'
+import { crearSolicitud } from '../../../../../services/visitasService'
 import { AGRO_COLORS, MOTIVO_SOLICITUD } from '../../../../../utils/agroConstants'
 
 const inputClase = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"

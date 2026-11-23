@@ -1,7 +1,7 @@
 import Swal from 'sweetalert2'
 import { AGRO_COLORS, MOTIVO_SOLICITUD } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
-import { crearSolicitud } from '../../services/agroService'
+import { crearSolicitud } from '../../services/visitasService'
 
 function getIniciales(persona, email) {
     const nombre = persona?.primer_nombre?.trim() ?? ''

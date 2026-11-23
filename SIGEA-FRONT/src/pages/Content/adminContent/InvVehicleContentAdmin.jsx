@@ -7,7 +7,17 @@ import VehiculoPreviewCard from "../../../components/VehiculoPreviewCard/Vehicul
 import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { useVehiculos } from "../../../hooks/useVehiculos"
-import { getFuncionarios, getConductores, asignarVehiculoDirecto, getRegistroAsignacionVehiculos, devolverVehiculo, getMarcasVehiculos, getLineasVehiculos, getTiposVehiculos, getTiposCombustibles } from "../../../services/agroService"
+import { getFuncionarios } from "../../../services/usuariosService"
+import {
+    getConductores,
+    asignarVehiculoDirecto,
+    getRegistroAsignacionVehiculos,
+    devolverVehiculo,
+    getMarcasVehiculos,
+    getLineasVehiculos,
+    getTiposVehiculos,
+    getTiposCombustibles,
+} from "../../../services/inventarioService"
 import { abrirModalAsignarVehiculo } from "../../../components/AgroModals/AsignarVehiculoModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'

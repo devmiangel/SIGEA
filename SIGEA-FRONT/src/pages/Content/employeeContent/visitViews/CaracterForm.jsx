@@ -13,7 +13,7 @@ import SeccionAdicional from './SeccionAdicional'
 import SeccionCierre from './SeccionCierre'
 import VisitaResumen from "../../../../components/VisitaResumen/VisitaResumen"
 import EstadoVisita from "../../../../components/EstadoVisita/EstadoVisita"
-import { marcarVisitaRealizada } from "../../../../services/agroService"
+import { marcarVisitaRealizada } from "../../../../services/visitasService"
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
 import { escapeHtml } from "../../../../utils/sanitize"

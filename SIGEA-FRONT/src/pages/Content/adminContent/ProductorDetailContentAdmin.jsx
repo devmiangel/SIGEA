@@ -5,7 +5,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import UPPReviewCard from "../../../components/UPPReviewCard/UPPReviewCard"
-import { getProductorDetalle } from "../../../services/agroService"
+import { getProductorDetalle } from "../../../services/usuariosService"
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage"
 import { esRegistroActivo } from "../../../utils/insumoHelpers"
 import { AGRO_COLORS } from "../../../utils/agroConstants"

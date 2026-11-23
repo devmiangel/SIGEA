@@ -3,7 +3,8 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS, ESTADO_VISITA, UP_ESTADO_RAW, esUPValidada, normalizarEstadoUP } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
-import { validarUP, generarInformeVisita } from '../../services/agroService'
+import { validarUP } from '../../services/upsService'
+import { generarInformeVisita } from '../../services/documentosService'
 
 const descargarInforme = async (visita) => {
     try {

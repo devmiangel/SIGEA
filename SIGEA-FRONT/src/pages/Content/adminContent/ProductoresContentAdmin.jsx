@@ -6,7 +6,7 @@ import InventoryFilterBar from "../../../components/InventoryFilterBar/Inventory
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import ProductorPreviewCard from "../../../components/ProductorPreviewCard/ProductorPreviewCard"
 import { usePaginatedList } from "../../../hooks/usePaginatedList"
-import { getProductores } from "../../../services/agroService"
+import { getProductores } from "../../../services/usuariosService"
 import {
     getSectores,
     getTiposDocumentos,

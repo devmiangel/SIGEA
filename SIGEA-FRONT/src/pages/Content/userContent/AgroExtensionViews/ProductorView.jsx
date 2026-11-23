@@ -6,7 +6,7 @@ import AgricultureIcon from '@mui/icons-material/Agriculture'
 import UserRequest from "../../../../components/UserRequest/UserRequest"
 import UPPReviewCard from "../../../../components/UPPReviewCard/UPPReviewCard"
 import Swal from 'sweetalert2'
-import { getMisUPs } from "../../../../services/agroService"
+import { getMisUPs } from "../../../../services/upsService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useSolicitudes } from "../../../../hooks/useSolicitudes"
 import { abrirModalNuevaSolicitud } from "../../../../components/AgroModals/NuevaSolicitudModal"

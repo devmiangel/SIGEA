@@ -11,7 +11,7 @@ El aplicativo consta de dos componentes que trabajan en conjunto:
 | Componente | Tecnología | Carpetas |
 |---|---|---|
 | **Backend (API REST)** | Python · Django · Django REST Framework · PostgreSQL · Knox | `SIGEA/` |
-| **Frontend (SPA)** | React 19 · Vite · MUI · Tailwind CSS · PrimeReact · FullCalendar | `SIGEA-FRONT/` |
+| **Frontend (SPA)** | React 19 · Vite · MUI · Tailwind CSS · FullCalendar | `SIGEA-FRONT/` |
 
 El **backend** expone los servicios REST que gestionan los datos, la autenticación por tokens (Knox) y la generación de documentos PDF. El **frontend** consume estos servicios mediante Axios y organiza la experiencia de cada usuario según su rol.
 
@@ -60,7 +60,7 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 
 **Frontend**
 - React 19 · Vite 7 · React Router 7
-- MUI 7 · Tailwind CSS 4 · PrimeReact 10 · FullCalendar 7
+- MUI 7 (iconos y selector de fecha) · Tailwind CSS 4 · FullCalendar 7
 - Axios · react-hook-form · react-signature-canvas · SweetAlert2
 
 ## Estructura del repositorio

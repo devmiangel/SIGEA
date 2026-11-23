@@ -10,13 +10,8 @@ import VisitaInfo from '../../../components/VisitaInfo/VisitaInfo'
 import { AGRO_COLORS } from '../../../utils/agroConstants'
 import { getNombreCompleto } from '../../../utils/userDisplay'
 import { escapeHtml } from '../../../utils/sanitize'
-import {
-    buscarProductoresUsuarios,
-    crearOrdenVisita,
-    getMisOrdenes,
-    getTiposVisitas,
-    getDetalleUsuario,
-} from '../../../services/agroService'
+import { buscarProductoresUsuarios, getDetalleUsuario } from '../../../services/usuariosService'
+import { crearOrdenVisita, getMisOrdenes, getTiposVisitas } from '../../../services/visitasService'
 import { registerUser } from '../../../services/authService'
 import { API_BASE_URL } from '../../../services/api'
 

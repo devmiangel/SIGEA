@@ -5,7 +5,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EventIcon from '@mui/icons-material/Event'
 import Swal from 'sweetalert2'
-import { getUPs, actualizarEvento, buscarUPPorRUEA } from '../../services/agroService'
+import { getUPs, actualizarEvento, buscarUPPorRUEA } from '../../services/upsService'
 import QRScannerModal from '../QRScannerModal/QRScannerModal'
 import { AGRO_COLORS, AUTOCOMPLETE_MAX_RESULTS } from '../../utils/agroConstants'
 

@@ -7,7 +7,13 @@ import HerramientaPreviewCard from "../../../components/HerramientaPreviewCard/H
 import InventoryFilterBar from "../../../components/InventoryFilterBar/InventoryFilterBar"
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { useHerramientas } from "../../../hooks/useHerramientas"
-import { getFuncionarios, asignarHerramientaDirecto, getAsignacionHerramientas, devolverHerramienta, getTiposHerramientas } from "../../../services/agroService"
+import { getFuncionarios } from "../../../services/usuariosService"
+import {
+    asignarHerramientaDirecto,
+    getAsignacionHerramientas,
+    devolverHerramienta,
+    getTiposHerramientas,
+} from "../../../services/inventarioService"
 import { abrirModalAsignarHerramienta } from "../../../components/AgroModals/AsignarHerramientaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'

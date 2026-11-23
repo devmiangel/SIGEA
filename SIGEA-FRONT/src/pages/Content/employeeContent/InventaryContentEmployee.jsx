@@ -13,8 +13,8 @@ import { abrirModalMisSolicitudes } from "../../../components/AgroModals/MisSoli
 import InsumoAsignadoCard from "../../../components/InsumoAsignadoCard/InsumoAsignadoCard"
 import { mostrarInfoInsumoAsignado } from "../../../components/AgroModals/InsumoAsignadoInfoModal"
 import { getUnidades } from "../../../services/caracterizacionService"
+import { getFuncionarios } from "../../../services/usuariosService"
 import {
-    getFuncionarios,
     getInventarioFuncionario,
     getCardexInsumoFuncionario,
     getRegistroAsignacionVehiculos,
@@ -24,7 +24,7 @@ import {
     getHerramientas,
     getVehiculos,
     crearSolicitudInsumo,
-} from "../../../services/agroService"
+} from "../../../services/inventarioService"
 
 export default function InventaryContentEmployee(){
     const { user, loading: loadingUser } = useCurrentDataUser()

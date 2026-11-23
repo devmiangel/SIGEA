@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../utils/agroConstants'
-import { descargarQR } from '../../services/agroService'
+import { descargarQR } from '../../services/upsService'
 import { API_BASE_URL } from '../../services/api'
 
 const iconoQR = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="4" height="4" rx="0.5"/><line x1="22" y1="14" x2="22" y2="14.01"/><line x1="22" y1="18" x2="22" y2="22"/><line x1="18" y1="22" x2="18" y2="22.01"/></svg>`

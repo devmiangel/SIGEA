@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { usePaginatedList } from "../../../hooks/usePaginatedList"
-import { getVisitas } from "../../../services/agroService"
+import { getVisitas } from "../../../services/visitasService"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 
 export default function VisitasContentAdmin() {

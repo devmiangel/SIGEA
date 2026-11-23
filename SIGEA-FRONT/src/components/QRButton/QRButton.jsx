@@ -2,7 +2,7 @@ import { useState } from 'react'
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../utils/agroConstants'
-import { generarQR } from '../../services/agroService'
+import { generarQR } from '../../services/upsService'
 import { API_BASE_URL } from '../../services/api'
 import QRGeneratorModal from '../QRGeneratorModal/QRGeneratorModal'
 

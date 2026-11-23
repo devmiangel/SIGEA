@@ -10,7 +10,10 @@ import { useSolicitudesInsumo } from "../../../hooks/useSolicitudesInsumo"
 import { mostrarInfoSolicitudInsumo } from "../../../components/AgroModals/SolicitudInsumoInfoModal"
 import { abrirModalAsignarInsumo } from "../../../components/AgroModals/AsignarInsumoModal"
 import { abrirModalRechazarInsumo } from "../../../components/AgroModals/RechazarInsumoModal"
-import { asignarSolicitudInsumo, rechazarSolicitudInsumo } from "../../../services/agroService"
+import {
+    asignarSolicitudInsumo,
+    rechazarSolicitudInsumo,
+} from "../../../services/inventarioService"
 import { AGRO_COLORS, ESTADO_SOLICITUD_INSUMO } from "../../../utils/agroConstants"
 
 const normalizarTexto = (valor) =>

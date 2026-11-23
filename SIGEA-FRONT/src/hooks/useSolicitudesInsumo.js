@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { getSolicitudesInsumo } from "../services/agroService"
+import { getSolicitudesInsumo } from "../services/inventarioService"
 
 export function useSolicitudesInsumo() {
     const [solicitudes, setSolicitudes] = useState([])

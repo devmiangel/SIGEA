@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { getUsuarios, actualizarUsuario, eliminarUsuario } from '../services/agroService'
+import { getUsuarios, actualizarUsuario, eliminarUsuario } from '../services/usuariosService'
 import { usePaginatedList } from './usePaginatedList'
 
 export function useUsuarios(filtros = {}) {

@@ -13,7 +13,7 @@ import SeccionInsumos from './visitas/SeccionInsumos'
 import SeccionVisita from './visitas/SeccionVisita'
 import SeccionFirmas from './visitas/SeccionFirmas'
 import { enviarFormularioVisita, getInfoProductor, getInfoUP, getInfoPredio } from './visitas/visitaService'
-import { marcarVisitaRealizada } from "../../../../services/agroService"
+import { marcarVisitaRealizada } from "../../../../services/visitasService"
 import { useSeccion } from "../../../../hooks/useSeccion"
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from "../../../../utils/agroConstants"

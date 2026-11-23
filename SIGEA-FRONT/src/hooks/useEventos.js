@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { getEventos, eliminarEvento } from "../services/agroService"
+import { getEventos, eliminarEvento } from "../services/upsService"
 
 export function useEventos() {
     const [eventos, setEventos] = useState([])

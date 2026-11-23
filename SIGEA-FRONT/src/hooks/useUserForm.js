@@ -5,7 +5,7 @@ import Swal from 'sweetalert2'
 import dayjs from 'dayjs'
 import { AGRO_COLORS } from '../utils/agroConstants'
 import { registerUser } from '../services/authService'
-import { getUsuario, actualizarUsuario } from '../services/agroService'
+import { getUsuario, actualizarUsuario } from '../services/usuariosService'
 
 export function useUserForm(usuarioId) {
     const esEdicion = Boolean(usuarioId)

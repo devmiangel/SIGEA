@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { getMisVisitas } from "../services/agroService"
+import { getMisVisitas } from "../services/visitasService"
 
 export function useMisVisitas() {
     const [visitas, setVisitas] = useState([])

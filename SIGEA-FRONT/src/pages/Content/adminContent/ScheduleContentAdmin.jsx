@@ -5,7 +5,7 @@ import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import CalendarioVisitas from "../../../components/calendar/CalendarioVisitas"
-import { getVisitas } from "../../../services/agroService"
+import { getVisitas } from "../../../services/visitasService"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
