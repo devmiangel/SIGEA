@@ -30,7 +30,7 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, 
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 sm:px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-[#3e9a8a] transition-all duration-200 w-full m-1">
+    <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-3 px-4 sm:px-5 py-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-[#3e9a8a] transition-all duration-200 w-full m-1">
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#005C39] text-white shrink-0 shadow-sm">
         <HandymanIcon sx={{ fontSize: 24, color: '#fff' }} />
       </div>
@@ -44,13 +44,13 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, 
         </p>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+      <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0 sm:order-3">
         {asignacion ? (
           <button
             onClick={handleDevolver}
             aria-label="Registrar devolución"
             title="Registrar devolución"
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+            className="sm:w-40 text-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
           >
             Registrar devolución
           </button>
@@ -59,7 +59,7 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, 
             onClick={handleAsignar}
             aria-label="Asignar herramienta"
             title="Asignar herramienta"
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
+            className="sm:w-40 text-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#229e14] text-white hover:bg-[#1d8a11] transition-colors"
           >
             Asignar
           </button>
@@ -82,12 +82,15 @@ export default function HerramientaPreviewCard({ herramienta, onEdit, onDelete, 
         </button>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto">
-        <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#015d3b]/10 text-[#015d3b]">
-          {herramienta?.TipoHerramienta ? `Tipo: ${herramienta.TipoHerramienta}` : 'Sin tipo'}
+      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 sm:order-2">
+        <span
+          title={herramienta?.TipoHerramientaNombre}
+          className="sm:w-32 sm:text-center truncate px-3 py-1 rounded-full text-xs font-medium bg-[#015d3b]/10 text-[#015d3b]"
+        >
+          {herramienta?.TipoHerramientaNombre ?? 'Sin tipo'}
         </span>
 
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusClass}`}>
+        <span className={`sm:w-24 sm:text-center px-3 py-1 rounded-full text-xs font-medium ${statusClass}`}>
           {estadoLabel}
         </span>
       </div>
