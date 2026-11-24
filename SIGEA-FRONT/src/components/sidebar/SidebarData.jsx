@@ -7,6 +7,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import EventIcon from '@mui/icons-material/Event';
 import PetsIcon from '@mui/icons-material/Pets';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import PaymentsIcon from '@mui/icons-material/Payments';
 
 export const SidebarData = [
     {
@@ -49,6 +50,12 @@ export const SidebarData = [
         title: 'Solicitudes',
         icon: <AssignmentIcon/>,
         link: '/administrador/solicitudes',
+        roles: ['Administradores']
+    }, 
+    {
+        title: 'Servicios pagos',
+        icon: <PaymentsIcon/>,
+        link: '/administrador/servicios-pagos',
         roles: ['Administradores']
     }, 
      {

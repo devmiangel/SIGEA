@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     MotivosSolicitudes, Estados, Solicitudes, TiposVisitas, 
-    Visitas, InsumoVisita, Calificaciones, InfoVisita
+    Visitas, InsumoVisita, Calificaciones, InfoVisita,
+    Aperos, Pajillas,
 )
 
 class InsumoVisitaInline(admin.TabularInline):
@@ -14,3 +15,15 @@ class VisitasAdmin(admin.ModelAdmin):
     inlines = [InsumoVisitaInline]
 
 admin.site.register([MotivosSolicitudes, Estados, Solicitudes, TiposVisitas, Calificaciones, InfoVisita])
+
+@admin.register(Aperos)
+class AperosAdmin(admin.ModelAdmin):
+    list_display = ('id', 'Apero', 'ValorHora')
+    list_editable = ('ValorHora',)
+    search_fields = ('Apero',)
+
+@admin.register(Pajillas)
+class PajillasAdmin(admin.ModelAdmin):
+    list_display = ('id', 'Pajilla', 'ValorPajilla')
+    list_editable = ('ValorPajilla',)
+    search_fields = ('Pajilla',)

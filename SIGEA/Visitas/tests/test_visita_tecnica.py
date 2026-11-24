@@ -541,3 +541,72 @@ class VisitasOrdenTests(_BaseVisita):
         self.assertEqual(pagina2.status_code, 200)
         ids = [v['id'] for v in pagina1.data['results'] + pagina2.data['results']]
         self.assertEqual(ids, self.esperado)
+
+
+class CatalogosTarifasTests(_BaseVisita):
+    def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import Permission
+
+        codenames = [
+            'view_serviciospagos', 'add_serviciospagos', 'change_serviciospagos', 'delete_serviciospagos',
+            'view_aperos', 'add_aperos', 'change_aperos', 'delete_aperos',
+            'view_pajillas', 'add_pajillas', 'change_pajillas', 'delete_pajillas',
+        ]
+        self.user_admin.user_permissions.add(
+            *Permission.objects.filter(codename__in=codenames)
+        )
+        self.client.force_authenticate(self.user_admin)
+
+    def test_crear_y_actualizar_apero(self):
+        respuesta = self.client.post(
+            '/api/visitas/aperos/',
+            {'Apero': 'Rastra', 'ValorHora': 70000},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 201, respuesta.content)
+        apero_id = respuesta.data['id']
+        respuesta = self.client.patch(
+            f'/api/visitas/aperos/{apero_id}/',
+            {'ValorHora': 75000},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        self.assertEqual(Aperos.objects.get(id=apero_id).ValorHora, 75000)
+
+    def test_valor_negativo_rechazado(self):
+        respuesta = self.client.post(
+            '/api/visitas/aperos/',
+            {'Apero': 'Negativo', 'ValorHora': -1},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 400)
+        respuesta = self.client.post(
+            '/api/visitas/pajillas/',
+            {'Pajilla': 'Negativa', 'ValorPajilla': -5},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 400)
+
+    def test_nombre_duplicado_rechazado(self):
+        Aperos.objects.create(Apero='Arado', ValorHora=80000)
+        respuesta = self.client.post(
+            '/api/visitas/aperos/',
+            {'Apero': 'arado', 'ValorHora': 90000},
+            format='json',
+        )
+        self.assertEqual(respuesta.status_code, 400)
+
+    def test_no_elimina_apero_usado_en_recibo(self):
+        servicio = ServiciosPagos.objects.create(ServicioPago='Maquinaria Agricola')
+        apero = Aperos.objects.create(Apero='Arado', ValorHora=80000)
+        VisitasServiciosPagos.objects.create(
+            Visita=self.visita,
+            ServicioPago=servicio,
+            Apero=apero,
+            NumeroHoras=2,
+            ValorTotal=160000,
+        )
+        respuesta = self.client.delete(f'/api/visitas/aperos/{apero.id}/')
+        self.assertEqual(respuesta.status_code, 409)
+        self.assertTrue(Aperos.objects.filter(id=apero.id).exists())

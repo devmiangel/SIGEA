@@ -1,4 +1,4 @@
-import { leer, crear, modificar } from './http'
+import { leer, crear, modificar, borrar } from './http'
 
 // Solicitudes, visitas, órdenes y recibos de pago (/api/visitas/).
 
@@ -33,3 +33,12 @@ export const getServiciosPagos = () => leer('/visitas/serviciosPagos/')
 export const getAperos = () => leer('/visitas/aperos/')
 export const getPajillas = () => leer('/visitas/pajillas/')
 export const enviarFormularioRecibo = (data) => crear('/visitas/formulario-recibo/', data)
+
+// --- Administración de tarifas (aperos y pajillas) ---
+export const crearApero = (data) => crear('/visitas/aperos/', data)
+export const actualizarApero = (id, data) => modificar(`/visitas/aperos/${id}/`, data)
+export const eliminarApero = (id) => borrar(`/visitas/aperos/${id}/`)
+
+export const crearPajilla = (data) => crear('/visitas/pajillas/', data)
+export const actualizarPajilla = (id, data) => modificar(`/visitas/pajillas/${id}/`, data)
+export const eliminarPajilla = (id) => borrar(`/visitas/pajillas/${id}/`)

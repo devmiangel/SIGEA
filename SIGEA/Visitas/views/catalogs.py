@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django.db.models import ProtectedError
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
 from SIGEAsite.filters import filtrar_texto
 from rest_framework.exceptions import ValidationError
@@ -220,16 +221,29 @@ class InfoVisitaViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.
     queryset = InfoVisita.objects.all()
     serializer_class = InfoVisitaSerializer
 
-class ServiciosPagosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-    queryset = ServiciosPagos.objects.all()
+class CatalogoTarifasMixin:
+    """Catálogos de tarifas: no permite borrar registros usados en recibos."""
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {'error': 'No se puede eliminar porque está asociado a recibos de visitas.'},
+                status=409,
+            )
+
+
+class ServiciosPagosViewSet(SigeaModelPermissionMixin, CatalogoTarifasMixin, viewsets.ModelViewSet):
+    queryset = ServiciosPagos.objects.all().order_by('ServicioPago')
     serializer_class = ServiciosPagosSerializer
 
-class AperosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-    queryset = Aperos.objects.all()
+class AperosViewSet(SigeaModelPermissionMixin, CatalogoTarifasMixin, viewsets.ModelViewSet):
+    queryset = Aperos.objects.all().order_by('Apero')
     serializer_class = AperosSerializer
 
-class PajillasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
-    queryset = Pajillas.objects.all()
+class PajillasViewSet(SigeaModelPermissionMixin, CatalogoTarifasMixin, viewsets.ModelViewSet):
+    queryset = Pajillas.objects.all().order_by('Pajilla')
     serializer_class = PajillasSerializer
 
 class VisitasServiciosPagosViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):

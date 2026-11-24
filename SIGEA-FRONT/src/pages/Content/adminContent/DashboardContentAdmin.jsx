@@ -5,6 +5,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import EventIcon from '@mui/icons-material/Event';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import PaymentsIcon from '@mui/icons-material/Payments';
 
 
 
@@ -62,6 +63,17 @@ export default function DashboardContentAdmin(){
                 title={'Solicitudes'}
                 message={'Asigna las solicitudes pendientes de los productores'}
                 path={'/administrador/solicitudes'}
+                colorLogo={'#55bd85'}
+            />
+
+            <MenuCard
+                className="w-full h-full m-0"
+                componentLogo={
+                    <PaymentsIcon sx={{fontSize: 40}}/>
+                }
+                title={'Servicios pagos'}
+                message={'Administra los aperos, pajillas y sus tarifas'}
+                path={'/administrador/servicios-pagos'}
                 colorLogo={'#55bd85'}
             />
 

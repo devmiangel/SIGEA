@@ -22,6 +22,7 @@ const UserFormContentAdmin = lazy(() => import("../pages/Content/adminContent/Us
 const UpValidationAdmin = lazy(() => import("../pages/Content/adminContent/UpValidationAdmin"));
 const VisitasContentAdmin = lazy(() => import("../pages/Content/adminContent/VisitasContentAdmin"));
 const SolicitudesContentAdmin = lazy(() => import("../pages/Content/adminContent/SolicitudesContentAdmin"));
+const ServiciosPagosContentAdmin = lazy(() => import("../pages/Content/adminContent/ServiciosPagosContentAdmin"));
 const EventosContentAdmin = lazy(() => import("../pages/Content/adminContent/EventosContentAdmin"));
 const EventoFormContentAdmin = lazy(() => import("../pages/Content/adminContent/EventoFormContentAdmin"));
 const ProductoresContentAdmin = lazy(() => import("../pages/Content/adminContent/ProductoresContentAdmin"));
@@ -77,6 +78,7 @@ export default function SigeaRoutes(){
                 <Route path="inventario" element={<Pagina><InventaryContentAdmin/></Pagina>}/>
                 <Route path="horarios" element={<Pagina><ScheduleContentAdmin/></Pagina>}/> 
                 <Route path="solicitudes" element={<Pagina><SolicitudesContentAdmin/></Pagina>}/> 
+                <Route path="servicios-pagos" element={<Pagina><ServiciosPagosContentAdmin/></Pagina>}/> 
                 <Route path="usuarios" element={<Pagina><UsersContentAdmin/></Pagina>}/> 
                 <Route path="usuarios/nuevo" element={<Pagina><UserFormContentAdmin/></Pagina>}/> 
                 <Route path="usuarios/editar/:usuarioId" element={<Pagina><UserFormContentAdmin/></Pagina>}/> 
