@@ -28,6 +28,26 @@ def normalizar_texto(texto):
     return unicodedata.normalize('NFD', texto or '').encode('ascii', 'ignore').decode('ascii').strip().lower()
 
 
+MOTIVO_VISITA = 1
+MOTIVO_CARACTERIZACION = 2
+
+
+def motivo_solicitud_para_up(up):
+    """Regla de solicitudes del productor sobre una UP existente.
+
+    Devuelve ``(motivo_id, error)``:
+    - UP Aceptada: se permite, motivo "Visita".
+    - UP Rechazada: se permite, motivo "Caracterización" (debe caracterizarse de nuevo).
+    - UP En revision o sin estado: no se permite (la validación sigue pendiente).
+    """
+    estado = normalizar_texto(getattr(up.idEstado, 'Estado', None))
+    if estado == 'aceptada':
+        return MOTIVO_VISITA, None
+    if estado == 'rechazada':
+        return MOTIVO_CARACTERIZACION, None
+    return None, 'La UP está en revisión; podrás crear solicitudes cuando sea aceptada o rechazada'
+
+
 def filtrar_rango_fechas(queryset, params):
     """Filtra por ?desde= y ?hasta= (YYYY-MM-DD, incluidos), usando la fecha local de la visita."""
     desde = parse_date(params.get('desde') or '')

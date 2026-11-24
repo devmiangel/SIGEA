@@ -61,7 +61,7 @@ export default function ProductorView(){
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo crear la solicitud. Intenta de nuevo.',
+                        text: res.error?.response?.data?.error || 'No se pudo crear la solicitud. Intenta de nuevo.',
                         confirmButtonColor: AGRO_COLORS.primary
                     })
                 }

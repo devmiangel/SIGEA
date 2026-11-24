@@ -78,7 +78,7 @@ python manage.py seed_permisos
 > En producción (`DJANGO_DEBUG=False`) se omiten por defecto: crea el administrador real con
 > `python manage.py createsuperuser`. `seed_visitas` es un seeder local (no está en el repositorio).
 
-> `seed_permisos` asigna los permisos reales por rol (Administradores = todo; Funcionarios/Productores/Usuarios según lo definido). Si lo corriés ANTES de `seed`, el `seed` volvería a escribir los permisos básicos.
+> `seed_permisos` asigna los permisos reales por rol (Administradores = todo; Funcionarios/Productores/Usuarios según lo definido). El `seed` también lo invoca al crear los grupos, así que volver a correr `seed` ya no borra los permisos. Si un rol empieza a recibir 403 en listados que antes veía, corré `seed_permisos`.
 
 ## 5. Frontend
 

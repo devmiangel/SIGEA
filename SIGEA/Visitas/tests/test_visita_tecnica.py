@@ -122,6 +122,7 @@ class _BaseVisita(APITestCase):
         self.productor = Productores.objects.create(usuario=self.user_prod)
 
         self.motivo = MotivosSolicitudes.objects.create(id=2, MotivoSolicitud="Caracterizacion")
+        MotivosSolicitudes.objects.create(id=1, MotivoSolicitud="Visita")
         self.estado = Estados.objects.create(id=1, Estado="En Proceso")
         self.tipo_visita = TiposVisitas.objects.create(TipoVisita="Tecnica")
         self.calificacion = Calificaciones.objects.create(Calificacion="Buena")
@@ -360,6 +361,68 @@ class CrearSolicitudUPTests(_BaseVisita):
 
     def test_up_propia_da_201(self):
         resp = self._crear(self._crear_up(self.productor))
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+
+class SolicitudProductorSegunEstadoUPTests(_BaseVisita):
+    """El productor solo solicita sobre UPs validadas: Aceptada -> Visita,
+    Rechazada -> Caracterización; En revisión o sin estado -> 400."""
+
+    def _up_con_estado(self, estado):
+        from UPs.models import EstadosUP
+        up = self._crear_up(self.productor)
+        if estado:
+            up.idEstado, _ = EstadosUP.objects.get_or_create(Estado=estado)
+            up.save(update_fields=['idEstado'])
+        return up
+
+    def _crear(self, up, motivo_id=None, url="/api/visitas/solicitudes/crear/"):
+        self.client.force_authenticate(user=self.user_prod)
+        payload = {"observacion": "Seguimiento", "direccion": "Km 5", "up_id": up.id if up else None}
+        if motivo_id:
+            payload["motivo_id"] = motivo_id
+        return self.client.post(url, payload, format="json")
+
+    def test_up_en_revision_da_400(self):
+        resp = self._crear(self._up_con_estado('En revision'))
+        self.assertEqual(resp.status_code, 400)
+
+    def test_up_sin_estado_da_400(self):
+        self.assertEqual(self._crear(self._up_con_estado(None)).status_code, 400)
+
+    def test_up_aceptada_es_visita(self):
+        # Aunque el cliente envíe otro motivo, el servidor decide.
+        resp = self._crear(self._up_con_estado('Aceptada'), motivo_id=2)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 1)
+
+    def test_up_rechazada_es_caracterizacion(self):
+        resp = self._crear(self._up_con_estado('Rechazada'), motivo_id=1)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 2)
+
+    def test_sin_up_es_caracterizacion(self):
+        resp = self._crear(None, motivo_id=1)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 2)
+
+    def test_router_tambien_bloquea_up_en_revision(self):
+        from django.contrib.auth.models import Permission
+
+        self.user_prod.user_permissions.add(Permission.objects.get(codename='add_solicitudes'))
+        self.client.force_authenticate(user=self.user_prod)
+        resp = self.client.post("/api/visitas/solicitudes/", {
+            "UP": self._up_con_estado('En revision').id, "MotivoSolicitud": 1,
+            "Observacion": "x", "Direccion": "y", "Estado": self.estado.id, "Usuario": self.user_prod.id,
+        }, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+    def test_staff_no_se_restringe(self):
+        self.client.force_authenticate(user=self.user_func)
+        resp = self.client.post("/api/visitas/solicitudes/crear/", {
+            "observacion": "x", "direccion": "y", "usuario_id": self.user_prod.id,
+            "up_id": self._up_con_estado('En revision').id,
+        }, format="json")
         self.assertEqual(resp.status_code, 201, resp.content)
 
 

@@ -92,7 +92,7 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 | Vistas | Tipo | Descripción |
 |---|---|---|
-| `crear_solicitud` | `@api_view(['POST'])` | Crea una solicitud de visita (con UP opcional, que debe pertenecer al productor de la solicitud; si no, 400), asegurando que el productor quede registrado como tal. Requiere autenticación. |
+| `crear_solicitud` | `@api_view(['POST'])` | Crea una solicitud de visita (con UP opcional, que debe pertenecer al productor de la solicitud; si no, 400), asegurando que el productor quede registrado como tal. Si la crea un productor/usuario (no staff), el motivo lo decide el servidor (`motivo_solicitud_para_up` en `views/consultas.py`): sin UP → Caracterización; UP Aceptada → Visita; UP Rechazada → Caracterización; UP En revisión o sin estado → 400. El `POST /api/visitas/solicitudes/` del router aplica la misma regla. Requiere autenticación. |
 | `atender_solicitud` | `@api_view(['POST'])` | Valida que la solicitud esté `En Proceso`, crea la `Visitas` (fecha, ubicación, funcionario, tipo) y cambia la solicitud al estado atendido. Requiere autenticación. |
 | `rechazar_solicitud` | `@api_view(['POST'])` | Cambia el estado de la solicitud a rechazado (solo si está `En Proceso`). Requiere autenticación. |
 | `mis_visitas` | `@api_view(['GET'])` | Devuelve las visitas asignadas al funcionario autenticado (con `select_related` optimizado y ordenadas por fecha). Requiere autenticación. |
@@ -146,7 +146,7 @@ La respuesta siempre es paginada (`{count, next, previous, results}`): con `?pag
 | Endpoint | Parámetros |
 |---|---|
 | `/api/visitas/visitas/` | `search`; `estado=realizadas` o `estado=no_realizadas`; `desde`/`hasta` (YYYY-MM-DD, incluidos); `up_id`, `productor_id`, `solicitud_id`; `validacion_up=pendientes` o `validacion_up=validadas`: caracterizaciones realizadas, solo la más reciente de cada UP, separadas por estado de la UP (Aceptada/Rechazada = validadas). Orden: más reciente primero. |
-| `/api/visitas/mis-visitas/` | `estado=pendientes` o `estado=realizadas` (pendientes: la más próxima primero; realizadas: la más reciente primero); `desde`/`hasta`. Solo las visitas del funcionario autenticado. |
+| `/api/visitas/mis-visitas/` | `estado=pendientes` o `estado=realizadas` (pendientes: la más próxima primero; realizadas: la más reciente primero); `desde`/`hasta`; `search` (nombre, documento o correo del productor, RUEA, predio, tipo de visita, ubicación u observación). Solo las visitas del funcionario autenticado. |
 
 Los filtros de visitas están en `views/consultas.py` (`filtrar_rango_fechas`, `filtrar_validacion_up`), y `VISITAS_RELACIONADAS` es la lista de `select_related` que usan todos los listados para no hacer consultas por cada visita.
 

@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from SIGEAsite.filters import filtrar_texto
 from SIGEAsite.pagination import respuesta_paginada
 from SIGEAsite.permissions import IsInGroup, ROLES_STAFF, usuario_en_grupo
 
@@ -10,7 +11,9 @@ from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
 from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
 from ..serializers import SolicitudesSerializer, VisitasSerializer
-from .consultas import VISITAS_RELACIONADAS, filtrar_rango_fechas
+from .consultas import (
+    MOTIVO_CARACTERIZACION, VISITAS_RELACIONADAS, filtrar_rango_fechas, motivo_solicitud_para_up,
+)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -44,6 +47,17 @@ def crear_solicitud(request):
         # La UP debe ser del productor a cuyo nombre se crea la solicitud.
         if up.Productor.usuario_id != usuario.id:
             return Response({'error': 'La UP no pertenece al productor de la solicitud'}, status=400)
+
+    # Para el productor/usuario el motivo lo decide el servidor: sin UP es
+    # Caracterización; con UP solo se permite si ya fue validada (Aceptada ->
+    # Visita, Rechazada -> Caracterización). El staff conserva el motivo enviado.
+    if not usuario_en_grupo(request.user, *ROLES_STAFF):
+        if up is None:
+            motivo_id = MOTIVO_CARACTERIZACION
+        else:
+            motivo_id, error = motivo_solicitud_para_up(up)
+            if error:
+                return Response({'error': error}, status=400)
 
     solicitud = Solicitudes.objects.create(
         UP=up,
@@ -284,6 +298,24 @@ def mis_visitas(request):
         .exclude(Solicitud__Estado_id=4)
     )
     visitas = filtrar_rango_fechas(visitas, params)
+    # Buscador del historial de visitas (productor, documento, UP, predio, tipo...).
+    visitas = filtrar_texto(
+        visitas,
+        params.get('search'),
+        [
+            'Solicitud__Usuario__persona__primer_nombre',
+            'Solicitud__Usuario__persona__segundo_nombre',
+            'Solicitud__Usuario__persona__primer_apellido',
+            'Solicitud__Usuario__persona__segundo_apellido',
+            'Solicitud__Usuario__persona__numero_documento',
+            'Solicitud__Usuario__email',
+            'Solicitud__UP__RUEA',
+            'Solicitud__UP__Predio__NombrePredio',
+            'TipoVisita__TipoVisita',
+            'Ubicacion',
+            'Solicitud__Observacion',
+        ],
+    )
 
     # Pendientes: la más próxima primero. Realizadas: la más reciente primero.
     estado = params.get('estado')

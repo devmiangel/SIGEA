@@ -58,6 +58,7 @@ class SeguridadBase(APITestCase):
         cls.up_c = cls._up(cls.productor_c, tipo_up, tenencia, "C")
 
         motivo = MotivosSolicitudes.objects.create(id=1, MotivoSolicitud="Visita")
+        MotivosSolicitudes.objects.create(id=2, MotivoSolicitud="Caracterización")
         cls.estado = Estados.objects.create(id=1, Estado="En Proceso")
         cls.solicitud_b = Solicitudes.objects.create(
             UP=cls.up_b, MotivoSolicitud=motivo, Observacion="Privada de B",

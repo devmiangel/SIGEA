@@ -76,7 +76,7 @@ export default function CaracterForm() {
             Swal.fire({
                 icon: 'success',
                 title: 'Visita realizada',
-                text: 'La visita fue marcada como realizada y aparecerá en "Visitas Realizadas".',
+                text: 'La visita fue marcada como realizada y aparecerá en el "Historial de visitas".',
                 confirmButtonColor: AGRO_COLORS.success,
                 timer: 2000,
                 timerProgressBar: true

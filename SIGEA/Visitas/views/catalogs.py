@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
 from SIGEAsite.filters import filtrar_texto
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from ..models import (
@@ -34,6 +35,8 @@ from ..serializers import (
 
 )
 from .consultas import (
+    MOTIVO_CARACTERIZACION,
+    motivo_solicitud_para_up,
     VISITAS_RELACIONADAS,
     filtrar_rango_fechas,
     filtrar_validacion_up,
@@ -94,8 +97,20 @@ class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
         # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.
         if es_staff(self.request.user):
             serializer.save()
+            return
+
+        # Misma regla que crear_solicitud: el motivo lo decide el estado de la UP
+        # y no se puede solicitar sobre una UP en revisión ni ajena.
+        up = serializer.validated_data.get('UP')
+        if up is None:
+            motivo_id = MOTIVO_CARACTERIZACION
         else:
-            serializer.save(Usuario=self.request.user)
+            if up.Productor.usuario_id != self.request.user.id:
+                raise ValidationError({'error': 'La UP no pertenece al productor de la solicitud'})
+            motivo_id, error = motivo_solicitud_para_up(up)
+            if error:
+                raise ValidationError({'error': error})
+        serializer.save(Usuario=self.request.user, MotivoSolicitud_id=motivo_id)
 
 class TiposVisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()

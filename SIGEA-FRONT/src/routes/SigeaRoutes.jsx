@@ -37,6 +37,7 @@ const InsumoFormContentAdmin = lazy(() => import("../pages/Content/adminContent/
 const HerramientaFormContentAdmin = lazy(() => import("../pages/Content/adminContent/HerramientaFormContentAdmin"));
 
 const AgendaContentEmployee = lazy(() => import("../pages/Content/employeeContent/AgendaContentEmployee"));
+const HistorialVisitasEmployee = lazy(() => import("../pages/Content/employeeContent/HistorialVisitasEmployee"));
 const HomeContentEmployee = lazy(() => import("../pages/Content/employeeContent/HomeContentEmployee"));
 const InventaryContentEmployee = lazy(() => import("../pages/Content/employeeContent/InventaryContentEmployee"));
 const GestionContentEmployee = lazy(() => import("../pages/Content/employeeContent/GestionContentEmployee"));
@@ -107,6 +108,7 @@ export default function SigeaRoutes(){
             }>
                 <Route index element={<Pagina><HomeContentEmployee/></Pagina>}/>
                 <Route path="agenda" element={<Pagina><AgendaContentEmployee/></Pagina>}/>
+                <Route path="agenda/historial" element={<Pagina><HistorialVisitasEmployee/></Pagina>}/>
                 <Route path="recursos" element={<Pagina><InventaryContentEmployee/></Pagina>}/>
                 <Route path="gestion" element={<Pagina><GestionContentEmployee/></Pagina>}/>
                 <Route path="visitas/caracterizacion" element={<Pagina><CaracterForm/></Pagina>}/>

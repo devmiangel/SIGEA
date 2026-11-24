@@ -158,6 +158,15 @@ class MisVisitasTests(_BaseListados):
         self.assertEqual(resp.data['results'][0]['id'], self.p2.id)
         self.assertIsNotNone(resp.data['next'])
 
+    def test_busqueda_historial(self):
+        # Busca por documento del productor y por tipo de visita, solo entre las propias.
+        self.assertEqual(
+            self._ids(estado='realizadas', search=self.user_prod.persona.numero_documento),
+            [self.r2.id, self.r1.id],
+        )
+        self.assertEqual(self._ids(estado='realizadas', search='Caracterización'), [self.r2.id, self.r1.id])
+        self.assertEqual(self._ids(estado='realizadas', search='no-existe-xyz'), [])
+
     def test_no_funcionario_da_403(self):
         self.client.force_authenticate(self.user_prod)
         self.assertEqual(self.client.get(URL_MIS_VISITAS).status_code, 403)
