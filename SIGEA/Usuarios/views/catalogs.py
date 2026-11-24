@@ -55,6 +55,13 @@ def _usuarios_con_rol(queryset):
     )
 
 
+def _sincronizar_estado_rol(usuario):
+    """Copia `Usuario.Estado` al registro de su rol (Administradores, Funcionarios o
+    Productores). El formulario de usuarios solo cambia el estado del usuario."""
+    for model in (Administradores, Funcionarios, Productores):
+        model.objects.filter(usuario=usuario).update(Estado=usuario.Estado)
+
+
 class TiposDocumentosViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposDocumentos.objects.all()
     serializer_class = TiposDocumentosSerializer
@@ -111,14 +118,22 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
                 | Q(funcionarios__isnull=False)
                 | Q(productores__isnull=False)
             ).filter(groups__name='Usuarios')
+        estado = params.get('estado')
+        if estado == 'activo':
+            queryset = queryset.filter(Estado=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(Estado=False)
         return queryset.distinct()
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsStaff])
     def buscar(self, request):
         q = (request.query_params.get('q') or '').strip()
 
-        usuarios = _usuarios_con_rol(Usuario.objects.all()).exclude(
+        # Se usa para elegir a nombre de quién crear una orden de visita: los
+        # usuarios o productores inactivos no pueden recibir solicitudes.
+        usuarios = _usuarios_con_rol(Usuario.objects.filter(Estado=True)).exclude(
             Q(administradores__isnull=False) | Q(funcionarios__isnull=False)
+            | Q(productores__Estado=False)
         )
 
         if q:
@@ -184,6 +199,10 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
                     grupo, _ = Group.objects.get_or_create(name='Usuarios')
                     instance.groups.add(grupo)
 
+        # El registro del rol sigue el estado del usuario: así la inactividad que
+        # se fija en el formulario de usuarios se ve, por ejemplo, en Productores.
+        _sincronizar_estado_rol(usuario)
+
         # 4. Gestionar el rol de conductor (complemento de Funcionarios)
         if rol == 'Funcionarios':
             from Inventario.models import Conductores
@@ -226,6 +245,7 @@ class UsuarioViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         instance.Estado = False
         instance.is_active = False
         instance.save(update_fields=['Estado', 'is_active'])
+        _sincronizar_estado_rol(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['get'])
@@ -329,11 +349,13 @@ class ProductoresViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
                 'usuario__persona__numero_documento',
             ],
         )
+        # Un productor está activo solo si su registro y su usuario lo están: el
+        # formulario de usuarios desactiva el usuario (Usuario.Estado).
         estado = params.get('estado')
         if estado == 'activo':
-            queryset = queryset.filter(Estado=True)
+            queryset = queryset.filter(Estado=True, usuario__Estado=True)
         elif estado == 'inactivo':
-            queryset = queryset.filter(Estado=False)
+            queryset = queryset.filter(Q(Estado=False) | Q(usuario__Estado=False))
         ups = params.get('ups')
         if ups == 'con':
             queryset = queryset.filter(up__isnull=False)

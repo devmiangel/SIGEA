@@ -101,8 +101,8 @@ Todos `ModelSerializer` (`fields = '__all__'`):
 
 `UsuarioViewSet` añade lógica de negocio:
 
-- `update` / `partial_update`: actualizan la persona, el email/estado y opcionalmente la contraseña; reasignan el rol si cambió (recreando `Administradores`/`Funcionarios`/`Productores` o el grupo `Usuarios`); sincronizan `is_active` con `Estado`; y gestionan el rol complementario de **conductor** (`es_conductor` + `licencia`).
-- `destroy`: hace **borrado lógico** (marca `Estado=False` e `is_active=False`).
+- `update` / `partial_update`: actualizan la persona, el email/estado y opcionalmente la contraseña; reasignan el rol si cambió (recreando `Administradores`/`Funcionarios`/`Productores` o el grupo `Usuarios`); sincronizan `is_active` y el `Estado` del registro del rol (`Administradores`/`Funcionarios`/`Productores`) con el `Estado` del usuario; y gestionan el rol complementario de **conductor** (`es_conductor` + `licencia`).
+- `destroy`: hace **borrado lógico** (marca `Estado=False` e `is_active=False`, y también `Estado=False` en el registro del rol).
 - `detalle` (`@action` GET en `/usuarios/<id>/detalle/`): devuelve el usuario con su rol y, según el rol, sus UPs (productor) o sus asignaciones de insumos, herramientas y vehículos (funcionario).
 
 ### Autenticación (`views/auth.py`)
@@ -125,7 +125,7 @@ Rutas registradas en `urls.py` bajo el prefijo `/api/usuarios/`, más rutas glob
 | Endpoint | Vista |
 |---|---|
 | `/api/usuarios/personas/` | `PersonasViewSet` |
-| `/api/usuarios/usuarios/` | `UsuarioViewSet` |
+| `/api/usuarios/usuarios/` | `UsuarioViewSet` (filtros: `search`, `rol`, `estado=activo\|inactivo`; `buscar/` omite staff y usuarios o productores inactivos) |
 | `/api/usuarios/empresas/` | `EmpresasViewSet` |
 | `/api/usuarios/funcionarios/` | `FuncionariosViewSet` |
 | `/api/usuarios/administradores/` | `AdministradoresViewSet` |

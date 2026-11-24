@@ -36,6 +36,8 @@ from ..serializers import (
 
 )
 from .consultas import (
+    ERROR_PRODUCTOR_INACTIVO,
+    productor_inactivo,
     MOTIVO_CARACTERIZACION,
     motivo_solicitud_para_up,
     VISITAS_RELACIONADAS,
@@ -97,8 +99,14 @@ class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
         # Un productor/usuario solo puede crear solicitudes a su propio nombre,
         # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.
         if es_staff(self.request.user):
+            destinatario = serializer.validated_data.get('Usuario')
+            if destinatario is not None and productor_inactivo(destinatario):
+                raise ValidationError({'error': ERROR_PRODUCTOR_INACTIVO})
             serializer.save()
             return
+
+        if productor_inactivo(self.request.user):
+            raise ValidationError({'error': ERROR_PRODUCTOR_INACTIVO})
 
         # Misma regla que crear_solicitud: el motivo lo decide el estado de la UP
         # y no se puede solicitar sobre una UP en revisión ni ajena.
@@ -170,12 +178,16 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         if estado == 'realizadas':
             queryset = queryset.filter(estado=True)
         elif estado == 'no_realizadas':
-            queryset = queryset.filter(estado=False)
+            # Solo pendientes (solicitud En Proceso/Aprobado) y reagendadas (4);
+            # las de solicitudes Rechazadas (3) no se muestran como "no realizadas".
+            queryset = queryset.filter(estado=False).exclude(Solicitud__Estado_id=3)
 
-        # Orden explícito (más reciente primero, como las solicitudes): sin él la
-        # paginación caía en `pk` ascendente y el listado completo no tenía orden
-        # garantizado. `-id` desempata visitas con la misma fecha y hora.
-        return queryset.select_related(*VISITAS_RELACIONADAS).distinct().order_by('-FechaYHoraVisita', '-id')
+        # Orden explícito: primero las realizadas y luego el resto, cada grupo de la
+        # más reciente a la más antigua. Sin él la paginación caía en `pk`
+        # ascendente. `-id` desempata visitas con la misma fecha y hora.
+        return queryset.select_related(*VISITAS_RELACIONADAS).distinct().order_by(
+            '-estado', '-FechaYHoraVisita', '-id'
+        )
 
     def update(self, request, *args, **kwargs):
         from UPs.models import EstadosUP

@@ -163,7 +163,8 @@ function construirHtml(detail) {
         `
         : ''
 
-    const botonNuevaSolicitud = rol === 'Productores'
+    // A un productor inactivo no se le pueden crear solicitudes (el servidor también lo impide).
+    const botonNuevaSolicitud = rol === 'Productores' && usuario.Estado !== false
         ? `
             <button id="swal-nueva-solicitud" type="button"
                 style="display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:9px;background:#005C39;color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(0,92,57,.25);transition:filter .15s ease;flex-shrink:0;"

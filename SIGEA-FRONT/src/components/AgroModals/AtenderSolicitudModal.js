@@ -1,8 +1,14 @@
 import Swal from 'sweetalert2'
 import { getFuncionarios } from '../../services/usuariosService'
 import { getTiposVisitas } from '../../services/visitasService'
-import { AGRO_COLORS, ESTADO_LABEL, MOTIVO_LABEL, AUTOCOMPLETE_MAX_RESULTS } from '../../utils/agroConstants'
+import { AGRO_COLORS, ESTADO_LABEL, MOTIVO_LABEL } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
+import {
+    activarCampoFuncionario,
+    htmlCampoFuncionario,
+    leerFuncionarioId,
+    opcionesFuncionarios as aOpciones,
+} from './campoFuncionario'
 
 const inputStyle = 'width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; font-family:inherit; background:#fff; color:#374151;'
 const labelStyle = 'display:block; margin-bottom:6px; font-weight:600; font-size:13px;'
@@ -13,11 +19,8 @@ export async function abrirModalAtenderSolicitud(solicitud, numero, datosPrevios
         getTiposVisitas()
     ])
 
-    const opcionesFuncionarios = funcionarios.map(f => ({
-        id: f.id,
-        nombre: [f.persona_info?.primer_nombre, f.persona_info?.primer_apellido].filter(Boolean).join(' ').trim() || f.email,
-        email: f.email
-    }))
+    const opcionesFuncionarios = aOpciones(funcionarios)
+    let limpiarCampo = null
 
     const estado = ESTADO_LABEL[solicitud.Estado] ?? 'Desconocido'
     const motivo = MOTIVO_LABEL[solicitud.MotivoSolicitud] ?? '—'
@@ -49,12 +52,7 @@ export async function abrirModalAtenderSolicitud(solicitud, numero, datosPrevios
                 <label style="${labelStyle} margin:16px 0 6px;">Ubicación de la visita</label>
                 <input type="text" id="swal-ubicacion" placeholder="Ej: Finca El Recreo, Vereda Central" style="${inputStyle}">
 
-                <div style="position:relative;">
-                    <label style="${labelStyle} margin:16px 0 6px;">Funcionario asignado</label>
-                    <input type="text" id="swal-funcionario-input" placeholder="Busca el nombre del funcionario..." autocomplete="off" style="${inputStyle}">
-                    <input type="hidden" id="swal-funcionario-id" value="">
-                    <div id="swal-funcionario-lista" style="display:none; position:fixed; z-index:2000; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:200px; overflow-y:auto; text-align:left;"></div>
-                </div>
+                ${htmlCampoFuncionario({ label: 'Funcionario asignado', margenSuperior: true })}
 
                 <label style="${labelStyle} margin:16px 0 6px;">Tipo de visita</label>
                 <select id="swal-tipo-visita" style="${inputStyle}">
@@ -74,10 +72,6 @@ export async function abrirModalAtenderSolicitud(solicitud, numero, datosPrevios
         confirmButtonColor: AGRO_COLORS.success,
         cancelButtonColor: AGRO_COLORS.danger,
         didOpen: () => {
-            const input = document.getElementById('swal-funcionario-input')
-            const lista = document.getElementById('swal-funcionario-lista')
-            const hidden = document.getElementById('swal-funcionario-id')
-
             if (datosPrevios) {
                 const fecha = document.getElementById('swal-fecha')
                 const ubicacion = document.getElementById('swal-ubicacion')
@@ -86,65 +80,22 @@ export async function abrirModalAtenderSolicitud(solicitud, numero, datosPrevios
 
                 if (datosPrevios.fecha_visita) fecha.value = datosPrevios.fecha_visita
                 if (datosPrevios.ubicacion) ubicacion.value = datosPrevios.ubicacion
-                if (datosPrevios.funcionario_id) {
-                    hidden.value = datosPrevios.funcionario_id
-                    input.value = datosPrevios.funcionario_nombre ?? ''
-                }
                 if (datosPrevios.tipo_visita_id) tipoVisita.value = String(datosPrevios.tipo_visita_id)
                 if (datosPrevios.novedad) novedad.value = datosPrevios.novedad
             }
 
-            const mostrar = () => {
-                const rect = input.getBoundingClientRect()
-                lista.style.top = `${rect.bottom + 4}px`
-                lista.style.left = `${rect.left}px`
-                lista.style.width = `${rect.width}px`
-                lista.style.display = 'block'
-            }
-
-            const pintar = (texto) => {
-                const q = texto.trim().toLowerCase()
-                const items = q
-                    ? opcionesFuncionarios.filter(f => f.nombre.toLowerCase().includes(q) || f.email.toLowerCase().includes(q))
-                    : opcionesFuncionarios
-
-                if (!items.length) {
-                    lista.innerHTML = '<div style="padding:10px 12px; color:#94a3b8; font-size:13px;">Sin resultados</div>'
-                    mostrar()
-                    return
-                }
-
-                lista.innerHTML = items.slice(0, AUTOCOMPLETE_MAX_RESULTS).map(f => `
-                    <div data-id="${f.id}" style="padding:9px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9;">
-                        <div style="font-size:13px; font-weight:500; color:#1e293b;">${escapeHtml(f.nombre)}</div>
-                        <div style="font-size:12px; color:#94a3b8;">${escapeHtml(f.email)}</div>
-                    </div>
-                `).join('')
-
-                mostrar()
-                lista.querySelectorAll('div[data-id]').forEach(el => {
-                    el.addEventListener('mouseenter', () => { el.style.background = '#f0fdf4' })
-                    el.addEventListener('mouseleave', () => { el.style.background = '#ffffff' })
-                    el.addEventListener('click', () => {
-                        hidden.value = el.dataset.id
-                        input.value = el.querySelector('div').textContent.trim()
-                        lista.style.display = 'none'
-                    })
-                })
-            }
-
-            input.addEventListener('focus', () => pintar(input.value))
-            input.addEventListener('input', () => { pintar(input.value); hidden.value = '' })
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('#swal-funcionario-input') && !e.target.closest('#swal-funcionario-lista')) {
-                    lista.style.display = 'none'
-                }
-            })
+            limpiarCampo = activarCampoFuncionario(
+                opcionesFuncionarios,
+                datosPrevios?.funcionario_id
+                    ? { id: datosPrevios.funcionario_id, nombre: datosPrevios.funcionario_nombre }
+                    : null,
+            )
         },
+        didClose: () => limpiarCampo?.(),
         preConfirm: () => {
             const fecha = document.getElementById('swal-fecha').value
             const ubicacion = document.getElementById('swal-ubicacion').value.trim()
-            const funcionarioId = document.getElementById('swal-funcionario-id').value
+            const funcionarioId = leerFuncionarioId()
             const tipoVisitaId = document.getElementById('swal-tipo-visita').value
             const novedad = document.getElementById('swal-novedad').value.trim()
 

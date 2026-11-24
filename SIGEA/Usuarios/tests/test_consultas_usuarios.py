@@ -114,3 +114,89 @@ class ConsultasListadoUsuariosTests(APITestCase):
         self.assertEqual(resp.status_code, 200, resp.data)
         self.assertTrue(resp.data["es_conductor"])
         self.assertEqual(resp.data["licencia"], "B1-77")
+
+
+class EstadoProductorTests(APITestCase):
+    """La inactividad fijada en el formulario de usuarios se ve en Productores."""
+
+    PRODUCTORES = "/api/usuarios/productores/"
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_permisos", verbosity=0)
+        cls.tipo_doc = TiposDocumentos.objects.create(TipoDocumento="CC")
+        cls.contador = 0
+        cls.admin = cls._crear("Administradores")
+
+    # Mismo creador de usuarios que el listado de arriba.
+    _crear = ConsultasListadoUsuariosTests.__dict__["_crear"]
+
+    def _ids(self, estado):
+        return {p["id"] for p in filas(self.client.get(self.PRODUCTORES, {"estado": estado}))}
+
+    def test_desactivar_usuario_inactiva_al_productor(self):
+        user = self._crear("Productores")
+        self.client.force_authenticate(self.admin)
+        resp = self.client.patch(f"{URL}{user.id}/", {"Estado": False}, format="json")
+        self.assertEqual(resp.status_code, 200, resp.data)
+
+        productor = Productores.objects.get(usuario=user)
+        self.assertFalse(productor.Estado)
+        datos = {p["id"]: p for p in filas(self.client.get(self.PRODUCTORES))}
+        self.assertFalse(datos[productor.id]["Estado"])
+        self.assertIn(productor.id, self._ids("inactivo"))
+        self.assertNotIn(productor.id, self._ids("activo"))
+
+        # Reactivarlo lo devuelve a los activos.
+        self.client.patch(f"{URL}{user.id}/", {"Estado": True}, format="json")
+        self.assertIn(productor.id, self._ids("activo"))
+
+    def test_usuario_inactivo_sin_sincronizar_cuenta_como_inactivo(self):
+        # Datos previos al cambio: el productor quedó activo y su usuario no.
+        user = self._crear("Productores")
+        Usuario.objects.filter(pk=user.pk).update(Estado=False, is_active=False)
+        productor = Productores.objects.get(usuario=user)
+        self.client.force_authenticate(self.admin)
+        datos = {p["id"]: p for p in filas(self.client.get(self.PRODUCTORES))}
+        self.assertFalse(datos[productor.id]["Estado"])
+        self.assertIn(productor.id, self._ids("inactivo"))
+        self.assertNotIn(productor.id, self._ids("activo"))
+
+    def test_borrado_logico_inactiva_al_productor(self):
+        user = self._crear("Productores")
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.delete(f"{URL}{user.id}/").status_code, 204)
+        self.assertFalse(Productores.objects.get(usuario=user).Estado)
+
+
+class FiltroEstadoUsuariosTests(APITestCase):
+    """`?estado=activo|inactivo` en el listado y `buscar` sin usuarios inactivos."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_permisos", verbosity=0)
+        cls.tipo_doc = TiposDocumentos.objects.create(TipoDocumento="CC")
+        cls.contador = 0
+        cls.admin = cls._crear("Administradores")
+        cls.activo = cls._crear("Productores")
+        cls.inactivo = cls._crear("Productores")
+        Usuario.objects.filter(pk=cls.inactivo.pk).update(Estado=False)
+        Productores.objects.filter(usuario=cls.inactivo).update(Estado=False)
+
+    _crear = ConsultasListadoUsuariosTests.__dict__["_crear"]
+
+    def _ids(self, url, params):
+        self.client.force_authenticate(self.admin)
+        return {u["id"] for u in filas(self.client.get(url, params))}
+
+    def test_filtro_estado(self):
+        activos = self._ids(URL, {"estado": "activo"})
+        inactivos = self._ids(URL, {"estado": "inactivo"})
+        self.assertIn(self.activo.id, activos)
+        self.assertNotIn(self.inactivo.id, activos)
+        self.assertEqual(inactivos, {self.inactivo.id})
+
+    def test_buscar_excluye_inactivos(self):
+        ids = self._ids(f"{URL}buscar/", {"q": ""})
+        self.assertIn(self.activo.id, ids)
+        self.assertNotIn(self.inactivo.id, ids)

@@ -16,6 +16,7 @@ export default function UsersContentAdmin(){
     const [busqueda, setBusqueda] = useState("")
     const [busquedaDebounced, setBusquedaDebounced] = useState("")
     const [rolFiltro, setRolFiltro] = useState("")
+    const [estadoFiltro, setEstadoFiltro] = useState("")
 
     useEffect(() => {
         const t = setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300)
@@ -34,13 +35,15 @@ export default function UsersContentAdmin(){
     } = useUsuarios({
         search: busquedaDebounced,
         rol: rolFiltro,
+        estado: estadoFiltro,
     })
 
-    const hayFiltros = Boolean(busqueda.trim()) || Boolean(rolFiltro)
+    const hayFiltros = Boolean(busqueda.trim()) || Boolean(rolFiltro) || Boolean(estadoFiltro)
 
     const limpiarFiltros = () => {
         setBusqueda('')
         setRolFiltro('')
+        setEstadoFiltro('')
         setPage(1)
     }
 
@@ -122,6 +125,16 @@ export default function UsersContentAdmin(){
                                 { value: 'Funcionarios', label: 'Funcionarios' },
                                 { value: 'Productores', label: 'Productores' },
                                 { value: 'Usuarios', label: 'Usuarios' },
+                            ],
+                        },
+                        {
+                            key: 'estado',
+                            label: 'Estado',
+                            value: estadoFiltro,
+                            onChange: (valor) => { setEstadoFiltro(valor); setPage(1) },
+                            options: [
+                                { value: 'activo', label: 'Activos' },
+                                { value: 'inactivo', label: 'Inactivos' },
                             ],
                         },
                     ]}

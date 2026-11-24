@@ -12,7 +12,8 @@ from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
 from ..serializers import SolicitudesSerializer, VisitasSerializer
 from .consultas import (
-    MOTIVO_CARACTERIZACION, VISITAS_RELACIONADAS, filtrar_rango_fechas, motivo_solicitud_para_up,
+    ERROR_PRODUCTOR_INACTIVO, MOTIVO_CARACTERIZACION, VISITAS_RELACIONADAS, filtrar_rango_fechas,
+    motivo_solicitud_para_up, productor_inactivo,
 )
 
 @api_view(['POST'])
@@ -40,6 +41,9 @@ def crear_solicitud(request):
         if str(usuario_id) != str(request.user.id) and not usuario_en_grupo(request.user, *ROLES_STAFF):
             return Response({'error': 'No puede crear solicitudes a nombre de otro usuario'}, status=403)
         usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    if productor_inactivo(usuario):
+        return Response({'error': ERROR_PRODUCTOR_INACTIVO}, status=400)
 
     up = None
     if up_id:
@@ -110,6 +114,8 @@ def crear_orden_visita(request):
         return Response({'error': 'Complete todos los campos', 'campos': errores}, status=400)
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
+    if productor_inactivo(usuario):
+        return Response({'error': ERROR_PRODUCTOR_INACTIVO}, status=400)
     tipo_visita = get_object_or_404(TiposVisitas, id=tipo_visita_id)
 
     up = None
