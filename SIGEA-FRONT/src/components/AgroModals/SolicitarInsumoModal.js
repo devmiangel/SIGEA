@@ -9,6 +9,9 @@ const escaparHTML = (valor) =>
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
 
+const normalizar = (texto) =>
+    String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+
 export async function abrirModalSolicitarInsumo(insumos) {
     const disponibles = (insumos || []).filter((i) => i.Estado !== false)
     const sinDisponibles = disponibles.length === 0
@@ -19,11 +22,13 @@ export async function abrirModalSolicitarInsumo(insumos) {
         html: `
             <div style="text-align: left;">
                 <label style="display:block; margin-bottom:6px; font-weight:600;">Insumo</label>
-                <select id="swal-insumo" ${sinDisponibles ? 'disabled' : ''}
-                    style="width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; background:#fff; color:${sinDisponibles ? '#9ca3af' : '#374151'};">
-                    <option value="">${sinDisponibles ? 'No hay insumos disponibles' : 'Selecciona un insumo'}</option>
-                    ${disponibles.map((i) => `<option value="${i.id}">${escaparHTML(i.Nombre)}</option>`).join('')}
-                </select>
+                <input id="swal-insumo" list="swal-insumo-lista" type="text" autocomplete="off"
+                    ${sinDisponibles ? 'disabled' : ''}
+                    placeholder="${sinDisponibles ? 'No hay insumos disponibles' : 'Escribe para buscar un insumo...'}"
+                    style="width:100%; padding:10px 12px; border:1.5px solid #015d3b; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; background:#fff; color:#374151;" />
+                <datalist id="swal-insumo-lista">
+                    ${disponibles.map((i) => `<option value="${escaparHTML(i.Nombre)}"></option>`).join('')}
+                </datalist>
                 <label style="display:block; margin:16px 0 6px; font-weight:600;">Cantidad</label>
                 <input id="swal-cantidad" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9"
                     placeholder="Ingresa la cantidad que deseas..."
@@ -37,12 +42,14 @@ export async function abrirModalSolicitarInsumo(insumos) {
         cancelButtonText: 'Cancelar',
         confirmButtonColor: AGRO_COLORS.primary,
         preConfirm: () => {
-            const insumoId = document.getElementById('swal-insumo').value
+            const textoInsumo = normalizar(document.getElementById('swal-insumo').value)
             const cantidadRaw = (document.getElementById('swal-cantidad').value || '').trim()
-            const insumo = disponibles.find((i) => String(i.id) === String(insumoId))
+            const insumo = textoInsumo
+                ? disponibles.find((i) => normalizar(i.Nombre) === textoInsumo)
+                : null
 
             if (!insumo) {
-                Swal.showValidationMessage('Debes seleccionar un insumo')
+                Swal.showValidationMessage('Escribe y selecciona un insumo de la lista')
                 return false
             }
             if (!cantidadRaw) {

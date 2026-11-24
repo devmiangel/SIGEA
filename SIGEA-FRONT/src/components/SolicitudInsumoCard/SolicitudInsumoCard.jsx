@@ -1,4 +1,3 @@
-import { formatFecha } from '../../utils/dateHelpers'
 import { ESTADO_SOLICITUD_INSUMO, ESTADO_SOLICITUD_INSUMO_INFO } from '../../utils/agroConstants'
 
 function getIniciales(solicitud) {
@@ -51,10 +50,6 @@ export default function SolicitudInsumoCard({ solicitud, numero, onCardClick, on
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#015d3b]/10 text-[#015d3b]">
           {cantidad} {unidades}
-        </span>
-
-        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-          {formatFecha(solicitud?.FechaSolicitud)}
         </span>
 
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">

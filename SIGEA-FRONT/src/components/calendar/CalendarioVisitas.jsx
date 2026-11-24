@@ -31,6 +31,21 @@ const colorDeVisita = (visita) => (
     ?? '#229e14'
 )
 
+// Bogotá es UTC-5 todo el año (sin horario de verano).
+const DESFASE_BOGOTA_MS = 5 * 60 * 60 * 1000
+const DURACION_EVENTO_MS = 60 * 60 * 1000
+
+// Fin del evento: una hora después del inicio, pero sin pasar de las 23:59 del
+// mismo día; así una visita a las 23:10 no se dibuja también en el día siguiente.
+const finDelEvento = (inicioISO) => {
+    const inicio = new Date(inicioISO).getTime()
+    if (Number.isNaN(inicio)) return undefined
+    const localMs = inicio - DESFASE_BOGOTA_MS
+    const medianocheSiguiente = (Math.floor(localMs / 86400000) + 1) * 86400000 + DESFASE_BOGOTA_MS
+    const fin = Math.min(inicio + DURACION_EVENTO_MS, medianocheSiguiente - 60 * 1000)
+    return fin > inicio ? new Date(fin).toISOString() : undefined
+}
+
 const buildEvents = (visitas) => (visitas || []).map(v => {
     const funcionario = v.funcionario_info?.nombre ?? 'Funcionario'
     const tipo = v.tipo_visita_label ?? 'Visita'
@@ -40,6 +55,7 @@ const buildEvents = (visitas) => (visitas || []).map(v => {
         id: String(v.id),
         title: `${funcionario}-${tipo}-${numero}`,
         start: v.FechaYHoraVisita,
+        end: finDelEvento(v.FechaYHoraVisita),
         allDay: false,
         backgroundColor: color,
         borderColor: color,

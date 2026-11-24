@@ -10,7 +10,7 @@ import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModa
 
 export default function VisitasContentAdmin() {
     const [busqueda, setBusqueda] = useState('')
-    const [estadoFiltro, setEstadoFiltro] = useState('realizadas')
+    const [estadoFiltro, setEstadoFiltro] = useState('todas')
 
     const {
         items: visitas,

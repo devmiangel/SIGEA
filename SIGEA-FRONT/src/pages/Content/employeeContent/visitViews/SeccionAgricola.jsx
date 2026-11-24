@@ -24,7 +24,7 @@ const SeccionAgricola = forwardRef(({ userId, solicitudId }, ref) => {
                 Unidad: p.UnidadMedida || '',
             }))
             setItems(inicial)
-            setProductos(prods.map((p) => ({ id: p.id, texto: p.Producto })))
+            setProductos(prods.map((p) => ({ id: p.id, texto: p.Producto, unidadId: p.Unidad })))
             setUnidades(unds.map((u) => ({ id: u.id, texto: u.Unidad })))
         })
         return () => { activo = false }
@@ -32,6 +32,15 @@ const SeccionAgricola = forwardRef(({ userId, solicitudId }, ref) => {
 
     const updateItem = (idx, campo, value) => {
         setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, [campo]: value } : it)))
+    }
+
+    // Al elegir un producto que ya existe se rellena su unidad por defecto.
+    const handleCambioItem = (idx, campo, value) => {
+        updateItem(idx, campo, value)
+        if (campo !== 'NombreProducto') return
+        const producto = productos.find((p) => p.texto === value)
+        const unidad = producto?.unidadId ? unidades.find((u) => u.id === producto.unidadId) : null
+        if (unidad) updateItem(idx, 'Unidad', unidad.texto)
     }
 
     const handleCrearUnidad = async (idx, valor) => {
@@ -51,7 +60,7 @@ const SeccionAgricola = forwardRef(({ userId, solicitudId }, ref) => {
             return
         }
         const r = await crearProducto(valor, unidadId)
-        setProductos((prev) => [...prev, { id: r.id, texto: r.Producto }])
+        setProductos((prev) => [...prev, { id: r.id, texto: r.Producto, unidadId }])
     }
 
     const agregar = () => setItems((arr) => [...arr, { NombreProducto: '', Cantidad: '', Unidad: '' }])
@@ -74,7 +83,7 @@ const SeccionAgricola = forwardRef(({ userId, solicitudId }, ref) => {
                 {items.map((it, idx) => (
                     <div key={idx} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
                         <CampoSelectDinamico label="Producto" name="NombreProducto" value={it.NombreProducto}
-                            options={productos.map((p) => p.texto)} onCrear={(valor) => handleCrearProducto(idx, valor)} onChange={(n, v) => updateItem(idx, n, v)} />
+                            options={productos.map((p) => p.texto)} onCrear={(valor) => handleCrearProducto(idx, valor)} onChange={(n, v) => handleCambioItem(idx, n, v)} />
                         <CampoSelectDinamico label="Unidad" name="Unidad" value={it.Unidad}
                             options={unidades.map((u) => u.texto)} onCrear={(valor) => handleCrearUnidad(idx, valor)} onChange={(n, v) => updateItem(idx, n, v)} />
                         <div className="flex flex-col gap-1">

@@ -13,7 +13,7 @@ const POLITICA = {
     actualizacion: 'Noviembre de 2026',
     entradaVigencia: '',
     entidad: 'Municipio de Tocancipá – Alcaldía Municipal',
-    dependencia: 'Unidad de Desarrollo Agropecuario',
+    dependencia: 'Unidad de Desarrollo Economico',
     direccion: '',
     correo: '',
     telefono: '',
@@ -36,7 +36,7 @@ const SECTIONS = [
     {
         title: '1. Responsable del tratamiento',
         blocks: [
-            ['p', `El Municipio de Tocancipá, a través de la ${POLITICA.dependencia} de la Alcaldía Municipal, es el responsable del tratamiento de los datos personales recolectados y administrados mediante el Sistema de Información para la Gestión Empresarial Agropecuaria (SIGEA).`],
+            ['p', `El Municipio de Tocancipá, a través de la ${POLITICA.dependencia} de la Alcaldía Municipal de Tocancipá, es el responsable del tratamiento de los datos personales recolectados y administrados mediante el Sistema de Información para la Gestión Agropecuaria (SIGEA).`],
             ['p', 'SIGEA es una herramienta tecnológica destinada a apoyar la gestión de los servicios agropecuarios del municipio, facilitando la administración de usuarios, productores, unidades productivas, predios, visitas técnicas, inventarios, solicitudes de insumos y demás actividades relacionadas con la gestión agropecuaria municipal.'],
             ['p', 'Para ejercer sus derechos como titular de datos personales, presentar consultas, reclamos o solicitudes relacionadas con el tratamiento de su información, podrá comunicarse a través de los respectivos canales institucionales.'],
             
