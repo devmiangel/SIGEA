@@ -24,7 +24,7 @@ export default function HomeContentEmployee(){
                     <EventIcon sx={{fontSize: 40}}/>
                 } 
                 title={'Agenda'} 
-                message={'este es el mensaje xd'} 
+                message={'Visualizacion de las visitas asignadas'} 
                 path={'/funcionario/agenda'} 
                 colorLogo={'#55bd85'}
             />
