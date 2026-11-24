@@ -31,5 +31,12 @@ class ProductoresSerializer(serializers.ModelSerializer):
     def get_email(self, obj):
         return obj.usuario.email
 
+    def to_representation(self, instance):
+        # El estado mostrado combina el del productor y el de su usuario: la
+        # inactividad fijada desde el formulario de usuarios también cuenta.
+        data = super().to_representation(instance)
+        data['Estado'] = bool(instance.Estado and instance.usuario.Estado)
+        return data
+
     def get_ups_count(self, obj):
         return obj.up_set.count()

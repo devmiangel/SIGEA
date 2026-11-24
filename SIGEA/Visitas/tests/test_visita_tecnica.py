@@ -542,6 +542,55 @@ class VisitasOrdenTests(_BaseVisita):
         ids = [v['id'] for v in pagina1.data['results'] + pagina2.data['results']]
         self.assertEqual(ids, self.esperado)
 
+    def test_realizadas_primero_de_la_mas_reciente(self):
+        # Realizadas con fechas anteriores a todas las pendientes: igual salen primero.
+        crear = lambda fecha: Visitas.objects.create(
+            Solicitud=self.solicitud, Funcionario=self.funcionario,
+            TipoVisita=self.tipo_visita, FechaYHoraVisita=fecha, estado=True,
+        )
+        realizada_antigua = crear('2026-08-01T08:00:00Z')
+        realizada_reciente = crear('2026-08-10T08:00:00Z')
+        respuesta = self.client.get('/api/visitas/visitas/')
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            [v['id'] for v in filas(respuesta)],
+            [realizada_reciente.id, realizada_antigua.id, *self.esperado],
+        )
+
+
+class VisitasNoRealizadasTests(_BaseVisita):
+    """`estado=no_realizadas` deja solo pendientes y reagendadas (no las rechazadas)."""
+
+    def test_excluye_rechazadas_y_realizadas(self):
+        from django.contrib.auth.models import Permission
+
+        rechazado = Estados.objects.create(id=3, Estado='Rechazado')
+        reagendado = Estados.objects.create(id=4, Estado='Reagendado')
+
+        def visita_con_solicitud(estado_solicitud, realizada=False):
+            solicitud = Solicitudes.objects.create(
+                MotivoSolicitud=self.motivo, Observacion='x', Direccion='Km 1',
+                Estado=estado_solicitud, Usuario=self.user_prod,
+            )
+            return Visitas.objects.create(
+                Solicitud=solicitud, Funcionario=self.funcionario,
+                TipoVisita=self.tipo_visita, FechaYHoraVisita='2026-09-22T08:00:00Z',
+                estado=realizada,
+            )
+
+        reagendada = visita_con_solicitud(reagendado)
+        visita_con_solicitud(rechazado)
+        visita_con_solicitud(self.estado, realizada=True)
+
+        self.user_admin.user_permissions.add(Permission.objects.get(codename='view_visitas'))
+        self.client.force_authenticate(self.user_admin)
+        respuesta = self.client.get('/api/visitas/visitas/?estado=no_realizadas')
+        self.assertEqual(respuesta.status_code, 200)
+        # self.visita (de _BaseVisita) es pendiente, con solicitud En Proceso.
+        self.assertEqual(
+            {v['id'] for v in filas(respuesta)}, {self.visita.id, reagendada.id}
+        )
+
 
 class CatalogosTarifasTests(_BaseVisita):
     def setUp(self):
@@ -610,3 +659,36 @@ class CatalogosTarifasTests(_BaseVisita):
         respuesta = self.client.delete(f'/api/visitas/aperos/{apero.id}/')
         self.assertEqual(respuesta.status_code, 409)
         self.assertTrue(Aperos.objects.filter(id=apero.id).exists())
+
+
+class SolicitudesProductorInactivoTests(_BaseVisita):
+    """No se crean solicitudes ni órdenes de visita a nombre de un productor inactivo."""
+
+    def _crear_solicitud(self, como):
+        self.client.force_authenticate(user=como)
+        return self.client.post("/api/visitas/solicitudes/crear/", {
+            "observacion": "x", "direccion": "Km 1", "usuario_id": self.user_prod.id,
+        }, format="json")
+
+    def _crear_orden(self):
+        self.client.force_authenticate(user=self.user_func)
+        return self.client.post("/api/visitas/ordenes/crear/", {
+            "usuario_id": self.user_prod.id, "tipo_visita_id": self.tipo_visita.id,
+            "fecha_visita": "2026-10-01T09:00:00Z", "direccion": "Km 1", "observacion": "x",
+        }, format="json")
+
+    def test_productor_activo_si_puede(self):
+        self.assertEqual(self._crear_solicitud(self.user_func).status_code, 201)
+
+    def test_usuario_inactivo_bloquea_solicitud_y_orden(self):
+        Usuario.objects.filter(pk=self.user_prod.pk).update(Estado=False)
+        antes = Solicitudes.objects.count()
+        resp = self._crear_solicitud(self.user_func)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("inactivo", resp.data["error"])
+        self.assertEqual(self._crear_orden().status_code, 400)
+        self.assertEqual(Solicitudes.objects.count(), antes)
+
+    def test_registro_de_productor_inactivo_bloquea_al_propio_productor(self):
+        Productores.objects.filter(pk=self.productor.pk).update(Estado=False)
+        self.assertEqual(self._crear_solicitud(self.user_prod).status_code, 400)

@@ -48,6 +48,19 @@ def motivo_solicitud_para_up(up):
     return None, 'La UP está en revisión; podrás crear solicitudes cuando sea aceptada o rechazada'
 
 
+ERROR_PRODUCTOR_INACTIVO = 'El productor está inactivo; no se pueden crear solicitudes a su nombre'
+
+
+def productor_inactivo(usuario):
+    """True si no se deben crear solicitudes a nombre de este usuario: el usuario
+    está inactivo o su registro de productor lo está."""
+    from Usuarios.models import Productores
+
+    if not usuario.Estado:
+        return True
+    return Productores.objects.filter(usuario=usuario, Estado=False).exists()
+
+
 def filtrar_rango_fechas(queryset, params):
     """Filtra por ?desde= y ?hasta= (YYYY-MM-DD, incluidos), usando la fecha local de la visita."""
     desde = parse_date(params.get('desde') or '')

@@ -7,11 +7,7 @@ import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import ProductorPreviewCard from "../../../components/ProductorPreviewCard/ProductorPreviewCard"
 import { usePaginatedList } from "../../../hooks/usePaginatedList"
 import { getProductores } from "../../../services/usuariosService"
-import {
-    getSectores,
-    getTiposDocumentos,
-    getVeredas,
-} from "../../../services/caracterizacionService"
+import { getVeredas } from "../../../services/caracterizacionService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 
 const PAGE_SIZE = 25
@@ -21,12 +17,8 @@ export default function ProductoresContentAdmin() {
     const [busqueda, setBusqueda] = useState('')
     const [filtroEstado, setFiltroEstado] = useState('')
     const [filtroUps, setFiltroUps] = useState('')
-    const [filtroTipoDocumento, setFiltroTipoDocumento] = useState('')
     const [filtroVereda, setFiltroVereda] = useState('')
-    const [filtroSector, setFiltroSector] = useState('')
-    const [tiposDocumento, setTiposDocumento] = useState([])
     const [veredas, setVeredas] = useState([])
-    const [sectores, setSectores] = useState([])
 
     const {
         items: productores,
@@ -42,37 +34,29 @@ export default function ProductoresContentAdmin() {
             search: busqueda.trim(),
             estado: filtroEstado,
             ups: filtroUps,
-            tipo_documento: filtroTipoDocumento,
             vereda: filtroVereda,
-            sector: filtroSector,
         },
         PAGE_SIZE,
     )
 
     useEffect(() => {
         let activo = true
-        Promise.all([getTiposDocumentos(), getVeredas(), getSectores()])
-            .then(([tiposData, veredasData, sectoresData]) => {
-                if (!activo) return
-                setTiposDocumento(tiposData ?? [])
-                setVeredas(veredasData ?? [])
-                setSectores(sectoresData ?? [])
+        getVeredas()
+            .then((veredasData) => {
+                if (activo) setVeredas(veredasData ?? [])
             })
             .catch(() => {})
         return () => { activo = false }
     }, [])
 
     const hayFiltros = Boolean(busqueda.trim()) || Boolean(filtroEstado)
-        || Boolean(filtroUps) || Boolean(filtroTipoDocumento)
-        || Boolean(filtroVereda) || Boolean(filtroSector)
+        || Boolean(filtroUps) || Boolean(filtroVereda)
 
     const limpiarFiltros = () => {
         setBusqueda('')
         setFiltroEstado('')
         setFiltroUps('')
-        setFiltroTipoDocumento('')
         setFiltroVereda('')
-        setFiltroSector('')
         setPage(1)
     }
 
@@ -120,16 +104,6 @@ export default function ProductoresContentAdmin() {
                             ],
                         },
                         {
-                            key: 'tipo_documento',
-                            label: 'Tipo de documento',
-                            value: filtroTipoDocumento,
-                            onChange: (valor) => { setFiltroTipoDocumento(valor); setPage(1) },
-                            options: tiposDocumento.map((tipo) => ({
-                                value: String(tipo.id),
-                                label: tipo.TipoDocumento,
-                            })),
-                        },
-                        {
                             key: 'vereda',
                             label: 'Vereda',
                             value: filtroVereda,
@@ -137,16 +111,6 @@ export default function ProductoresContentAdmin() {
                             options: veredas.map((vereda) => ({
                                 value: String(vereda.id),
                                 label: vereda.NombreVereda,
-                            })),
-                        },
-                        {
-                            key: 'sector',
-                            label: 'Sector',
-                            value: filtroSector,
-                            onChange: (valor) => { setFiltroSector(valor); setPage(1) },
-                            options: sectores.map((sector) => ({
-                                value: String(sector.id),
-                                label: sector.NombreSector,
                             })),
                         },
                     ]}
