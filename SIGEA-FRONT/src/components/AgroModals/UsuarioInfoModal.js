@@ -1,7 +1,7 @@
 import Swal from 'sweetalert2'
 import { AGRO_COLORS, UP_ESTADO_RAW, normalizarEstadoUP } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
-import { getDetalleUsuario } from '../../services/agroService'
+import { getDetalleUsuario } from '../../services/usuariosService'
 import { abrirModalNuevaSolicitudAdmin } from './NuevaSolicitudAdminModal'
 
 const iconoUsuario = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
@@ -35,17 +35,17 @@ function estadoUP(estado) {
     return badge('background:#fef3c7;color:#92400e;', 'En revisión')
 }
 
-function getIniciales(persona, email) {
-    const nombre = persona?.primer_nombre?.trim() ?? ''
-    const apellido = persona?.primer_apellido?.trim() ?? ''
-    const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase()
-    return escapeHtml(iniciales || (email?.charAt(0)?.toUpperCase() ?? '?'))
-}
-
 function getNombreCompleto(persona, email) {
     const nombre = [persona?.primer_nombre, persona?.primer_apellido]
         .filter(Boolean).join(' ').trim()
     return escapeHtml(nombre || email || 'Nombre no disponible')
+}
+
+// RUEA si la UP lo tiene; si no, "UP <id>"; y "—" solo si tampoco hay id.
+function getTituloUP(up) {
+    if (up?.RUEA) return up.RUEA
+    if (up?.id != null) return `UP ${up.id}`
+    return '—'
 }
 
 function seccionUPs(ups) {
@@ -60,7 +60,7 @@ function seccionUPs(ups) {
                     <div style="width:38px;height:38px;border-radius:10px;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 5px rgba(0,92,57,.2);">${iconoUPBold}</div>
                     <div style="min-width:0;">
                         <p style="margin:0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#3e9a8a;">Unidad productiva</p>
-                        <p style="margin:2px 0 0;font-size:14.5px;font-weight:600;color:#1f2937;line-height:1.2;">${escapeHtml(up.RUEA ?? `UP ${up.id}` ?? '—')}</p>
+                        <p style="margin:2px 0 0;font-size:14.5px;font-weight:600;color:#1f2937;line-height:1.2;">${escapeHtml(getTituloUP(up))}</p>
                     </div>
                 </div>
                 ${estadoUP(up.estado_label ?? up.idEstado)}

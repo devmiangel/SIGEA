@@ -2,7 +2,7 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
-import { generarInformeVisita } from '../../services/agroService'
+import { generarInformeVisita } from '../../services/documentosService'
 
 const iconoUP = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`
 const iconoReloj = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${AGRO_COLORS.primaryLight}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
@@ -34,7 +34,7 @@ async function descargarInforme(visita) {
     }
 }
 
-export function mostrarInfoVisita(visita, numero) {
+export function mostrarInfoVisita(visita) {
     if (!visita) return
 
     const solInfo = visita.solicitud_info ?? {}
@@ -77,7 +77,7 @@ export function mostrarInfoVisita(visita, numero) {
                     <div style="min-width:0;">
                         <p style="margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Información de la visita</p>
                         <h2 style="margin:2px 0 0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreUP}</h2>
-                        <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${numero} · ${tipoVisita} · <strong style="color:#1f2937;">${estado}</strong></p>
+                        <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${visita.id} · ${tipoVisita} · <strong style="color:#1f2937;">${estado}</strong></p>
                     </div>
                 </div>
                 <div style="display:grid; gap:12px; padding:14px 0;">

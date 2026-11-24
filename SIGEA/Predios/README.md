@@ -33,7 +33,7 @@ Las tablas se generan a partir de `models.py` mediante el ORM de Django.
 | `TiposRegistrosICA` | `CodigoICA` (CharField) | Sin FK |
 | `Predios` | `NombrePredio` (CharField); `AreaPredio` (Decimal 10,3); `AccesoCredito`, `UsoSuelo`, `Estado` (BooleanField); `Latitud`, `Longitud` (Decimal 16,14); `Direccion` (CharField) | FK `TiposTenencias` (PROTECT), FK `Seguros` (PROTECT, nullable), FK `Sectores` (PROTECT, nullable) y M2M `TiposRegistrosICA` |
 
-> Nota: `Predios.TiposRegistroICA` es una relación **ManyToMany** (no FK simple), por lo que se materializa en una tabla intermedia `Predios_TiposRegistrosICA`.
+> Nota: `Predios.TiposRegistroICA` es una relación **ManyToMany** (no FK simple), por lo que se materializa en una tabla intermedia `Predios_predios_TiposRegistroICA` (nombre por defecto de Django).
 
 ---
 

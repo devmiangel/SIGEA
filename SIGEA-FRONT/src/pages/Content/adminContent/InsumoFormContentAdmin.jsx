@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import { Campo, CampoSelect, CampoCheck } from "../employeeContent/visitViews/fields"
-import { crearInsumo, actualizarInsumo, getInsumo } from "../../../services/agroService"
+import { crearInsumo, actualizarInsumo, getInsumo } from "../../../services/inventarioService"
 import { getUnidades } from "../../../services/caracterizacionService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'

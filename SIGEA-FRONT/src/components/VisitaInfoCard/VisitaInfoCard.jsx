@@ -24,7 +24,7 @@ const estadoDeVisita = (visita) => {
     return visita?.estado ? 'realizada' : 'pendiente'
 }
 
-export default function VisitaInfoCard({ visita, numero, onClick }) {
+export default function VisitaInfoCard({ visita, onClick }) {
     const solInfo = visita?.solicitud_info ?? {}
     const nombreUP = solInfo?.up ?? 'Unidad productiva'
     const predio = solInfo?.predio ?? solInfo?.up ?? '—'
@@ -46,7 +46,7 @@ export default function VisitaInfoCard({ visita, numero, onClick }) {
             title={nombreUP}
             badgeClass={badgeClass}
             badgeLabel={badgeLabel}
-            subtitle={`Visita #${numero} · ${tipoVisita} · ${fechaFormateada}`}
+            subtitle={`Visita #${visita.id} · ${tipoVisita} · ${fechaFormateada}`}
             onClick={handleActivate}
             detailClassName="flex gap-3 mt-4 flex-wrap sm:flex-nowrap"
         >

@@ -170,6 +170,28 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # CORS: solo los orígenes listados. En producción (front y API en el mismo dominio)
 # puede quedar vacío; en desarrollo debe incluir http://localhost:5173.
+# Caché compartida. Los límites de intentos (throttling de login, registro y API)
+# se cuentan en la caché: con la caché local por defecto, cada worker de gunicorn
+# lleva su propia cuenta y el límite real se multiplica por el número de workers.
+# En producción define REDIS_URL (docker-compose.yml ya levanta Redis).
+REDIS_URL = os.environ.get('REDIS_URL', '').strip()
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'KEY_PREFIX': 'sigea',
+        }
+    }
+else:
+    # Solo para desarrollo y pruebas: memoria del proceso, no compartida.
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'sigea-local',
+        }
+    }
+
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173' if DEBUG else '')
 

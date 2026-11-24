@@ -11,9 +11,16 @@ class TiposHerramientasSerializer(serializers.ModelSerializer):
 
 
 class HerramientasSerializer(serializers.ModelSerializer):
+    TipoHerramientaNombre = serializers.CharField(
+        source='TipoHerramienta.TipoHerramienta', read_only=True
+    )
+
     class Meta:
         model = Herramientas
-        fields = ['id', 'Herramienta', 'TipoHerramienta', 'Descripcion', 'Estado']
+        fields = [
+            'id', 'Herramienta', 'TipoHerramienta', 'TipoHerramientaNombre',
+            'Descripcion', 'Estado',
+        ]
         read_only_fields = ['id']
 
     def validate_Herramienta(self, value):

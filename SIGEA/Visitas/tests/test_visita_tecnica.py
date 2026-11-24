@@ -3,6 +3,8 @@ import base64
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Inventario.models import Insumos, InventarioFuncionario
 from Predios.models import Predios, TiposTenencias
 from UPs.models import UP, TipoUP, Unidades
@@ -120,6 +122,7 @@ class _BaseVisita(APITestCase):
         self.productor = Productores.objects.create(usuario=self.user_prod)
 
         self.motivo = MotivosSolicitudes.objects.create(id=2, MotivoSolicitud="Caracterizacion")
+        MotivosSolicitudes.objects.create(id=1, MotivoSolicitud="Visita")
         self.estado = Estados.objects.create(id=1, Estado="En Proceso")
         self.tipo_visita = TiposVisitas.objects.create(TipoVisita="Tecnica")
         self.calificacion = Calificaciones.objects.create(Calificacion="Buena")
@@ -361,6 +364,68 @@ class CrearSolicitudUPTests(_BaseVisita):
         self.assertEqual(resp.status_code, 201, resp.content)
 
 
+class SolicitudProductorSegunEstadoUPTests(_BaseVisita):
+    """El productor solo solicita sobre UPs validadas: Aceptada -> Visita,
+    Rechazada -> Caracterización; En revisión o sin estado -> 400."""
+
+    def _up_con_estado(self, estado):
+        from UPs.models import EstadosUP
+        up = self._crear_up(self.productor)
+        if estado:
+            up.idEstado, _ = EstadosUP.objects.get_or_create(Estado=estado)
+            up.save(update_fields=['idEstado'])
+        return up
+
+    def _crear(self, up, motivo_id=None, url="/api/visitas/solicitudes/crear/"):
+        self.client.force_authenticate(user=self.user_prod)
+        payload = {"observacion": "Seguimiento", "direccion": "Km 5", "up_id": up.id if up else None}
+        if motivo_id:
+            payload["motivo_id"] = motivo_id
+        return self.client.post(url, payload, format="json")
+
+    def test_up_en_revision_da_400(self):
+        resp = self._crear(self._up_con_estado('En revision'))
+        self.assertEqual(resp.status_code, 400)
+
+    def test_up_sin_estado_da_400(self):
+        self.assertEqual(self._crear(self._up_con_estado(None)).status_code, 400)
+
+    def test_up_aceptada_es_visita(self):
+        # Aunque el cliente envíe otro motivo, el servidor decide.
+        resp = self._crear(self._up_con_estado('Aceptada'), motivo_id=2)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 1)
+
+    def test_up_rechazada_es_caracterizacion(self):
+        resp = self._crear(self._up_con_estado('Rechazada'), motivo_id=1)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 2)
+
+    def test_sin_up_es_caracterizacion(self):
+        resp = self._crear(None, motivo_id=1)
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.data["MotivoSolicitud"], 2)
+
+    def test_router_tambien_bloquea_up_en_revision(self):
+        from django.contrib.auth.models import Permission
+
+        self.user_prod.user_permissions.add(Permission.objects.get(codename='add_solicitudes'))
+        self.client.force_authenticate(user=self.user_prod)
+        resp = self.client.post("/api/visitas/solicitudes/", {
+            "UP": self._up_con_estado('En revision').id, "MotivoSolicitud": 1,
+            "Observacion": "x", "Direccion": "y", "Estado": self.estado.id, "Usuario": self.user_prod.id,
+        }, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+    def test_staff_no_se_restringe(self):
+        self.client.force_authenticate(user=self.user_func)
+        resp = self.client.post("/api/visitas/solicitudes/crear/", {
+            "observacion": "x", "direccion": "y", "usuario_id": self.user_prod.id,
+            "up_id": self._up_con_estado('En revision').id,
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+
 class VisitasListadoEstadosTests(_BaseVisita):
     def test_listado_incluye_realizadas_y_pendientes(self):
         from django.contrib.auth.models import Permission
@@ -438,3 +503,41 @@ class SolicitudesPendientesTests(_BaseVisita):
         self.assertNotIn(2, estados)
         self.assertNotIn(3, estados)
         self.assertEqual(len(datos), 2)
+
+
+class VisitasOrdenTests(_BaseVisita):
+    """El listado de visitas sale de la más reciente a la más antigua, con o sin paginación."""
+
+    def setUp(self):
+        from django.contrib.auth.models import Permission
+
+        super().setUp()
+        # Se crean fuera de orden cronológico para que el orden no dependa del id.
+        crear = lambda fecha: Visitas.objects.create(
+            Solicitud=self.solicitud, Funcionario=self.funcionario,
+            TipoVisita=self.tipo_visita, FechaYHoraVisita=fecha,
+        )
+        self.reciente = crear('2026-09-25T08:00:00Z')
+        self.antigua = crear('2026-09-15T08:00:00Z')
+        # Misma fecha y hora que `reciente`: desempata el id más alto primero.
+        self.reciente_empate = crear('2026-09-25T08:00:00Z')
+        # self.visita (de _BaseVisita) es del 2026-09-20.
+        self.esperado = [
+            self.reciente_empate.id, self.reciente.id, self.visita.id, self.antigua.id,
+        ]
+
+        self.user_admin.user_permissions.add(Permission.objects.get(codename='view_visitas'))
+        self.client.force_authenticate(self.user_admin)
+
+    def test_listado_completo_mas_reciente_primero(self):
+        respuesta = self.client.get('/api/visitas/visitas/')
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual([v['id'] for v in filas(respuesta)], self.esperado)
+
+    def test_paginas_conservan_el_orden(self):
+        pagina1 = self.client.get('/api/visitas/visitas/?page=1&page_size=2')
+        pagina2 = self.client.get('/api/visitas/visitas/?page=2&page_size=2')
+        self.assertEqual(pagina1.status_code, 200)
+        self.assertEqual(pagina2.status_code, 200)
+        ids = [v['id'] for v in pagina1.data['results'] + pagina2.data['results']]
+        self.assertEqual(ids, self.esperado)

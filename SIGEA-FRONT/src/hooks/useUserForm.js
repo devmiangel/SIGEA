@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
-import dayjs from 'dayjs'
 import { AGRO_COLORS } from '../utils/agroConstants'
 import { registerUser } from '../services/authService'
-import { getUsuario, actualizarUsuario } from '../services/agroService'
+import { getUsuario, actualizarUsuario } from '../services/usuariosService'
+import { useCargarAlMontar } from './useCargarAlMontar'
 
 export function useUserForm(usuarioId) {
     const esEdicion = Boolean(usuarioId)
@@ -33,7 +33,7 @@ export function useUserForm(usuarioId) {
                     ? { value: p.TipoDocumento_info.id, label: p.TipoDocumento_info.TipoDocumento }
                     : null,
                 numero_documento: p.numero_documento ?? '',
-                fecha_nacimiento: p.fecha_nacimiento ? dayjs(p.fecha_nacimiento) : null,
+                fecha_nacimiento: p.fecha_nacimiento ?? null,
                 Estado: user?.Estado ? 'true' : 'false',
                 rol: user?.rol ?? 'Usuarios',
                 es_conductor: Boolean(user?.es_conductor),
@@ -46,7 +46,7 @@ export function useUserForm(usuarioId) {
         }
     }, [esEdicion, usuarioId, reset])
 
-    useEffect(() => { cargarUsuario() }, [cargarUsuario])
+    useCargarAlMontar(cargarUsuario)
 
     const onSubmit = async (data) => {
         setSaving(true)
@@ -55,9 +55,8 @@ export function useUserForm(usuarioId) {
             const base = {
                 ...data,
                 TipoDocumento: data.TipoDocumento?.value,
-                fecha_nacimiento: Array.isArray(data.fecha_nacimiento)
-                    ? data.fecha_nacimiento[0].format('YYYY-MM-DD')
-                    : data.fecha_nacimiento?.format('YYYY-MM-DD'),
+                // OtherCalendar ya entrega 'YYYY-MM-DD' (o null si está vacío).
+                fecha_nacimiento: data.fecha_nacimiento || undefined,
             }
 
             if (esEdicion) {

@@ -54,12 +54,29 @@ const buildEvents = (visitas) => (visitas || []).map(v => {
     }
 })
 
+// Constante a nivel de módulo: si se recrea en cada render, FullCalendar
+// vuelve a disparar datesSet y se produce un bucle de actualizaciones.
+const VISTAS = {
+    // Agenda: solo las actividades del día actual (sin navegar a otros días)
+    listDay: {
+        buttonText: 'Agenda',
+        validRange: (ahora) => {
+            const inicio = new Date(ahora)
+            inicio.setHours(0, 0, 0, 0)
+            const fin = new Date(inicio)
+            fin.setDate(fin.getDate() + 1)
+            return { start: inicio, end: fin }
+        },
+    },
+}
+
 export default function CalendarioVisitas({ visitas, onDayClick, onRangeChange }) {
     const calendarRef = useRef(null)
     const [height, setHeight] = useState(520)
     const onDayClickRef = useRef(onDayClick)
     const onRangeChangeRef = useRef(onRangeChange)
     const ultimoClic = useRef(0)
+    const agendaEmitida = useRef('')
 
     useEffect(() => {
         onDayClickRef.current = onDayClick
@@ -92,13 +109,31 @@ export default function CalendarioVisitas({ visitas, onDayClick, onRangeChange }
     const handleDatesSet = (arg) => {
         setHeight(arg.view.type.startsWith('list') ? 'auto' : 520)
 
-        if (!onRangeChangeRef.current) return
+        const enAgenda = arg.view.type === 'listDay'
+        if (!enAgenda) agendaEmitida.current = ''
+
+        if (!onRangeChangeRef.current) {
+            emitirAgenda(arg, enAgenda)
+            return
+        }
 
         // FullCalendar entrega un rango con el final exclusivo: se resta un día
         // para que el backend reciba "hasta" como fecha inclusiva.
         const desde = arg.startStr.slice(0, 10)
         const hasta = restarUnDia(arg.endStr.slice(0, 10))
         onRangeChangeRef.current(desde, hasta)
+
+        emitirAgenda(arg, enAgenda)
+    }
+
+    // Agenda: equivale a seleccionar el día actual, como al hacer clic en el mes.
+    // Se emite una sola vez por día para no provocar re-renderizados en bucle.
+    function emitirAgenda(arg, enAgenda) {
+        if (!enAgenda) return
+        const dia = arg.startStr.slice(0, 10)
+        if (agendaEmitida.current === dia) return
+        agendaEmitida.current = dia
+        onDayClickRef.current?.(dia)
     }
 
     const conteos = ESTADOS_CALENDARIO.map((estado) => ({
@@ -148,10 +183,17 @@ export default function CalendarioVisitas({ visitas, onDayClick, onRangeChange }
                     arg.el.style.cursor = 'pointer'
                     arg.el.addEventListener('click', () => emitirDia(fechaLocal(arg.date)))
                 }}
+                views={VISTAS}
+                dayHeaderDidMount={(arg) => {
+                    // Semana: el encabezado de cada día también selecciona el día.
+                    if (!arg.view.type.startsWith('timeGrid')) return
+                    arg.el.style.cursor = 'pointer'
+                    arg.el.addEventListener('click', () => emitirDia(fechaLocal(arg.date)))
+                }}
                 headerToolbar={{
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                    right: 'dayGridMonth,timeGridWeek,listDay'
                 }}
             />
         </>

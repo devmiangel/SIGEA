@@ -1,9 +1,7 @@
-import unicodedata
-
-from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from SIGEAsite.permissions import SigeaModelPermissionMixin, OwnedQuerysetMixin, es_staff, usuario_en_grupo
 from SIGEAsite.filters import filtrar_texto
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from ..models import (
@@ -35,6 +33,14 @@ from ..serializers import (
     PajillasSerializer,
     VisitasServiciosPagosSerializer
 
+)
+from .consultas import (
+    MOTIVO_CARACTERIZACION,
+    motivo_solicitud_para_up,
+    VISITAS_RELACIONADAS,
+    filtrar_rango_fechas,
+    filtrar_validacion_up,
+    normalizar_texto,
 )
 
 class MotivosSolicitudesViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
@@ -91,22 +97,29 @@ class SolicitudesViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets
         # aunque envíe otro "Usuario" en el cuerpo. El staff conserva el comportamiento.
         if es_staff(self.request.user):
             serializer.save()
+            return
+
+        # Misma regla que crear_solicitud: el motivo lo decide el estado de la UP
+        # y no se puede solicitar sobre una UP en revisión ni ajena.
+        up = serializer.validated_data.get('UP')
+        if up is None:
+            motivo_id = MOTIVO_CARACTERIZACION
         else:
-            serializer.save(Usuario=self.request.user)
+            if up.Productor.usuario_id != self.request.user.id:
+                raise ValidationError({'error': 'La UP no pertenece al productor de la solicitud'})
+            motivo_id, error = motivo_solicitud_para_up(up)
+            if error:
+                raise ValidationError({'error': error})
+        serializer.save(Usuario=self.request.user, MotivoSolicitud_id=motivo_id)
 
 class TiposVisitasViewSet(SigeaModelPermissionMixin, viewsets.ModelViewSet):
     queryset = TiposVisitas.objects.all()
     serializer_class = TiposVisitasSerializer
 
-def _normalizar_texto(texto):
-    """Normaliza un texto a minusculas y sin acentos para comparaciones."""
-    return unicodedata.normalize('NFD', texto or '').encode('ascii', 'ignore').decode('ascii').strip().lower()
-
-
 def _es_visita_caracterizacion(visita):
     """Una visita es de caracterizacion cuando su TipoVisita lo indica."""
     tipo = getattr(getattr(visita, 'TipoVisita', None), 'TipoVisita', None)
-    return _normalizar_texto(tipo) == 'caracterizacion'
+    return normalizar_texto(tipo) == 'caracterizacion'
 
 
 class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.ModelViewSet):
@@ -133,12 +146,8 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         if solicitud_id and str(solicitud_id).isdigit():
             queryset = queryset.filter(Solicitud_id=int(solicitud_id))
 
-        desde = parse_date(params.get('desde') or '')
-        hasta = parse_date(params.get('hasta') or '')
-        if desde:
-            queryset = queryset.filter(FechaYHoraVisita__date__gte=desde)
-        if hasta:
-            queryset = queryset.filter(FechaYHoraVisita__date__lte=hasta)
+        queryset = filtrar_rango_fechas(queryset, params)
+        queryset = filtrar_validacion_up(queryset, params.get('validacion_up'))
 
         queryset = filtrar_texto(
             queryset,
@@ -151,6 +160,8 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
                 'Funcionario__usuario__persona__numero_documento',
                 'Solicitud__Usuario__persona__primer_nombre',
                 'Solicitud__Usuario__persona__primer_apellido',
+                'Administrador__usuario__persona__primer_nombre',
+                'Administrador__usuario__persona__primer_apellido',
                 'TipoVisita__TipoVisita',
             ],
         )
@@ -160,12 +171,10 @@ class VisitasViewSet(SigeaModelPermissionMixin, OwnedQuerysetMixin, viewsets.Mod
         elif estado == 'no_realizadas':
             queryset = queryset.filter(estado=False)
 
-        return queryset.select_related(
-            'Solicitud__UP__Predio',
-            'Solicitud__Usuario__persona',
-            'Funcionario__usuario__persona',
-            'TipoVisita',
-        ).distinct()
+        # Orden explícito (más reciente primero, como las solicitudes): sin él la
+        # paginación caía en `pk` ascendente y el listado completo no tenía orden
+        # garantizado. `-id` desempata visitas con la misma fecha y hora.
+        return queryset.select_related(*VISITAS_RELACIONADAS).distinct().order_by('-FechaYHoraVisita', '-id')
 
     def update(self, request, *args, **kwargs):
         from UPs.models import EstadosUP

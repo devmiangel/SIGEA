@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import EventIcon from '@mui/icons-material/Event'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import { Campo } from "../employeeContent/visitViews/fields"
-import { crearEvento, actualizarEvento, getEvento } from "../../../services/agroService"
+import { crearEvento, actualizarEvento, getEvento } from "../../../services/upsService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, forwardRef, useCallback, useImperativeHandle } from 'react'
 import LienzoFirma from './visitas/LienzoFirma'
-import { guardarFirmasVisita } from '../../../../services/agroService'
+import { guardarFirmasVisita } from '../../../../services/visitasService'
 import { useSeccion } from '../../../../hooks/useSeccion'
 
 const SeccionCierre = forwardRef(({ visita }, ref) => {

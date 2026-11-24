@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import GroupIcon from '@mui/icons-material/Group'
 import { Header } from "../../../components/Tettles-Buttons/Title"
@@ -14,7 +14,13 @@ import Swal from 'sweetalert2'
 export default function UsersContentAdmin(){
     const navigate = useNavigate()
     const [busqueda, setBusqueda] = useState("")
+    const [busquedaDebounced, setBusquedaDebounced] = useState("")
     const [rolFiltro, setRolFiltro] = useState("")
+
+    useEffect(() => {
+        const t = setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300)
+        return () => clearTimeout(t)
+    }, [busqueda])
 
     const {
         usuarios,
@@ -26,7 +32,7 @@ export default function UsersContentAdmin(){
         error,
         eliminar,
     } = useUsuarios({
-        search: busqueda.trim(),
+        search: busquedaDebounced,
         rol: rolFiltro,
     })
 
@@ -101,7 +107,7 @@ export default function UsersContentAdmin(){
                 <InventoryFilterBar
                     search={busqueda}
                     onSearchChange={(valor) => { setBusqueda(valor); setPage(1) }}
-                    searchPlaceholder="Buscar por nombre o correo..."
+                    searchPlaceholder="Buscar por nombre, correo o documento..."
                     total={count}
                     shown={usuarios.length}
                     onClear={limpiarFiltros}

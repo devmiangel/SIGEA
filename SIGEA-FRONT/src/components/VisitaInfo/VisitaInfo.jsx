@@ -4,7 +4,7 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
-import { reagendarSolicitud } from '../../services/agroService'
+import { reagendarSolicitud } from '../../services/visitasService'
 import { abrirModalReagendar } from '../AgroModals/ReagendarVisitaModal'
 
 const iconoUsuario = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
@@ -23,7 +23,7 @@ const esServiciosPagos = (tipo) => {
     return normalizado === 'servicios pagos'
 }
 
-export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
+export default function VisitaInfo({ visita, onClose, onReagendada }) {
     const navigate = useNavigate()
     const openedRef = useRef(false)
 
@@ -71,7 +71,7 @@ export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
                         <div style="width:46px;height:46px;border-radius:50%;background:#005C39;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,92,57,0.25);">${iconoUsuario}</div>
                         <div style="min-width:0;">
                             <h2 style="margin:0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreSolicitante} <span style="color:#3e9a8a;">·</span> ${tipoVisita}</h2>
-                            <p style="margin:2px 0 0;font-size:12.5px;color:#6b7280;">Visita #${numero} · Solicitud #${solicitud.id ?? '—'}</p>
+                            <p style="margin:2px 0 0;font-size:12.5px;color:#6b7280;">Visita #${visita.id} · Solicitud #${solicitud.id ?? '—'}</p>
                         </div>
                     </div>
 
@@ -150,7 +150,7 @@ export default function VisitaInfo({ visita, numero, onClose, onReagendada }) {
             }
         })
 
-    }, [visita, numero, onClose, onReagendada, navigate])
+    }, [visita, onClose, onReagendada, navigate])
 
     return null
 }

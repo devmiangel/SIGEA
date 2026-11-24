@@ -11,7 +11,7 @@ El aplicativo consta de dos componentes que trabajan en conjunto:
 | Componente | Tecnología | Carpetas |
 |---|---|---|
 | **Backend (API REST)** | Python · Django · Django REST Framework · PostgreSQL · Knox | `SIGEA/` |
-| **Frontend (SPA)** | React 19 · Vite · MUI · Tailwind CSS · PrimeReact · FullCalendar | `SIGEA-FRONT/` |
+| **Frontend (SPA)** | React 19 · Vite · MUI · Tailwind CSS · FullCalendar | `SIGEA-FRONT/` |
 
 El **backend** expone los servicios REST que gestionan los datos, la autenticación por tokens (Knox) y la generación de documentos PDF. El **frontend** consume estos servicios mediante Axios y organiza la experiencia de cada usuario según su rol.
 
@@ -35,7 +35,7 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 - Acceso a la extensión agropecuaria.
 - Solicitud de caracterización/visita de su unidad productiva (primer registro).
 - Visualización de sus UPs y estado de solicitudes.
-- Trámites de protección animal.
+- Trámites de protección animal (la ruta existe, pero está oculta en el menú).
 
 ## Módulos del backend
 
@@ -54,14 +54,15 @@ El **backend** expone los servicios REST que gestionan los datos, la autenticaci
 ## Stack tecnológico
 
 **Backend**
-- Python 3.x · Django 6.0.1 · Django REST Framework 3.17.1
-- Knox (tokens) · django-cors-headers · PostgreSQL 14+
-- reportlab / Pillow (generación de PDF e imágenes)
+- Python 3.11+ (la imagen Docker usa 3.13) · Django 6.0.1 · Django REST Framework 3.17.1
+- Knox (tokens) · django-cors-headers · PostgreSQL 14+ (Docker usa 16)
+- reportlab / Pillow / qrcode (generación de PDF, imágenes y QR) · gunicorn en producción
 
 **Frontend**
 - React 19 · Vite 7 · React Router 7
-- MUI 7 · Tailwind CSS 4 · PrimeReact 10 · FullCalendar 7
-- Axios · react-hook-form · react-signature-canvas · SweetAlert2
+- MUI 7 (iconos) · Tailwind CSS 4 · FullCalendar 7
+- Axios · react-hook-form · react-select · react-signature-canvas · SweetAlert2 · @yudiel/react-qr-scanner
+- Cypress (pruebas e2e)
 
 ## Estructura del repositorio
 
@@ -76,15 +77,24 @@ SIGEA_WA/
 │   ├── Visitas/            # App visitas y solicitudes
 │   ├── documentos/         # App generación de PDFs
 │   ├── seeders/            # Datos semilla
+│   ├── docker/             # entrypoint.sh del contenedor
+│   ├── Dockerfile
 │   └── manage.py
 ├── SIGEA-FRONT/            # Frontend (React + Vite)
+│   ├── cypress/            # Pruebas e2e
+│   ├── nginx.conf          # Nginx del contenedor (SPA + proxy /api)
+│   ├── Dockerfile
 │   └── src/
-│       ├── pages/          # Vistas por rol (admin, funcionario, usuario)
+│       ├── pages/          # Vistas por rol (admin, funcionario, usuario) y páginas públicas
 │       ├── components/     # Componentes reutilizables
+│       ├── hooks/          # Carga de datos y formularios por dominio
 │       ├── services/       # Consumo de la API (axios)
 │       ├── context/        # Contexto de usuario / autenticación
 │       ├── routes/         # Rutas protegidas por rol
-│       └── layouts/        # Layouts por rol
+│       ├── layouts/        # Layouts por rol
+│       ├── styles/         # CSS global y cardTokens.js
+│       └── utils/          # Constantes y helpers
+├── docker-compose.yml      # db + backend + frontend
 └── README.md
 ```
 
@@ -97,21 +107,34 @@ cd SIGEA
 python -m venv venv
 venv\Scripts\activate          # Windows
 pip install -r requirements.txt
+copy .env.example .env         # y ajustar DJANGO_DEBUG=True y los datos de PostgreSQL
 python manage.py migrate
+python manage.py seed
+python manage.py seedup
+python manage.py seed_permisos  # siempre al final
 python manage.py runserver
 ```
 
-Base de datos **PostgreSQL** (configurada en `SIGEAsite/settings.py`): base `SIGEA_DB`, usuario `postgres`.
+Base de datos **PostgreSQL**: la conexión se lee de `SIGEA/.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`; por defecto base `SIGEA_DB`, usuario `postgres`). Detalle paso a paso en `README_Inicio.md`.
 
 ### Frontend (`SIGEA-FRONT/`)
 
 ```bash
 cd SIGEA-FRONT
-pnpm install       # o npm install
-pnpm dev           # http://localhost:5173
+npm install       # usa package-lock.json
+npm run dev       # http://localhost:5173
 ```
 
-El frontend consume la API en `http://localhost:5173` (CORS habilitado para el backend en local).
+El frontend corre en `http://localhost:5173` y consume la API en `http://127.0.0.1:8000/api` (variable `VITE_API_BASE_URL` de `.env.development`). En local el backend permite CORS para `http://localhost:5173`.
+
+### Docker (producción)
+
+```bash
+cp .env.example .env           # en la raíz; definir DJANGO_SECRET_KEY y DB_PASSWORD
+docker compose up -d --build
+```
+
+Levanta PostgreSQL 16, el backend (gunicorn) y el frontend (Nginx sirve la SPA y hace proxy de `/api` y `/admin`) en `127.0.0.1:${HTTP_PORT:-8080}`. Las migraciones y `collectstatic` se ejecutan al arrancar el contenedor del backend.
 
 ## Autenticación y permisos
 
@@ -124,7 +147,8 @@ El frontend consume la API en `http://localhost:5173` (CORS habilitado para el b
 
 | Ruta | Descripción |
 |---|---|
-| `/api/auth/login/` | Login (email + contraseña) → token |
+| `/api/usuarios/login/` | Login (email + contraseña) → token Knox |
+| `/api/auth/logout/` | Cierra la sesión (invalida el token; `logoutall/` cierra todas) |
 | `/api/me/` | Usuario autenticado |
 | `/api/register/` | Registro de usuario |
 | `/api/usuarios/` | Usuarios, personas, roles y catálogos |

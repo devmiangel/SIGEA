@@ -1,6 +1,6 @@
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import Group, Permission
 from Usuarios.models import TiposDocumentos, TiposContactos, TiposNivelesEducativos, Sisben
 from Usuarios.models import Usuario, Personas, Contactos, Administradores, Funcionarios, Productores
 from Visitas.models import MotivosSolicitudes, Estados, TiposVisitas, ServiciosPagos, Aperos, Pajillas
@@ -222,33 +222,11 @@ class Command(BaseCommand):
             )
 
     def seed_grupos(self):
-        grupos_config = {
-            'Administradores': None,  # None significa todos los permisos
-            'Funcionarios': [
-                'add_predios', 'change_predios', 'view_predios',
-                'add_inventario', 'change_inventario', 'view_inventario',
-                'add_visitas', 'change_visitas', 'view_visitas',
-                'add_ups', 'change_ups', 'view_ups',
-                'view_usuario',
-            ],
-            'Productores': [
-                'view_predios',
-                'view_inventario',
-                'view_ups',
-            ],
-            'Usuarios': [
-                'view_predios',
-                'view_ups',
-            ]
-        }
-
-        for nombre_grupo, permisos in grupos_config.items():
-            grupo, _ = Group.objects.get_or_create(name=nombre_grupo)
-            
-            if permisos is None:
-                grupo.permissions.set(Permission.objects.all())
-            else:
-                grupo.permissions.set(Permission.objects.filter(codename__in=permisos))
+        # Los permisos por rol viven solo en seed_permisos. Antes este seeder tenía
+        # su propia lista (desactualizada) y, si se corría después de seed_permisos,
+        # dejaba a Productores/Funcionarios sin permisos (403 en solicitudes,
+        # inventario, etc.). Delegar evita que el orden de ejecución importe.
+        call_command('seed_permisos', stdout=self.stdout)
 
     def seed_maestro(self, modelo, campo, lista):
         count = 0

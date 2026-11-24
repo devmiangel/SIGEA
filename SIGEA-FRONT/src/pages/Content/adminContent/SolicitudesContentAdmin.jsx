@@ -9,7 +9,12 @@ import UserRequest from "../../../components/UserRequest/UserRequest"
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { usePaginatedList } from "../../../hooks/usePaginatedList"
 import { abrirModalAtenderSolicitud } from "../../../components/AgroModals/AtenderSolicitudModal"
-import { atenderSolicitud, rechazarSolicitud, getSolicitudes, getVisitas } from "../../../services/agroService"
+import {
+    atenderSolicitud,
+    rechazarSolicitud,
+    getSolicitudes,
+    getVisitas,
+} from "../../../services/visitasService"
 import { AGRO_COLORS, ESTADO_SOLICITUD } from "../../../utils/agroConstants"
 import { toDatetimeLocal } from "../../../utils/dateHelpers"
 

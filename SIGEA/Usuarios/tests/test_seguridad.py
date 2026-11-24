@@ -15,6 +15,8 @@ from django.utils import timezone
 from PIL import Image
 from rest_framework.test import APITestCase
 
+from SIGEAsite.testing import filas
+
 from Predios.models import Predios, TiposTenencias
 from UPs.models import UP, ArchivosUP, TipoUP
 from Usuarios.models import (
@@ -56,6 +58,7 @@ class SeguridadBase(APITestCase):
         cls.up_c = cls._up(cls.productor_c, tipo_up, tenencia, "C")
 
         motivo = MotivosSolicitudes.objects.create(id=1, MotivoSolicitud="Visita")
+        MotivosSolicitudes.objects.create(id=2, MotivoSolicitud="Caracterización")
         cls.estado = Estados.objects.create(id=1, Estado="En Proceso")
         cls.solicitud_b = Solicitudes.objects.create(
             UP=cls.up_b, MotivoSolicitud=motivo, Observacion="Privada de B",
@@ -124,7 +127,9 @@ class AislamientoDeDatosTests(SeguridadBase):
     ]
 
     def _ids(self, resp):
-        return [item["id"] for item in resp.data] if isinstance(resp.data, list) else []
+        # filas() falla si la respuesta no es un listado: así "no ve nada ajeno"
+        # no puede pasar por un formato inesperado.
+        return [item["id"] for item in filas(resp)]
 
     def test_usuario_registrado_no_lista_datos_ajenos(self):
         atacante = self.registrar_atacante()

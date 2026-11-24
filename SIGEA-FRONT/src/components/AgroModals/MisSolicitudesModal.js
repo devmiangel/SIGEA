@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2'
 import { AGRO_COLORS, ESTADO_SOLICITUD_INSUMO } from '../../utils/agroConstants'
-import { getSolicitudesInsumo } from '../../services/agroService'
+import { getSolicitudesInsumo } from '../../services/inventarioService'
 import { escapeHtml } from '../../utils/sanitize'
 
 const estiloEstado = (estado) => {

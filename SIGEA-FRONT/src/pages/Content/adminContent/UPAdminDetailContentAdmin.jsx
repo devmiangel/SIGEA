@@ -10,14 +10,10 @@ import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import QRButton from "../../../components/QRButton/QRButton"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 import { useCaracterizacion } from "../../../hooks/useCaracterizacion"
-import {
-    getUP,
-    getProductorDetalle,
-    getArchivosUP,
-    descargarArchivoUP,
-    descargarCaracterizacionUP,
-    getVisitas,
-} from "../../../services/agroService"
+import { getProductorDetalle } from "../../../services/usuariosService"
+import { getUP, getArchivosUP, descargarArchivoUP } from "../../../services/upsService"
+import { getVisitas } from "../../../services/visitasService"
+import { descargarCaracterizacionUP } from "../../../services/documentosService"
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage"
 import { descargarBlob } from "../../../utils/downloadBlob"
 import {
@@ -433,12 +429,11 @@ export default function UPAdminDetailContentAdmin() {
                                     <p className="text-sm text-gray-500">No hay visitas en el rango de fechas seleccionado.</p>
                                 ) : (
                                     <div className="space-y-3">
-                                        {visitasFiltradas.map((visita, i) => (
+                                        {visitasFiltradas.map((visita) => (
                                             <VisitaInfoCard
                                                 key={visita.id}
                                                 visita={visita}
-                                                numero={i + 1}
-                                                onClick={() => mostrarInfoVisita(visita, i + 1)}
+                                                onClick={() => mostrarInfoVisita(visita)}
                                             />
                                         ))}
                                     </div>

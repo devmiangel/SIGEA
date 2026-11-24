@@ -1,25 +1,18 @@
-import { useState, useEffect, useCallback } from "react"
-import { getMisVisitas } from "../services/agroService"
+import { getMisVisitas } from "../services/visitasService"
+import { usePaginatedList } from "./usePaginatedList"
 
-export function useMisVisitas() {
-    const [visitas, setVisitas] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
+// Visitas asignadas al funcionario autenticado, paginadas en el servidor.
+// `filtros`: { estado: 'pendientes' | 'realizadas' }.
+export function useMisVisitas(filtros = {}, pageSize = 20) {
+    const {
+        items: visitas,
+        count,
+        page,
+        setPage,
+        loading,
+        error,
+        refresh,
+    } = usePaginatedList(getMisVisitas, filtros, pageSize)
 
-    const cargar = useCallback(async () => {
-        setLoading(true)
-        try {
-            const data = await getMisVisitas()
-            setVisitas(data)
-            setError(null)
-        } catch (e) {
-            setError(e)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => { cargar() }, [cargar])
-
-    return { visitas, loading, error, refresh: cargar }
+    return { visitas, count, page, setPage, pageSize, loading, error, refresh }
 }

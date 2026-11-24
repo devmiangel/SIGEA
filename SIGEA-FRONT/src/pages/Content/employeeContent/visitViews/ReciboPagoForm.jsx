@@ -6,7 +6,13 @@ import EstadoVisita from "../../../../components/EstadoVisita/EstadoVisita"
 import VisitaResumen from "../../../../components/VisitaResumen/VisitaResumen"
 import { Campo } from './fields'
 import LienzoFirma from './visitas/LienzoFirma'
-import { getServiciosPagos, getAperos, getPajillas, enviarFormularioRecibo, marcarVisitaRealizada } from "../../../../services/agroService"
+import {
+    getServiciosPagos,
+    getAperos,
+    getPajillas,
+    enviarFormularioRecibo,
+    marcarVisitaRealizada,
+} from "../../../../services/visitasService"
 import { getInfoProductor, getInfoUP, getInfoPredio } from './visitas/visitaService'
 import Swal from 'sweetalert2'
 import { AGRO_COLORS } from "../../../../utils/agroConstants"

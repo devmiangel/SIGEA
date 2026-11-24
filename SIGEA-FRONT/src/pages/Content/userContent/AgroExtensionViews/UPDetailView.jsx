@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AgricultureIcon from '@mui/icons-material/Agriculture'
 import { Header } from "../../../../components/Tettles-Buttons/Title"
-import { getMisUPs } from "../../../../services/agroService"
+import { getMisUPs } from "../../../../services/upsService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useCaracterizacion } from "../../../../hooks/useCaracterizacion"
 import { AGRO_COLORS, UP_ESTADO_RAW, UP_ESTADO_STYLE, normalizarEstadoUP } from "../../../../utils/agroConstants"

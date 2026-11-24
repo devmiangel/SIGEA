@@ -3,12 +3,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from SIGEAsite.filters import filtrar_texto
+from SIGEAsite.pagination import respuesta_paginada
 from SIGEAsite.permissions import IsInGroup, ROLES_STAFF, usuario_en_grupo
 
 from Usuarios.models import Administradores, Funcionarios, Productores, Usuario
 
 from ..models import Solicitudes, Visitas, TiposVisitas, InfoVisita, Calificaciones
 from ..serializers import SolicitudesSerializer, VisitasSerializer
+from .consultas import (
+    MOTIVO_CARACTERIZACION, VISITAS_RELACIONADAS, filtrar_rango_fechas, motivo_solicitud_para_up,
+)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -42,6 +47,17 @@ def crear_solicitud(request):
         # La UP debe ser del productor a cuyo nombre se crea la solicitud.
         if up.Productor.usuario_id != usuario.id:
             return Response({'error': 'La UP no pertenece al productor de la solicitud'}, status=400)
+
+    # Para el productor/usuario el motivo lo decide el servidor: sin UP es
+    # Caracterización; con UP solo se permite si ya fue validada (Aceptada ->
+    # Visita, Rechazada -> Caracterización). El staff conserva el motivo enviado.
+    if not usuario_en_grupo(request.user, *ROLES_STAFF):
+        if up is None:
+            motivo_id = MOTIVO_CARACTERIZACION
+        else:
+            motivo_id, error = motivo_solicitud_para_up(up)
+            if error:
+                return Response({'error': error}, status=400)
 
     solicitud = Solicitudes.objects.create(
         UP=up,
@@ -274,21 +290,45 @@ def mis_visitas(request):
     funcionario = getattr(request.user, 'funcionarios', None)
     if not funcionario:
         return Response({'error': 'El usuario autenticado no es un funcionario'}, status=403)
+    params = request.query_params
     visitas = (
         Visitas.objects
-        .select_related(
-            'Solicitud__MotivoSolicitud',
-            'Solicitud__Usuario__persona',
-            'Funcionario__usuario__persona',
-            'Administrador__usuario__persona',
-            'TipoVisita'
-        )
+        .select_related(*VISITAS_RELACIONADAS)
         .filter(Funcionario=funcionario)
         .exclude(Solicitud__Estado_id=4)
-        .order_by('FechaYHoraVisita')
     )
-    serializer = VisitasSerializer(visitas, many=True)
-    return Response(serializer.data)
+    visitas = filtrar_rango_fechas(visitas, params)
+    # Buscador del historial de visitas (productor, documento, UP, predio, tipo...).
+    visitas = filtrar_texto(
+        visitas,
+        params.get('search'),
+        [
+            'Solicitud__Usuario__persona__primer_nombre',
+            'Solicitud__Usuario__persona__segundo_nombre',
+            'Solicitud__Usuario__persona__primer_apellido',
+            'Solicitud__Usuario__persona__segundo_apellido',
+            'Solicitud__Usuario__persona__numero_documento',
+            'Solicitud__Usuario__email',
+            'Solicitud__UP__RUEA',
+            'Solicitud__UP__Predio__NombrePredio',
+            'TipoVisita__TipoVisita',
+            'Ubicacion',
+            'Solicitud__Observacion',
+        ],
+    )
+
+    # Pendientes: la más próxima primero. Realizadas: la más reciente primero.
+    estado = params.get('estado')
+    if estado == 'pendientes':
+        visitas = visitas.filter(estado=False).order_by('FechaYHoraVisita', 'id')
+    elif estado == 'realizadas':
+        visitas = visitas.filter(estado=True).order_by('-FechaYHoraVisita', '-id')
+    else:
+        visitas = visitas.order_by('FechaYHoraVisita', 'id')
+
+    # Siempre paginado (sin ?page= las páginas son de 200); el calendario recibe el
+    # rango completo porque api.js recorre las páginas.
+    return respuesta_paginada(request, visitas, VisitasSerializer)
 
 
 @api_view(['GET'])
@@ -300,14 +340,8 @@ def mis_ordenes(request):
 
     visitas = (
         Visitas.objects
-        .select_related(
-            'Solicitud__MotivoSolicitud',
-            'Solicitud__Usuario__persona',
-            'Funcionario__usuario__persona',
-            'TipoVisita'
-        )
+        .select_related(*VISITAS_RELACIONADAS)
         .filter(Funcionario=funcionario, Administrador__isnull=True)
-        .order_by('-FechaYHoraVisita')
+        .order_by('-FechaYHoraVisita', '-id')
     )
-    serializer = VisitasSerializer(visitas, many=True)
-    return Response(serializer.data)
+    return respuesta_paginada(request, visitas, VisitasSerializer)

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
-import { getInsumos, getInventarioFuncionario } from '../../../../../services/agroService'
+import { getInsumos, getInventarioFuncionario } from '../../../../../services/inventarioService'
 import { getUnidades } from '../../../../../services/caracterizacionService'
 
 const inputClase = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"

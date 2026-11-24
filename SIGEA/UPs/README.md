@@ -219,6 +219,8 @@ Rutas registradas en `urls.py`, bajo el prefijo `/api/UPs/`.
 | `/api/UPs/eventosUP/` | `EventosUPViewSet` |
 | `/api/UPs/UPs/` | `UPViewSet` |
 
+`/api/UPs/eventosUP/` acepta `search` (título, lugar y descripción), ordena del evento más reciente al más antiguo y se pagina como todos los listados (`?page=`, `?page_size=`; sin ellos, páginas de 200).
+
 ### Rutas de acción
 
 | Endpoint | Vista | Método |

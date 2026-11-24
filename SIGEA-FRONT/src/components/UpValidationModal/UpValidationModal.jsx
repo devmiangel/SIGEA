@@ -3,7 +3,8 @@ import Swal from 'sweetalert2'
 import { AGRO_COLORS, ESTADO_VISITA, UP_ESTADO_RAW, esUPValidada, normalizarEstadoUP } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 import { formatFecha } from '../../utils/dateHelpers'
-import { validarUP, generarInformeVisita } from '../../services/agroService'
+import { validarUP } from '../../services/upsService'
+import { generarInformeVisita } from '../../services/documentosService'
 
 const descargarInforme = async (visita) => {
     try {
@@ -39,7 +40,7 @@ const mostrarError = (mensaje) => Swal.fire({
     confirmButtonColor: AGRO_COLORS.primary
 })
 
-export default function UpValidationModal({ visita, numero, onDecision, onClose }) {
+export default function UpValidationModal({ visita, onDecision, onClose }) {
     const openedRef = useRef(false)
 
     useEffect(() => {
@@ -92,7 +93,7 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                         <div style="min-width:0;">
                             <p style="margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9ca3af;">Validación de Unidad Productiva</p>
                             <h2 style="margin:2px 0 0;font-size:17px;font-weight:600;color:#1f2937;line-height:1.3;">${nombreUP}</h2>
-                            <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${numero} · ${badgeEstado}</p>
+                            <p style="margin:4px 0 0;font-size:12.5px;color:#6b7280;">Visita #${visita.id} · ${badgeEstado}</p>
                         </div>
                     </div>
                     <div style="display:grid; gap:12px; padding:14px 0;">
@@ -190,7 +191,7 @@ export default function UpValidationModal({ visita, numero, onDecision, onClose 
                 await descargarInforme(visita)
             }
         })
-    }, [visita, numero, onDecision, onClose])
+    }, [visita, onDecision, onClose])
 
     return null
 }

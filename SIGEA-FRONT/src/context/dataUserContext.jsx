@@ -1,37 +1,36 @@
-import { createContext, useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Swal from "sweetalert2";
 import { currentUserService } from "../services/authService";
 import { SESSION_EXPIRED_EVENT, resetSessionExpiredFlag } from "../services/api";
+import { ContxtCurrentUser } from "./contextoUsuario";
 
-export const ContxtCurrentUser = createContext()
+const leerTokenGuardado = () => localStorage.getItem('token')
 
 export function CurrentUserDataProvider ({children}){
     const [user, setUser] = useState(null)
-    const [token, setToken] = useState(null)
-    const [loading, setLoading] = useState(true)
+    // El token guardado se lee al crear el estado (no en un efecto): así no hay
+    // un render extra, y "loading" solo empieza en true si hay sesión que verificar.
+    const [token, setToken] = useState(leerTokenGuardado)
+    const [loading, setLoading] = useState(() => Boolean(leerTokenGuardado()))
 
     // Referencia al usuario actual para el listener de expiración (evita closures viejos).
     const userRef = useRef(null)
     useEffect(() => { userRef.current = user }, [user])
 
+    // Con un token guardado, se trae el usuario completo desde /api/me/.
     useEffect(() => {
-        const storedToken = localStorage.getItem('token')
-        if (storedToken) {
-            setToken(storedToken)
-            currentUserService()
-                .then(userData => {
-                    setUser(userData)
-                })
-                .catch(() => {
-                    localStorage.removeItem('token')
-                    localStorage.removeItem('user')
-                    setToken(null)
-                    setUser(null)
-                })
-                .finally(() => setLoading(false))
-        } else {
-            setLoading(false)
-        }
+        if (!leerTokenGuardado()) return
+        currentUserService()
+            .then(userData => {
+                setUser(userData)
+            })
+            .catch(() => {
+                localStorage.removeItem('token')
+                localStorage.removeItem('user')
+                setToken(null)
+                setUser(null)
+            })
+            .finally(() => setLoading(false))
     }, [])
 
     const login = (userData, userToken) => {

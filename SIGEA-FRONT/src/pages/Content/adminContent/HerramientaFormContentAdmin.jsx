@@ -9,7 +9,7 @@ import {
     getHerramienta,
     getTiposHerramientas,
     crearTipoHerramienta,
-} from "../../../services/agroService"
+} from "../../../services/inventarioService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import { getApiErrorMessage } from "../../../utils/getApiErrorMessage"
 import Swal from 'sweetalert2'

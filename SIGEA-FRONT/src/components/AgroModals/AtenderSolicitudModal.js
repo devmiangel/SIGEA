@@ -1,5 +1,6 @@
 import Swal from 'sweetalert2'
-import { getFuncionarios, getTiposVisitas } from '../../services/agroService'
+import { getFuncionarios } from '../../services/usuariosService'
+import { getTiposVisitas } from '../../services/visitasService'
 import { AGRO_COLORS, ESTADO_LABEL, MOTIVO_LABEL, AUTOCOMPLETE_MAX_RESULTS } from '../../utils/agroConstants'
 import { escapeHtml } from '../../utils/sanitize'
 

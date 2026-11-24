@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import VisitaInfoCard from "../../../components/VisitaInfoCard/VisitaInfoCard"
 import PaginationBar from "../../../components/PaginationBar/PaginationBar"
 import { usePaginatedList } from "../../../hooks/usePaginatedList"
-import { getVisitas } from "../../../services/agroService"
+import { getVisitas } from "../../../services/visitasService"
 import { mostrarInfoVisita } from "../../../components/AgroModals/InfoVisitaModal"
 
 export default function VisitasContentAdmin() {
@@ -25,8 +25,8 @@ export default function VisitasContentAdmin() {
         estado: estadoFiltro === 'todas' ? '' : estadoFiltro,
     })
 
-    const handleClick = (visita, numero) => {
-        mostrarInfoVisita(visita, numero)
+    const handleClick = (visita) => {
+        mostrarInfoVisita(visita)
     }
 
     return (
@@ -77,17 +77,13 @@ export default function VisitasContentAdmin() {
                     ) : (
                         <>
                             <div className="space-y-3">
-                                {visitas.map((visita, i) => {
-                                    const numero = (page - 1) * pageSize + i + 1
-                                    return (
-                                        <VisitaInfoCard
-                                            key={visita.id}
-                                            visita={visita}
-                                            numero={numero}
-                                            onClick={() => handleClick(visita, numero)}
-                                        />
-                                    )
-                                })}
+                                {visitas.map((visita) => (
+                                    <VisitaInfoCard
+                                        key={visita.id}
+                                        visita={visita}
+                                        onClick={() => handleClick(visita)}
+                                    />
+                                ))}
                             </div>
                             <PaginationBar
                                 page={page}

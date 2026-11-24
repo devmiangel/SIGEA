@@ -10,15 +10,11 @@ import VisitaInfo from '../../../components/VisitaInfo/VisitaInfo'
 import { AGRO_COLORS } from '../../../utils/agroConstants'
 import { getNombreCompleto } from '../../../utils/userDisplay'
 import { escapeHtml } from '../../../utils/sanitize'
-import {
-    buscarProductoresUsuarios,
-    crearOrdenVisita,
-    getMisOrdenes,
-    getTiposVisitas,
-    getDetalleUsuario,
-} from '../../../services/agroService'
+import { buscarProductoresUsuarios, getDetalleUsuario } from '../../../services/usuariosService'
+import { crearOrdenVisita, getMisOrdenes, getTiposVisitas } from '../../../services/visitasService'
 import { registerUser } from '../../../services/authService'
-import { API_BASE_URL } from '../../../services/api'
+import { getTiposDocumentos } from '../../../services/caracterizacionService'
+import { useCargarAlMontar } from '../../../hooks/useCargarAlMontar'
 
 const INPUT_CLASE = "w-full px-3 py-2 rounded-md border border-[#015d3b] outline-none focus:ring-2 focus:ring-[#015d3b]/40 text-sm bg-white"
 const LABEL_CLASE = "text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -90,14 +86,11 @@ export default function GestionContentEmployee() {
         }
     }, [])
 
-    useEffect(() => {
-        cargarOrdenes()
-    }, [cargarOrdenes])
+    useCargarAlMontar(cargarOrdenes)
 
     useEffect(() => {
         getTiposVisitas().then(setTiposVisitas).catch(() => {})
-        fetch(`${API_BASE_URL}/usuarios/tiposDocumentos/`)
-            .then((res) => res.json())
+        getTiposDocumentos()
             .then((data) => {
                 const lista = Array.isArray(data) ? data : (data.results ?? [])
                 setTiposDocumento(lista.map((i) => ({ value: i.id, label: i.TipoDocumento })))
@@ -510,8 +503,8 @@ export default function GestionContentEmployee() {
                         <p className="text-gray-500 text-sm">Aún no has generado órdenes de visita.</p>
                     ) : (
                         <div className="space-y-3">
-                            {ordenes.map((o, i) => (
-                                <VisitaCard key={o.id} visita={o} numero={i + 1} onClick={() => setSelectedOrden(o)} />
+                            {ordenes.map((o) => (
+                                <VisitaCard key={o.id} visita={o} onClick={() => setSelectedOrden(o)} />
                             ))}
                         </div>
                     )}
@@ -522,7 +515,6 @@ export default function GestionContentEmployee() {
             {selectedOrden && (
                 <VisitaInfo
                     visita={selectedOrden}
-                    numero={ordenes.findIndex((x) => x.id === selectedOrden.id) + 1}
                     onClose={() => setSelectedOrden(null)}
                     onReagendada={cargarOrdenes}
                 />

@@ -3,6 +3,24 @@ from rest_framework import serializers
 from ..models import Usuario
 from .personas import PersonaBasicaSerializer
 
+
+def rol_de_usuario(usuario):
+    """Rol de un usuario. La prioridad es Administradores > Funcionarios > Productores > Usuarios.
+
+    Sin consultas extra cuando el queryset trae select_related de las tablas de rol
+    y prefetch_related('groups') (ver UsuarioViewSet): `groups.all()` usa el prefetch.
+    """
+    if hasattr(usuario, 'administradores'):
+        return 'Administradores'
+    if hasattr(usuario, 'funcionarios'):
+        return 'Funcionarios'
+    if hasattr(usuario, 'productores'):
+        return 'Productores'
+    if any(grupo.name == 'Usuarios' for grupo in usuario.groups.all()):
+        return 'Usuarios'
+    return None
+
+
 class UsuarioSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
     persona_info = PersonaBasicaSerializer(source='persona', read_only=True)
@@ -17,22 +35,28 @@ class UsuarioSerializer(serializers.ModelSerializer):
         }
 
     def get_rol(self, obj):
-        if hasattr(obj, 'administradores'):
-            return 'Administradores'
-        elif hasattr(obj, 'funcionarios'):
-            return 'Funcionarios'
-        elif hasattr(obj, 'productores'):
-            return 'Productores'
-        elif obj.groups.filter(name='Usuarios').exists():
-            return 'Usuarios'
-        return None
+        return rol_de_usuario(obj)
 
     def _conductor(self, obj):
+        """Registro de conductor activo del funcionario (o None).
+
+        Usa `conductores_activos` si el queryset lo precargó (UsuarioViewSet); si no,
+        lo consulta. El resultado se guarda en el serializer (vive solo durante esta
+        respuesta) para que es_conductor y licencia no repitan la consulta.
+        """
+        cache = self.__dict__.setdefault('_conductores_por_usuario', {})
+        if obj.pk in cache:
+            return cache[obj.pk]
         funcionario = getattr(obj, 'funcionarios', None)
         if funcionario is None:
-            return None
-        from Inventario.models import Conductores
-        return Conductores.objects.filter(Funcionario=funcionario, Estado=True).first()
+            conductor = None
+        elif hasattr(funcionario, 'conductores_activos'):
+            conductor = funcionario.conductores_activos[0] if funcionario.conductores_activos else None
+        else:
+            from Inventario.models import Conductores
+            conductor = Conductores.objects.filter(Funcionario=funcionario, Estado=True).first()
+        cache[obj.pk] = conductor
+        return conductor
 
     def get_es_conductor(self, obj):
         return self._conductor(obj) is not None
@@ -87,20 +111,8 @@ class LoginSerializer(serializers.Serializer):
 
     #retorna el frupo al hacer login para mostrar el rol del usuario
     def to_representation(self, instance):
-        usuario = instance
-        rol = None
-        
-        if hasattr(usuario, 'administradores'):
-            rol = 'Administradores'
-        elif hasattr(usuario, 'funcionarios'):
-            rol = 'Funcionarios'
-        elif hasattr(usuario, 'productores'):
-            rol = 'Productores'
-        elif usuario.groups.filter(name='Usuarios').exists():
-            rol = 'Usuarios'
-        
         return {
-            'id': usuario.id,
-            'email': usuario.email,
-            'rol': rol
+            'id': instance.id,
+            'email': instance.email,
+            'rol': rol_de_usuario(instance),
         }

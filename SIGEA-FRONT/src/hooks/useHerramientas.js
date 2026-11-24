@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { getHerramientas, eliminarHerramienta } from '../services/agroService'
+import { getHerramientas, eliminarHerramienta } from '../services/inventarioService'
 import { usePaginatedList } from './usePaginatedList'
 
 export function useHerramientas(filtros = {}) {

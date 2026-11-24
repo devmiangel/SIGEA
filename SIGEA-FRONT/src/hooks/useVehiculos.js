@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { getVehiculos, eliminarVehiculo } from '../services/agroService'
+import { getVehiculos, eliminarVehiculo } from '../services/inventarioService'
 import { usePaginatedList } from './usePaginatedList'
 
 export function useVehiculos(filtros = {}) {

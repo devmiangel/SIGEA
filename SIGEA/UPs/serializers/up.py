@@ -2,6 +2,18 @@ from rest_framework import serializers
 
 from ..models import UP
 
+# Relaciones que lee UPSerializer. Toda consulta de UPs que se serialice con él debe
+# usar select_related(*UP_RELACIONADAS): así listar N UPs cuesta una consulta y no
+# cuatro o cinco por cada UP.
+UP_RELACIONADAS = (
+    'idEstado',
+    'TipoUP',
+    'Predio',
+    'Productor__usuario__persona',
+    'ValidadoPor__usuario__persona',
+)
+
+
 class UPSerializer(serializers.ModelSerializer):
     estado_label = serializers.CharField(source='idEstado.Estado', read_only=True, default=None)
     tipo_up_label = serializers.CharField(source='TipoUP.TipoUP', read_only=True)

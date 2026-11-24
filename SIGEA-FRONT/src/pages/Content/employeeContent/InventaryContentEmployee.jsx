@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import ButtonLink from "../../../components/Tettles-Buttons/Buttons"
 import TabList from "../../../components/TabList/TabList"
@@ -13,8 +13,8 @@ import { abrirModalMisSolicitudes } from "../../../components/AgroModals/MisSoli
 import InsumoAsignadoCard from "../../../components/InsumoAsignadoCard/InsumoAsignadoCard"
 import { mostrarInfoInsumoAsignado } from "../../../components/AgroModals/InsumoAsignadoInfoModal"
 import { getUnidades } from "../../../services/caracterizacionService"
+import { getFuncionarios } from "../../../services/usuariosService"
 import {
-    getFuncionarios,
     getInventarioFuncionario,
     getCardexInsumoFuncionario,
     getRegistroAsignacionVehiculos,
@@ -24,7 +24,8 @@ import {
     getHerramientas,
     getVehiculos,
     crearSolicitudInsumo,
-} from "../../../services/agroService"
+} from "../../../services/inventarioService"
+import { useCargarAlMontar } from '../../../hooks/useCargarAlMontar'
 
 export default function InventaryContentEmployee(){
     const { user, loading: loadingUser } = useCurrentDataUser()
@@ -138,9 +139,11 @@ export default function InventaryContentEmployee(){
         }
     }, [user])
 
-    useEffect(() => {
+    // Los recursos dependen del funcionario autenticado: se cargan cuando hay usuario.
+    const cargarSiHayUsuario = useCallback(() => {
         if (user) cargarRecursos()
     }, [user, cargarRecursos])
+    useCargarAlMontar(cargarSiHayUsuario)
 
     const tituloUsuario = user?.persona_info
         ? `${user.persona_info.primer_nombre} ${user.persona_info.primer_apellido}`

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import TabList from "../../../../components/TabList/TabList"
 import { Header } from "../../../../components/Tettles-Buttons/Title"
@@ -6,12 +6,13 @@ import AgricultureIcon from '@mui/icons-material/Agriculture'
 import UserRequest from "../../../../components/UserRequest/UserRequest"
 import UPPReviewCard from "../../../../components/UPPReviewCard/UPPReviewCard"
 import Swal from 'sweetalert2'
-import { getMisUPs } from "../../../../services/agroService"
+import { getMisUPs } from "../../../../services/upsService"
 import { useCurrentDataUser } from "../../../../hooks/currentUserHook"
 import { useSolicitudes } from "../../../../hooks/useSolicitudes"
 import { abrirModalNuevaSolicitud } from "../../../../components/AgroModals/NuevaSolicitudModal"
 import { mostrarInfoSolicitud } from "../../../../components/AgroModals/AlertRequestInfoModal"
 import { AGRO_COLORS } from "../../../../utils/agroConstants"
+import { useCargarAlMontar } from '../../../../hooks/useCargarAlMontar'
 
 export default function ProductorView(){
     const navigate = useNavigate()
@@ -38,7 +39,7 @@ export default function ProductorView(){
         }
     }, [])
 
-    useEffect(() => { cargarUps() }, [cargarUps])
+    useCargarAlMontar(cargarUps)
 
     const handleAgregarUnidad = async () => {
         try {
@@ -60,7 +61,7 @@ export default function ProductorView(){
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo crear la solicitud. Intenta de nuevo.',
+                        text: res.error?.response?.data?.error || 'No se pudo crear la solicitud. Intenta de nuevo.',
                         confirmButtonColor: AGRO_COLORS.primary
                     })
                 }
