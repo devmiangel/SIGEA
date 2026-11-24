@@ -1,5 +1,4 @@
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import { formatFecha } from '../../utils/dateHelpers'
 
 export default function InsumoAsignadoCard({ item, onCardClick }) {
   const cantidad = Number(item?.Cantidad ?? 0)
@@ -32,10 +31,6 @@ export default function InsumoAsignadoCard({ item, onCardClick }) {
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#015d3b]/10 text-[#015d3b]">
           {cantidad} {unidad}
-        </span>
-
-        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-          {formatFecha(item?.fechaAsignacion)}
         </span>
 
         {observacion && (
