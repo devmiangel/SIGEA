@@ -2,9 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Header } from "../../../components/Tettles-Buttons/Title"
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import { Campo, CampoSelect, CampoCheck } from "../employeeContent/visitViews/fields"
+import { Campo, CampoSelectDinamico, CampoCheck } from "../employeeContent/visitViews/fields"
 import { crearInsumo, actualizarInsumo, getInsumo } from "../../../services/inventarioService"
-import { getUnidades } from "../../../services/caracterizacionService"
+import { getUnidades, crearUnidad } from "../../../services/caracterizacionService"
 import { AGRO_COLORS } from "../../../utils/agroConstants"
 import Swal from 'sweetalert2'
 
@@ -15,6 +15,8 @@ const INICIAL = {
     Descripcion: '',
     Estado: true,
 }
+
+const normalizar = (valor) => String(valor ?? '').trim().toLowerCase()
 
 const REQUERIDOS = [
     { nombre: 'Nombre', label: 'Nombre del insumo' },
@@ -69,6 +71,18 @@ export default function InsumoFormContentAdmin() {
 
     const onChange = (name, value) => setForm((f) => ({ ...f, [name]: value }))
 
+    // Igual que el tipo de vehículo: si la unidad no existe se crea desde el campo.
+    const handleCrearUnidad = async (valor) => {
+        const texto = String(valor ?? '').trim()
+        const existente = unidades.find((u) => normalizar(u.Unidad) === normalizar(texto))
+        if (existente) return existente
+        const registro = await crearUnidad(texto)
+        setUnidades((prev) => (
+            prev.some((u) => u.id === registro.id) ? prev : [...prev, registro]
+        ))
+        return registro
+    }
+
     const guardar = async () => {
         const faltantes = REQUERIDOS
             .filter((r) => !String(form[r.nombre] ?? '').trim())
@@ -94,12 +108,12 @@ export default function InsumoFormContentAdmin() {
             return
         }
 
-        const unidadId = unidades.find((u) => u.Unidad === form.Unidades)?.id
+        const unidadId = unidades.find((u) => normalizar(u.Unidad) === normalizar(form.Unidades))?.id
         if (!unidadId) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Unidad de medida inválida',
-                text: 'Seleccione una unidad de medida de la lista.',
+                text: 'Seleccione una unidad de medida de la lista o créela desde el campo.',
                 confirmButtonColor: AGRO_COLORS.primary,
             })
             return
@@ -159,6 +173,7 @@ export default function InsumoFormContentAdmin() {
                     <h3 className="text-base font-semibold text-gray-900">{esEdicion ? 'Editar insumo' : 'Nuevo insumo'}</h3>
                     <p className="text-xs text-gray-500">
                         Diligencia la información del insumo. Los campos marcados con * son obligatorios.
+                        Si la unidad de medida no existe, podrás crearla directamente desde el campo.
                     </p>
                 </div>
 
@@ -182,12 +197,14 @@ export default function InsumoFormContentAdmin() {
                                 onChange={onChange}
                                 placeholder="Ej. 50"
                             />
-                            <CampoSelect
+                            <CampoSelectDinamico
                                 name="Unidades"
                                 label="Unidad de medida *"
                                 value={form.Unidades}
                                 options={unidades.map((u) => u.Unidad)}
+                                onCrear={handleCrearUnidad}
                                 onChange={onChange}
+                                placeholder="Escriba o seleccione..."
                             />
                         </div>
 
